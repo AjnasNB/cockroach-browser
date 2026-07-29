@@ -112,7 +112,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, {
           ok: true,
           name: "cockroach-browser",
-          version: "0.1.0",
+          version: "0.1.1",
           sessions: (await runtime.sessions()).length,
           evidence: await runtime.evidence.verify()
         });

@@ -1,6 +1,6 @@
 {
   "name": "cockroach-browser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A local-first browser runtime for AI agents with authorized sessions, snapshot-scoped references, evidence capture, MCP, and Maqam policy hooks.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",
@@ -97,7 +97,7 @@
     "access": "public",
     "provenance": true
   },
-  "mcpName": "io.github.ajnasnb/cockroach-browser",
+  "mcpName": "io.github.AjnasNB/cockroach-browser",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
     "pixelmatch": "^7.1.0",

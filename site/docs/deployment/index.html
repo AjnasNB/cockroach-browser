@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.0</span>
+      <span class="version">0.1.1</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -68,13 +68,13 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token</c
 <p>Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.</p>
 <div class="code-block">
   <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-10">Copy</button></div>
-  <pre><code id="code-10">docker build -t cockroach-browser:0.1.0 .
+  <pre><code id="code-10">docker build -t cockroach-browser:0.1.1 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp \
   --tmpfs /data \
   -p 127.0.0.1:43110:43110 \
-  cockroach-browser:0.1.0</code></pre>
+  cockroach-browser:0.1.1</code></pre>
 </div>
   </section><section class="manual-section" id="remote-worker">
     <span class="section-number">03</span>

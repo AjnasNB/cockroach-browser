@@ -18,13 +18,13 @@ It detects login, consent, CAPTCHA, and access challenges and pauses for a human
 
 ## Release status
 
-Current release line: **0.1.0**
+Current release line: **0.1.1**
 
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
 - Capability registry: 63 entries, with 55 available, 6 adapter-backed, and 2 planned
-- MCP identity: `io.github.ajnasnb/cockroach-browser`
+- MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 
@@ -179,7 +179,7 @@ Start the daemon, load its token into the client process through a secret store,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.1.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.1.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
