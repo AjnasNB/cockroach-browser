@@ -4,6 +4,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import type { BrowserLifecycleEvent } from "../src/contracts.js";
 import { BrowserRuntime } from "../src/runtime.js";
 
 test(
@@ -34,8 +35,14 @@ test(
     assert(address && typeof address === "object");
     const origin = `http://127.0.0.1:${address.port}`;
 
+    const lifecycleEvents: BrowserLifecycleEvent[] = [];
     const runtime = new BrowserRuntime({
       root,
+      eventPublisher: {
+        async publish(event) {
+          lifecycleEvents.push(structuredClone(event));
+        }
+      },
       approvalProvider: {
         async authorize(request) {
           return {
@@ -161,5 +168,23 @@ test(
     });
     assert.equal((history.output as { returned: number }).returned >= 1, true);
     assert.equal((await runtime.evidence.verify()).ok, true);
+    assert.equal(
+      lifecycleEvents.some((event) => event.type === "browser.session.created"),
+      true
+    );
+    assert.equal(
+      lifecycleEvents.some((event) => (
+        event.type === "browser.action.completed"
+        && event.receiptHash
+      )),
+      true
+    );
+    assert.equal(
+      lifecycleEvents.some((event) => (
+        event.type === "browser.evidence.recorded"
+        && event.evidenceIds?.length
+      )),
+      true
+    );
   }
 );
