@@ -27,8 +27,8 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 
 - Cockroach Browser owns browser execution, tabs, semantic snapshots, browser evidence, audits, and authenticated worker transport.
 - Cockroach Crawler owns bounded public-web breadth, mapping, and extraction.
-- Qarinah stores compact cited outcomes but cannot dispatch browser actions.
-- Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
+- Qarinah stores compact cited read outcomes but cannot dispatch browser actions.
+- For browser operations routed through its adapter, Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
 - ProductLoop OS composes package contracts without silently combining their ledgers or authority.
 
 ## Challenge handling

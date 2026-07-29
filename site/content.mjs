@@ -265,7 +265,7 @@ export const pages = [
       {
         title: "Carry evidence into memory",
         body:
-          "<p>The Qarinah adapter records cited browser outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions and does not store hidden reasoning.</p>"
+          "<p>The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.</p>"
       }
     ]
   },
@@ -426,12 +426,12 @@ export const pages = [
     title: "Maqam integration",
     kicker: "Cockroach Browser executes. Maqam decides whether execution is allowed.",
     lede:
-      "The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.",
+      "For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.",
     sections: [
       {
         title: "Separate the authorities",
         body:
-          "<p>The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.</p>"
+          "<p>The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. For operations routed through the adapter, Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.</p>"
       },
       {
         title: "Observe and preview",
@@ -446,7 +446,7 @@ export const pages = [
       {
         title: "Do not expose the managed session directly",
         body:
-          "<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.</p>"
+          "<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.</p>"
       }
     ]
   },
@@ -460,7 +460,7 @@ export const pages = [
       {
         title: "Record metadata, not browser secrets",
         body:
-          "<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the purpose, selected source, outcome, receipt hash, and evidence pointers needed to verify the memory.</p>"
+          "<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.</p>"
       },
       {
         title: "Keep memory read-only with respect to the browser",
@@ -468,9 +468,9 @@ export const pages = [
           "<p>Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.</p>"
       },
       {
-        title: "Use a causal receipt chain",
+        title: "Link a causal receipt chain when it exists",
         body:
-          "<p>Connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt with stable IDs. This creates a reviewable path without claiming a single cross-system transaction.</p>"
+          "<p>A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.</p>"
       },
       {
         title: "Cross-tool context",
@@ -492,9 +492,9 @@ export const pages = [
           "<p>Start with the crawler for static HTTP, mapping, structured extraction, documents, feeds, and public-source breadth. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.</p>"
       },
       {
-        title: "Handoff by URL and purpose",
+        title: "Handoff explicit URLs and finite budgets",
         body:
-          "<p>The adapter passes explicit URLs and bounded crawl options. It does not share browser profiles, cookies, session secrets, or raw browser authority with the crawler.</p>"
+          "<p>The adapter passes explicit seed URLs, allowed origins, page ceilings, and other finite crawl budgets. Keep the browser-session purpose in local browser evidence and host orchestration records; it is not crawler authority. The handoff never shares browser profiles, cookies, authenticated state, session secrets, or interactive browser state.</p>"
       },
       {
         title: "Normalize the evidence",
@@ -511,19 +511,19 @@ export const pages = [
   {
     slug: "productloop",
     title: "ProductLoop OS",
-    kicker: "Register a bounded browser connector without collapsing every ledger into one runtime.",
+    kicker: "Describe a bounded browser capability without collapsing every ledger into one runtime.",
     lede:
-      "ProductLoop OS can describe Cockroach Browser as a composable connector while Maqam, Qarinah, Cockroach Crawler, and the browser retain distinct contracts and records.",
+      "A host-owned ProductLoop adapter can consume Cockroach Browser's structural capability snapshot while Maqam, Qarinah, Cockroach Crawler, ProductLoop, and the browser retain distinct contracts and records.",
     sections: [
       {
-        title: "Publish a deny-default manifest",
+        title: "Read the structural capability snapshot",
         body:
-          "<p>The connector manifest names observations, proposals, effects, required secrets, supported Node releases, and governance requirements. It never grants origins, profiles, or credentials by itself.</p>"
+          "<p><code>productLoopBrowserCapabilitySnapshot()</code> returns descriptive structural data for a host adapter: observations, proposals, effects, transports, supported Node releases, governance requirements, and lifecycle ownership. It is not a directly registerable ProductLoop connector manifest. Translate it into the exact versioned ProductLoop contract accepted by the installed release. The snapshot grants no origins, profiles, credentials, lifecycle, or action authority.</p>"
       },
       {
         title: "Use Maqam as the gateway",
         body:
-          "<p>Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Read-only research adapters may expose bounded observations directly when their host policy allows it.</p>"
+          "<p>Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Maqam governance applies only when the operation is actually routed through that adapter. Read-only structural adapters may expose bounded observations directly when their host policy allows it.</p>"
       },
       {
         title: "Keep ledgers distinct",
@@ -533,7 +533,7 @@ export const pages = [
       {
         title: "Current status",
         body:
-          "<p>The ProductLoop integration is an adapter surface in 0.1.0. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
+          "<p>The ProductLoop integration in 0.1.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
       }
     ]
   },

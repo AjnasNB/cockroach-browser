@@ -10,9 +10,9 @@ Public manual: https://cockroachbrowser.com/docs/crawler/
 
 Start with the crawler for static HTTP, mapping, structured extraction, documents, feeds, and public-source breadth. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.
 
-## Handoff by URL and purpose
+## Handoff explicit URLs and finite budgets
 
-The adapter passes explicit URLs and bounded crawl options. It does not share browser profiles, cookies, session secrets, or raw browser authority with the crawler.
+The adapter passes explicit seed URLs, allowed origins, page ceilings, and other finite crawl budgets. Keep the browser-session purpose in local browser evidence and host orchestration records; it is not crawler authority. The handoff never shares browser profiles, cookies, authenticated state, session secrets, or interactive browser state.
 
 ## Normalize the evidence
 

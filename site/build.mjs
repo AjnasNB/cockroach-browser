@@ -199,7 +199,7 @@ ${header("home")}
       <div class="workflow">
         <article><b>01</b><h3>Observe</h3><p>Capture a bounded semantic snapshot with snapshot-scoped refs, source URL, digest, and challenge state.</p></article>
         <article><b>02</b><h3>Propose</h3><p>Name the exact action, target ref, purpose, effect, and expected revision.</p></article>
-        <article><b>03</b><h3>Approve</h3><p>Route consequential actions through Maqam for policy and exact one-use approval.</p></article>
+        <article><b>03</b><h3>Approve</h3><p>When configured, route consequential actions through Maqam for policy and exact one-use approval.</p></article>
         <article><b>04</b><h3>Execute</h3><p>Run the admitted action inside one authorized Chromium session and finite budget.</p></article>
         <article><b>05</b><h3>Prove</h3><p>Keep artifacts and a hash-chained receipt linking input, decision, outcome, and evidence.</p></article>
       </div>
@@ -214,8 +214,8 @@ ${header("home")}
       <div class="stack-grid">
         <article><span class="tag">Execute</span><h3>Cockroach Browser</h3><p>Owns Chromium, sessions, semantic refs, interactions, browser evidence, audits, and local worker transport.</p></article>
         <article><span class="tag">Discover</span><h3>Cockroach Crawler</h3><p>Maps and extracts bounded public sources at breadth, then hands selected rendered paths to the browser.</p></article>
-        <article><span class="tag">Remember</span><h3>Qarinah</h3><p>Stores compact cited outcomes and source links without gaining browser dispatch or profile authority.</p></article>
-        <article><span class="tag">Govern</span><h3>Maqam</h3><p>Owns policy, exact approval, replay protection, effect controls, dispatch, and governance receipts.</p></article>
+        <article><span class="tag">Remember</span><h3>Qarinah</h3><p>Stores compact cited read outcomes and source links without gaining browser dispatch or profile authority.</p></article>
+        <article><span class="tag">Govern</span><h3>Maqam</h3><p>For operations routed through its adapter, owns policy, exact approval, replay protection, dispatch, and governance receipts.</p></article>
       </div>
     </div>
   </section>
@@ -496,8 +496,8 @@ ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}]
 
 - Cockroach Browser owns browser execution, tabs, semantic snapshots, browser evidence, audits, and authenticated worker transport.
 - Cockroach Crawler owns bounded public-web breadth, mapping, and extraction.
-- Qarinah stores compact cited outcomes but cannot dispatch browser actions.
-- Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
+- Qarinah stores compact cited read outcomes but cannot dispatch browser actions.
+- For browser operations routed through its adapter, Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
 - ProductLoop OS composes package contracts without silently combining their ledgers or authority.
 
 ## Challenge handling

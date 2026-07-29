@@ -1,18 +1,18 @@
 # ProductLoop OS
 
-Register a bounded browser connector without collapsing every ledger into one runtime.
+Describe a bounded browser capability without collapsing every ledger into one runtime.
 
-ProductLoop OS can describe Cockroach Browser as a composable connector while Maqam, Qarinah, Cockroach Crawler, and the browser retain distinct contracts and records.
+A host-owned ProductLoop adapter can consume Cockroach Browser's structural capability snapshot while Maqam, Qarinah, Cockroach Crawler, ProductLoop, and the browser retain distinct contracts and records.
 
 Public manual: https://cockroachbrowser.com/docs/productloop/
 
-## Publish a deny-default manifest
+## Read the structural capability snapshot
 
-The connector manifest names observations, proposals, effects, required secrets, supported Node releases, and governance requirements. It never grants origins, profiles, or credentials by itself.
+productLoopBrowserCapabilitySnapshot() returns descriptive structural data for a host adapter: observations, proposals, effects, transports, supported Node releases, governance requirements, and lifecycle ownership. It is not a directly registerable ProductLoop connector manifest. Translate it into the exact versioned ProductLoop contract accepted by the installed release. The snapshot grants no origins, profiles, credentials, lifecycle, or action authority.
 
 ## Use Maqam as the gateway
 
-Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Read-only research adapters may expose bounded observations directly when their host policy allows it.
+Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Maqam governance applies only when the operation is actually routed through that adapter. Read-only structural adapters may expose bounded observations directly when their host policy allows it.
 
 ## Keep ledgers distinct
 
@@ -20,7 +20,7 @@ Browser evidence proves what Chromium observed and executed. Maqam proves the po
 
 ## Current status
 
-The ProductLoop integration is an adapter surface in 0.1.0. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
+The ProductLoop integration in 0.1.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
 
 
 ## Release status

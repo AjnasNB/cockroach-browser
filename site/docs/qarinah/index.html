@@ -53,22 +53,22 @@
     <section class="manual-section" id="record-metadata-not-browser-secrets">
     <span class="section-number">01</span>
     <h2>Record metadata, not browser secrets</h2>
-<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the purpose, selected source, outcome, receipt hash, and evidence pointers needed to verify the memory.</p>
+<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.</p>
   </section><section class="manual-section" id="keep-memory-read-only-with-respect-to-the-browser">
     <span class="section-number">02</span>
     <h2>Keep memory read-only with respect to the browser</h2>
 <p>Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.</p>
-  </section><section class="manual-section" id="use-a-causal-receipt-chain">
+  </section><section class="manual-section" id="link-a-causal-receipt-chain-when-it-exists">
     <span class="section-number">03</span>
-    <h2>Use a causal receipt chain</h2>
-<p>Connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt with stable IDs. This creates a reviewable path without claiming a single cross-system transaction.</p>
+    <h2>Link a causal receipt chain when it exists</h2>
+<p>A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.</p>
   </section><section class="manual-section" id="cross-tool-context">
     <span class="section-number">04</span>
     <h2>Cross-tool context</h2>
 <p>The same cited memory pack can be consumed by coding agents and CLIs that support the Qarinah integration. Authority remains scoped by workspace and source provenance.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#record-metadata-not-browser-secrets">Record metadata, not browser secrets</a><a href="#keep-memory-read-only-with-respect-to-the-browser">Keep memory read-only with respect to the browser</a><a href="#use-a-causal-receipt-chain">Use a causal receipt chain</a><a href="#cross-tool-context">Cross-tool context</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#record-metadata-not-browser-secrets">Record metadata, not browser secrets</a><a href="#keep-memory-read-only-with-respect-to-the-browser">Keep memory read-only with respect to the browser</a><a href="#link-a-causal-receipt-chain-when-it-exists">Link a causal receipt chain when it exists</a><a href="#cross-tool-context">Cross-tool context</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

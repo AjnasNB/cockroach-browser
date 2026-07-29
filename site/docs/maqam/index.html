@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Maqam integration | Cockroach Browser</title>
-  <meta name="description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta name="description" content="For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.">
   <meta name="theme-color" content="#050a0d">
   <link rel="canonical" href="https://cockroachbrowser.com/docs/maqam/">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Maqam integration | Cockroach Browser">
-  <meta property="og:description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta property="og:description" content="For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.">
   <meta property="og:url" content="https://cockroachbrowser.com/docs/maqam/">
   <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Maqam integration | Cockroach Browser">
-  <meta name="twitter:description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta name="twitter:description" content="For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
 </head>
 <body>
@@ -48,12 +48,12 @@
       <p class="eyebrow">Cockroach Browser manual / Maqam integration</p>
       <h1>Maqam integration</h1>
       <p class="kicker">Cockroach Browser executes. Maqam decides whether execution is allowed.</p>
-      <p class="lede">The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.</p>
+      <p class="lede">For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.</p>
     </header>
     <section class="manual-section" id="separate-the-authorities">
     <span class="section-number">01</span>
     <h2>Separate the authorities</h2>
-<p>The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.</p>
+<p>The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. For operations routed through the adapter, Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.</p>
   </section><section class="manual-section" id="observe-and-preview">
     <span class="section-number">02</span>
     <h2>Observe and preview</h2>
@@ -65,7 +65,7 @@
   </section><section class="manual-section" id="do-not-expose-the-managed-session-directly">
     <span class="section-number">04</span>
     <h2>Do not expose the managed session directly</h2>
-<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.</p>
+<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.</p>
   </section>
   </article>
   <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#separate-the-authorities">Separate the authorities</a><a href="#observe-and-preview">Observe and preview</a><a href="#apply-or-submit-once">Apply or submit once</a><a href="#do-not-expose-the-managed-session-directly">Do not expose the managed session directly</a></aside>
