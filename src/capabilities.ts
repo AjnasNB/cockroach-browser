@@ -70,7 +70,7 @@ export const CAPABILITIES: readonly Capability[] = Object.freeze([
   ["integration.maqam", "integration", "Maqam governance", "Route high-risk browser actions through exact approval and receipts.", "adapter", "cockroach-browser/maqam"],
   ["integration.qarinah", "integration", "Qarinah memory", "Record cited browser outcomes without persisting hidden reasoning or secrets.", "adapter", "cockroach-browser/qarinah"],
   ["integration.crawler", "integration", "Cockroach Crawler handoff", "Hand breadth-first collection to the crawler while retaining browser evidence.", "adapter", "cockroach-browser/crawler"],
-  ["integration.productloop", "integration", "ProductLoop OS manifest", "Register browser capabilities as a composable stack connector.", "adapter", "docs/integrations/productloop.md"],
+  ["integration.productloop", "integration", "ProductLoop capability snapshot", "Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority.", "adapter", "docs/productloop.md"],
   ["integration.webhooks", "integration", "Signed event webhooks", "Send receipt and job events to configured HTTPS endpoints.", "planned", "roadmap"],
   ["integration.team_sync", "integration", "Team session control", "Share policy and receipts without sharing raw browser profiles.", "planned", "roadmap"]
 ].map(([id, group, title, summary, status, surface]) => ({ id, group, title, summary, status, surface })) as Capability[]);

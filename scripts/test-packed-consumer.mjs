@@ -26,12 +26,16 @@ try {
 import { createMaqamBrowserDriver } from "cockroach-browser/maqam";
 import { createQarinahContextRecorder } from "cockroach-browser/qarinah";
 import { createCrawlerHandoff } from "cockroach-browser/crawler";
+import { productLoopBrowserCapabilitySnapshot } from "cockroach-browser/productloop";
+import memorySchema from "cockroach-browser/schemas/browser-memory.schema.json" with { type: "json" };
 import server from "cockroach-browser/server.json" with { type: "json" };
 if (CAPABILITIES.length < 1) throw new Error("capabilities missing");
 if (typeof BrowserClient !== "function") throw new Error("client missing");
 if (typeof createMaqamBrowserDriver !== "function") throw new Error("Maqam adapter missing");
 if (typeof createQarinahContextRecorder !== "function") throw new Error("Qarinah adapter missing");
 if (typeof createCrawlerHandoff !== "function") throw new Error("crawler adapter missing");
+if (typeof productLoopBrowserCapabilitySnapshot !== "function") throw new Error("ProductLoop snapshot missing");
+if (memorySchema.properties?.schemaVersion?.const !== "cockroach.browser-memory.v1") throw new Error("memory schema mismatch");
 if (server.name !== "io.github.ajnasnb/cockroach-browser") throw new Error("MCP identity mismatch");
 process.stdout.write(JSON.stringify({ ok: true, capabilities: CAPABILITIES.length }) + "\\n");
 `

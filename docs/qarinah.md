@@ -8,15 +8,15 @@ Public manual: https://cockroachbrowser.com/docs/qarinah/
 
 ## Record metadata, not browser secrets
 
-The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the purpose, selected source, outcome, receipt hash, and evidence pointers needed to verify the memory.
+The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.
 
 ## Keep memory read-only with respect to the browser
 
 Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.
 
-## Use a causal receipt chain
+## Link a causal receipt chain when it exists
 
-Connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt with stable IDs. This creates a reviewable path without claiming a single cross-system transaction.
+A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.
 
 ## Cross-tool context
 

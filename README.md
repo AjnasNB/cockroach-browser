@@ -298,10 +298,10 @@ CLI; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local das
 
 Adapter-backed:
 
-- Maqam governance
+- Maqam governance for operations routed through its adapter
 - Qarinah memory
 - Cockroach Crawler handoff
-- ProductLoop OS manifest
+- ProductLoop OS capability snapshot
 
 Planned:
 
@@ -352,12 +352,12 @@ import { createQarinahContextRecorder } from "cockroach-browser/qarinah";
 
 const recorder = createQarinahContextRecorder({
   async appendBrowserOutcome(event) {
-    await qarinah.appendBrowserOutcome(event);
+    await hostProvidedQarinahSink.appendBrowserOutcome(event);
   }
 });
 ```
 
-Qarinah receives cited, metadata-only browser outcomes. The recorder recursively removes authorization data, cookies, credentials, passwords, passphrases, secrets, tokens, storage values, form values, and API keys. It does not persist hidden reasoning or profile data.
+The host supplies the persistence callback supported by its installed Qarinah release. Qarinah receives cited, metadata-only read outcomes. The recorder recursively removes authorization data, cookies, credentials, passwords, passphrases, secrets, tokens, storage values, form values, and API keys. It does not persist hidden reasoning or profile data. For consequential mutations, a host may link the sanitized outcome to a complete causal receipt chain when every stage exists; the recorder does not invent or require that chain.
 
 ### Cockroach Crawler
 
@@ -367,17 +367,19 @@ import { createCrawlerHandoff } from "cockroach-browser/crawler";
 const handoff = createCrawlerHandoff(crawler);
 ```
 
-Use Cockroach Crawler for broad, bounded collection and Cockroach Browser for interactive page evidence. The handoff copies seeds, allowed origins, page limits, and purpose without sharing interactive profiles or browser session state.
+Use Cockroach Crawler for broad, bounded collection and Cockroach Browser for interactive page evidence. Only explicit seed URLs, allowed origins, and finite crawl budgets cross the boundary. Keep the browser-session purpose in the browser evidence and host orchestration record; do not pass it as crawler authority. Profiles, cookies, authenticated state, session secrets, and interactive browser state never cross the handoff.
 
 ### ProductLoop OS
 
 ```js
-import { productLoopBrowserManifest } from "cockroach-browser";
+import { productLoopBrowserCapabilitySnapshot } from "cockroach-browser/productloop";
 
-const connector = productLoopBrowserManifest();
+const browserCapabilitySnapshot = productLoopBrowserCapabilitySnapshot();
 ```
 
-The manifest declares SDK, HTTP, and MCP transports, default-deny permissions, Maqam-required writes, and host-owned lifecycle authority.
+The returned value is a structural capability snapshot for a host-owned ProductLoop adapter. It describes observations, proposals, effects, transports, governance requirements, and lifecycle ownership; it is not a directly registerable ProductLoop connector manifest. Translate it into the exact versioned ProductLoop contract accepted by the installed release. The snapshot grants no origin, profile, credential, lifecycle, or action authority.
+
+Maqam governance applies only to browser operations routed through `createMaqamBrowserDriver` and a Maqam gateway. Cockroach Browser also has trusted-host SDK and explicitly enabled raw-action surfaces; those remain under host policy and must not be described as Maqam-governed unless the host actually routes them through the adapter.
 
 ## Challenge handling
 

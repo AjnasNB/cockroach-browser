@@ -65,7 +65,7 @@ Each action receipt links to the previous receipt hash. The chain exposes missin
 HAR, video, trace, console, and network capture can contain sensitive material. Enable them per session, apply evidence byte ceilings, and keep the evidence directory under deployment-owned access control.
 
 ### Carry evidence into memory
-The Qarinah adapter records cited browser outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions and does not store hidden reasoning.
+The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.
 
 ## Network boundary
 
@@ -149,10 +149,10 @@ MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, 
 
 ## Maqam integration
 
-The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.
+For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.
 
 ### Separate the authorities
-The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
+The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. For operations routed through the adapter, Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
 
 ### Observe and preview
 observe returns current page state and a stable revision. preview resolves the requested operation against that revision. If the target changed, the operation must be observed and previewed again.
@@ -161,20 +161,20 @@ observe returns current page state and a stable revision. preview resolves the r
 apply covers structural browser operations. submit covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.
 
 ### Do not expose the managed session directly
-A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.
+A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.
 
 ## Qarinah integration
 
 Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.
 
 ### Record metadata, not browser secrets
-The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the purpose, selected source, outcome, receipt hash, and evidence pointers needed to verify the memory.
+The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.
 
 ### Keep memory read-only with respect to the browser
 Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.
 
-### Use a causal receipt chain
-Connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt with stable IDs. This creates a reviewable path without claiming a single cross-system transaction.
+### Link a causal receipt chain when it exists
+A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.
 
 ### Cross-tool context
 The same cited memory pack can be consumed by coding agents and CLIs that support the Qarinah integration. Authority remains scoped by workspace and source provenance.
@@ -186,8 +186,8 @@ Cockroach Crawler maps and extracts public web content at bounded scale. Cockroa
 ### Choose the right engine
 Start with the crawler for static HTTP, mapping, structured extraction, documents, feeds, and public-source breadth. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.
 
-### Handoff by URL and purpose
-The adapter passes explicit URLs and bounded crawl options. It does not share browser profiles, cookies, session secrets, or raw browser authority with the crawler.
+### Handoff explicit URLs and finite budgets
+The adapter passes explicit seed URLs, allowed origins, page ceilings, and other finite crawl budgets. Keep the browser-session purpose in local browser evidence and host orchestration records; it is not crawler authority. The handoff never shares browser profiles, cookies, authenticated state, session secrets, or interactive browser state.
 
 ### Normalize the evidence
 Keep source URL, capture time, content digest, extraction method, and failure state across the handoff. Maqam may govern both tools while retaining separate receipts and effect models.
@@ -197,19 +197,19 @@ Map once with the crawler, rank candidate pages, then render only the pages that
 
 ## ProductLoop OS
 
-ProductLoop OS can describe Cockroach Browser as a composable connector while Maqam, Qarinah, Cockroach Crawler, and the browser retain distinct contracts and records.
+A host-owned ProductLoop adapter can consume Cockroach Browser's structural capability snapshot while Maqam, Qarinah, Cockroach Crawler, ProductLoop, and the browser retain distinct contracts and records.
 
-### Publish a deny-default manifest
-The connector manifest names observations, proposals, effects, required secrets, supported Node releases, and governance requirements. It never grants origins, profiles, or credentials by itself.
+### Read the structural capability snapshot
+productLoopBrowserCapabilitySnapshot() returns descriptive structural data for a host adapter: observations, proposals, effects, transports, supported Node releases, governance requirements, and lifecycle ownership. It is not a directly registerable ProductLoop connector manifest. Translate it into the exact versioned ProductLoop contract accepted by the installed release. The snapshot grants no origins, profiles, credentials, lifecycle, or action authority.
 
 ### Use Maqam as the gateway
-Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Read-only research adapters may expose bounded observations directly when their host policy allows it.
+Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Maqam governance applies only when the operation is actually routed through that adapter. Read-only structural adapters may expose bounded observations directly when their host policy allows it.
 
 ### Keep ledgers distinct
 Browser evidence proves what Chromium observed and executed. Maqam proves the policy and approval path. Qarinah preserves cited project memory. ProductLoop coordinates packages and workflows. Stable IDs connect these records without pretending they are one database.
 
 ### Current status
-The ProductLoop integration is an adapter surface in 0.1.0. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
+The ProductLoop integration in 0.1.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
 
 ## Security
 
@@ -312,6 +312,6 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Maqam governance [adapter]: Route high-risk browser actions through exact approval and receipts. Surface: cockroach-browser/maqam.
 - Qarinah memory [adapter]: Record cited browser outcomes without persisting hidden reasoning or secrets. Surface: cockroach-browser/qarinah.
 - Cockroach Crawler handoff [adapter]: Hand breadth-first collection to the crawler while retaining browser evidence. Surface: cockroach-browser/crawler.
-- ProductLoop OS manifest [adapter]: Register browser capabilities as a composable stack connector. Surface: docs/integrations/productloop.md.
+- ProductLoop capability snapshot [adapter]: Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority. Surface: docs/productloop.md.
 - Signed event webhooks [planned]: Send receipt and job events to configured HTTPS endpoints. Surface: roadmap.
 - Team session control [planned]: Share policy and receipts without sharing raw browser profiles. Surface: roadmap.

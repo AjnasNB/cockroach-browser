@@ -49,7 +49,8 @@ const requiredSourceFiles = [
   "dist/integrations/maqam.js",
   "dist/integrations/qarinah.js",
   "dist/integrations/crawler.js",
-  "dist/integrations/productloop.js"
+  "dist/integrations/productloop.js",
+  "schemas/browser-memory.schema.json"
 ];
 for (const path of requiredSourceFiles) await access(resolve(root, path));
 

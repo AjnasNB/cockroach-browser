@@ -64,7 +64,7 @@ This file is generated from `src/capabilities.ts`.
 | `integration.maqam` | integration | Maqam governance | **adapter** | `cockroach-browser/maqam` |
 | `integration.qarinah` | integration | Qarinah memory | **adapter** | `cockroach-browser/qarinah` |
 | `integration.crawler` | integration | Cockroach Crawler handoff | **adapter** | `cockroach-browser/crawler` |
-| `integration.productloop` | integration | ProductLoop OS manifest | **adapter** | `docs/integrations/productloop.md` |
+| `integration.productloop` | integration | ProductLoop capability snapshot | **adapter** | `docs/productloop.md` |
 | `integration.webhooks` | integration | Signed event webhooks | **planned** | `roadmap` |
 | `integration.team_sync` | integration | Team session control | **planned** | `roadmap` |
 

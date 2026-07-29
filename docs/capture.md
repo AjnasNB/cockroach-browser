@@ -20,7 +20,7 @@ HAR, video, trace, console, and network capture can contain sensitive material. 
 
 ## Carry evidence into memory
 
-The Qarinah adapter records cited browser outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions and does not store hidden reasoning.
+The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.
 
 
 ## Release status

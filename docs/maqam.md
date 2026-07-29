@@ -2,13 +2,13 @@
 
 Cockroach Browser executes. Maqam decides whether execution is allowed.
 
-The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.
+For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.
 
 Public manual: https://cockroachbrowser.com/docs/maqam/
 
 ## Separate the authorities
 
-The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
+The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. For operations routed through the adapter, Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
 
 ## Observe and preview
 
@@ -20,7 +20,7 @@ apply covers structural browser operations. submit covers form submission. The a
 
 ## Do not expose the managed session directly
 
-A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.
+A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.
 
 
 ## Release status
