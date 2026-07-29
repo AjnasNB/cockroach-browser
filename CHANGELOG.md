@@ -6,6 +6,20 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- one-command bootstrap that initializes the local data root, installs Chromium
+  only when missing, and probes an authenticated ephemeral loopback daemon
+- generated bash, zsh, and PowerShell completion scripts that never edit shell
+  configuration
+- owner-confirmed Windows Startup, macOS LaunchAgent, and Linux systemd user
+  daemon definitions with definition-only inspection and exact-file uninstall
+
+### Security
+
+- generated daemon definitions are fixed to loopback, refuse files they do not
+  own, and never invoke sudo or an administrative service manager
+
 ### Planned
 
 - community validation across supported operating systems

@@ -13,6 +13,7 @@ export const navGroups = [
     title: "Start",
     items: [
       ["Getting started", "getting-started"],
+      ["Operator install", "operator-install"],
       ["Sessions and profiles", "sessions"]
     ]
   },
@@ -49,8 +50,23 @@ export const navGroups = [
 
 const snippets = {
   install: `npm install --save-dev cockroach-browser
-npx cockroach-browser setup
-npx cockroach-browser doctor`,
+npx cockroach-browser bootstrap`,
+  completions: `# Bash
+cockroach-browser completion bash > ~/.local/share/bash-completion/completions/cockroach-browser
+
+# Zsh
+cockroach-browser completion zsh > ~/.zfunc/_cockroach-browser
+
+# PowerShell (inspect before adding it to your profile)
+cockroach-browser completion powershell`,
+  service: `# Preview the exact per-user definition path and command
+cockroach-browser service status
+
+# Install a loopback-only daemon for the current OS account
+cockroach-browser service install --confirm-local-owner
+
+# Remove only the definition created by Cockroach Browser
+cockroach-browser service uninstall --confirm-local-owner`,
   serve: `npx cockroach-browser serve --host 127.0.0.1 --port 43110
 
 # The daemon writes a 32-byte bearer token to its local data directory.
@@ -174,7 +190,7 @@ export const pages = [
       {
         title: "Install the package and Chromium",
         body:
-          "<p>The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.</p>",
+          "<p>The package supports maintained Node.js 22, 24, and 26 releases. <code>bootstrap</code> installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.</p>",
         code: snippets.install,
         label: "terminal"
       },
@@ -198,6 +214,54 @@ export const pages = [
           "<p>Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.</p>",
         code: snippets.sdk,
         label: "quickstart.mjs"
+      }
+    ]
+  },
+  {
+    slug: "operator-install",
+    title: "Operator install",
+    kicker: "One command to bootstrap. One explicit confirmation to start at login.",
+    lede:
+      "Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.",
+    sections: [
+      {
+        title: "Bootstrap and probe the local runtime",
+        body:
+          "<p><code>cockroach-browser bootstrap</code> checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify <code>/v1/health</code>. Use <code>--check-only</code> to prohibit a browser download.</p>",
+        code: `cockroach-browser bootstrap
+cockroach-browser bootstrap --check-only
+cockroach-browser doctor`,
+        label: "terminal"
+      },
+      {
+        title: "Generate completion scripts",
+        body:
+          "<p>The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.</p>",
+        code: snippets.completions,
+        label: "terminal"
+      },
+      {
+        title: "Install a per-user loopback daemon",
+        body:
+          "<p>The installer requires <code>--confirm-local-owner</code>. Windows receives a current-user Startup command that begins at the next login. macOS receives and loads a current-user LaunchAgent, and Linux receives and starts a systemd user unit. Every generated definition binds <code>127.0.0.1</code>, uses the package's authenticated daemon, writes only beneath the current user's directories, and never invokes <code>sudo</code> or an administrative service manager.</p>",
+        code: snippets.service,
+        label: "terminal"
+      },
+      {
+        title: "Inspect before activation",
+        body:
+          "<p>Add <code>--definition-only</code> to write the exact generated definition without activating it. The installer refuses to overwrite or remove a file that does not carry its generated-owner marker. Uninstall targets only that exact per-user definition; it does not remove browser data, profiles, receipts, or evidence.</p>",
+        code: `cockroach-browser service install \\
+  --confirm-local-owner \\
+  --definition-only
+
+cockroach-browser service status`,
+        label: "terminal"
+      },
+      {
+        title: "Keep service authority narrow",
+        body:
+          "<p>The generated service cannot add remote binding, raw-action routes, session host configuration, profile discovery, or privilege escalation. Those remain separate trusted-host decisions. Use Maqam for consequential browser actions and retain the bearer token in the owner-scoped data directory rather than shell history.</p>"
       }
     ]
   },
@@ -657,9 +721,9 @@ export const homepage = {
   title: "The browser runtime your AI agents can use without inheriting your whole machine.",
   lede:
     "Authorized Chromium sessions, snapshot-scoped page references, bounded actions, browser evidence, MCP, and Maqam policy hooks in one local-first TypeScript package.",
-  proof: [
-    ["70", "mapped capabilities"],
-    ["62", "available runtime surfaces"],
+    proof: [
+    ["73", "mapped capabilities"],
+    ["65", "available runtime surfaces"],
     ["6", "adapter-backed surfaces"],
     ["2", "planned surfaces"]
   ]

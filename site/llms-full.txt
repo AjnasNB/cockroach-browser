@@ -5,7 +5,7 @@
 Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.
 
 ### Install the package and Chromium
-The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.
+The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
 
 ### Start the authenticated localhost daemon
 The daemon binds to loopback by default, generates a strong bearer token, and rejects requests without it. A non-loopback bind requires an explicit remote setting and TLS.
@@ -15,6 +15,25 @@ A session must state its purpose, allowed origins, effects, actions, and resourc
 
 ### Embed the runtime
 Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.
+
+## Operator install
+
+Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.
+
+### Bootstrap and probe the local runtime
+cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit a browser download.
+
+### Generate completion scripts
+The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.
+
+### Install a per-user loopback daemon
+The installer requires --confirm-local-owner. Windows receives a current-user Startup command that begins at the next login. macOS receives and loads a current-user LaunchAgent, and Linux receives and starts a systemd user unit. Every generated definition binds 127.0.0.1, uses the package's authenticated daemon, writes only beneath the current user's directories, and never invokes sudo or an administrative service manager.
+
+### Inspect before activation
+Add --definition-only to write the exact generated definition without activating it. The installer refuses to overwrite or remove a file that does not carry its generated-owner marker. Uninstall targets only that exact per-user definition; it does not remove browser data, profiles, receipts, or evidence.
+
+### Keep service authority narrow
+The generated service cannot add remote binding, raw-action routes, session host configuration, profile discovery, or privilege escalation. Those remain separate trusted-host decisions. Use Maqam for consequential browser actions and retain the bearer token in the owner-scoped data directory rather than shell history.
 
 ## Sessions and profiles
 
@@ -323,6 +342,9 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
 - Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
 - Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.
+- Shell completions [available]: Generate auditable bash, zsh, or PowerShell completion scripts without modifying shell profiles. Surface: completion bash|zsh|powershell.
+- Per-user daemon autostart [available]: Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation. Surface: service install|status|uninstall.
+- One-command bootstrap [available]: Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon. Surface: bootstrap.
 - TypeScript SDK [available]: Embed the runtime or call an authenticated daemon. Surface: BrowserRuntime/BrowserClient.
 - Authenticated HTTP API [available]: Expose the runtime through a bearer-token localhost server. Surface: serve.
 - Observation-first MCP server [available]: Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio. Surface: mcp.

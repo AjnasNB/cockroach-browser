@@ -23,7 +23,7 @@ Current release line: **0.1.1**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 70 entries, with 62 available, 6 adapter-backed, and 2 planned
+- Capability registry: 73 entries, with 65 available, 6 adapter-backed, and 2 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
@@ -32,11 +32,30 @@ Verify the npm version, provenance, Git commit, and matching GitHub release befo
 
 ```bash
 npm install cockroach-browser
-npx cockroach-browser setup
-npx cockroach-browser doctor
+npx cockroach-browser bootstrap
 ```
 
-`setup` installs the Chromium build used by Playwright 1.55.0 and then runs the environment doctor.
+`bootstrap` verifies Node.js, installs the Chromium build used by Playwright 1.55.0 only when it is missing, initializes the owner-scoped data root, and probes an authenticated ephemeral loopback daemon. Use `--check-only` when the command must not download a browser.
+
+## Operator bootstrap, completions, and per-user autostart
+
+Completion generation writes to standard output and never edits your shell profile:
+
+```bash
+cockroach-browser completion bash
+cockroach-browser completion zsh
+cockroach-browser completion powershell
+```
+
+The optional daemon installer is deliberately a per-user operation. It requires an explicit local-owner confirmation, always binds the generated daemon to `127.0.0.1`, and never invokes `sudo`, an administrator prompt, or a system-wide service manager:
+
+```bash
+cockroach-browser service status
+cockroach-browser service install --confirm-local-owner
+cockroach-browser service uninstall --confirm-local-owner
+```
+
+Windows installs a current-user Startup command that begins at the next login. macOS installs and loads a current-user LaunchAgent, and Linux installs and starts a systemd user unit. Add `--definition-only` to inspect the exact generated file without activation. The installer refuses to overwrite or remove a file it did not create. Uninstall removes the definition only; browser data, profiles, evidence, and receipts remain intact.
 
 ## Start with the embedded SDK
 
@@ -230,8 +249,13 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 
 | Command | What it does |
 | --- | --- |
-| `cockroach-browser setup` | Install Chromium and run the doctor |
-| `cockroach-browser doctor` | Check Node, Chromium, and basic readiness |
+| `cockroach-browser bootstrap [--check-only]` | Initialize the data root, install Chromium only when missing, and probe an authenticated loopback daemon |
+| `cockroach-browser setup` | Alias for `bootstrap` |
+| `cockroach-browser doctor [--root DIR]` | Check Node, Chromium, data-root, and per-user service readiness |
+| `cockroach-browser completion <bash\|zsh\|powershell>` | Print a completion script without modifying shell configuration |
+| `cockroach-browser service install --confirm-local-owner` | Install an owner-scoped loopback autostart definition; macOS and Linux activate immediately, while Windows starts at next login |
+| `cockroach-browser service status` | Show the exact per-user definition path and fixed daemon command |
+| `cockroach-browser service uninstall --confirm-local-owner` | Disable and remove only the generated per-user definition |
 | `cockroach-browser capabilities [--status available]` | Print the capability registry |
 | `cockroach-browser serve [options]` | Start the authenticated daemon |
 | `cockroach-browser mcp` | Start the stdio MCP server |
@@ -250,7 +274,7 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 70 source-registered capabilities
+## 73 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
@@ -261,9 +285,9 @@ The registry is generated from `src/capabilities.ts`, not from a marketing check
 | Evidence | 9 | 0 | 0 | 9 |
 | Audit | 6 | 0 | 0 | 6 |
 | Security | 7 | 2 | 0 | 9 |
-| Deployment | 9 | 0 | 0 | 9 |
+| Deployment | 12 | 0 | 0 | 12 |
 | Integration | 0 | 4 | 2 | 6 |
-| **Total** | **62** | **6** | **2** | **70** |
+| **Total** | **65** | **6** | **2** | **73** |
 
 ### Sessions
 
@@ -292,7 +316,7 @@ Adapter-backed security surfaces:
 
 ### Deployment
 
-CLI; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local dashboard; authenticated remote workers; crash-resumable local jobs; doctor and health checks.
+CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local dashboard; authenticated remote workers; crash-resumable local jobs; doctor and health checks.
 
 ### Integrations
 

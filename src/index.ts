@@ -12,6 +12,7 @@ export * from "./runtime.js";
 export * from "./server.js";
 export * from "./client.js";
 export * from "./job-queue.js";
+export * from "./operator-install.js";
 export * from "./mcp.js";
 export * from "./integrations/maqam.js";
 export * from "./integrations/qarinah.js";

@@ -8,6 +8,7 @@ npm: https://www.npmjs.com/package/cockroach-browser
 
 ## Documentation
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
+- [Operator install](https://cockroachbrowser.com/docs/operator-install/)
 - [Sessions and profiles](https://cockroachbrowser.com/docs/sessions/)
 - [Actions and semantic refs](https://cockroachbrowser.com/docs/actions/)
 - [Capture and evidence](https://cockroachbrowser.com/docs/capture/)

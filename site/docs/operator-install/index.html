@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operator install | Cockroach Browser</title>
+  <meta name="description" content="Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/operator-install/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Operator install | Cockroach Browser">
+  <meta property="og:description" content="Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/operator-install/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Operator install | Cockroach Browser">
+  <meta name="twitter:description" content="Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.1</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" aria-current="page">Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Operator install</p>
+      <h1>Operator install</h1>
+      <p class="kicker">One command to bootstrap. One explicit confirmation to start at login.</p>
+      <p class="lede">Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.</p>
+    </header>
+    <section class="manual-section" id="bootstrap-and-probe-the-local-runtime">
+    <span class="section-number">01</span>
+    <h2>Bootstrap and probe the local runtime</h2>
+<p><code>cockroach-browser bootstrap</code> checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify <code>/v1/health</code>. Use <code>--check-only</code> to prohibit a browser download.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-5">Copy</button></div>
+  <pre><code id="code-5">cockroach-browser bootstrap
+cockroach-browser bootstrap --check-only
+cockroach-browser doctor</code></pre>
+</div>
+  </section><section class="manual-section" id="generate-completion-scripts">
+    <span class="section-number">02</span>
+    <h2>Generate completion scripts</h2>
+<p>The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-6">Copy</button></div>
+  <pre><code id="code-6"># Bash
+cockroach-browser completion bash &gt; ~/.local/share/bash-completion/completions/cockroach-browser
+
+# Zsh
+cockroach-browser completion zsh &gt; ~/.zfunc/_cockroach-browser
+
+# PowerShell (inspect before adding it to your profile)
+cockroach-browser completion powershell</code></pre>
+</div>
+  </section><section class="manual-section" id="install-a-per-user-loopback-daemon">
+    <span class="section-number">03</span>
+    <h2>Install a per-user loopback daemon</h2>
+<p>The installer requires <code>--confirm-local-owner</code>. Windows receives a current-user Startup command that begins at the next login. macOS receives and loads a current-user LaunchAgent, and Linux receives and starts a systemd user unit. Every generated definition binds <code>127.0.0.1</code>, uses the package's authenticated daemon, writes only beneath the current user's directories, and never invokes <code>sudo</code> or an administrative service manager.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-7">Copy</button></div>
+  <pre><code id="code-7"># Preview the exact per-user definition path and command
+cockroach-browser service status
+
+# Install a loopback-only daemon for the current OS account
+cockroach-browser service install --confirm-local-owner
+
+# Remove only the definition created by Cockroach Browser
+cockroach-browser service uninstall --confirm-local-owner</code></pre>
+</div>
+  </section><section class="manual-section" id="inspect-before-activation">
+    <span class="section-number">04</span>
+    <h2>Inspect before activation</h2>
+<p>Add <code>--definition-only</code> to write the exact generated definition without activating it. The installer refuses to overwrite or remove a file that does not carry its generated-owner marker. Uninstall targets only that exact per-user definition; it does not remove browser data, profiles, receipts, or evidence.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-8">Copy</button></div>
+  <pre><code id="code-8">cockroach-browser service install \
+  --confirm-local-owner \
+  --definition-only
+
+cockroach-browser service status</code></pre>
+</div>
+  </section><section class="manual-section" id="keep-service-authority-narrow">
+    <span class="section-number">05</span>
+    <h2>Keep service authority narrow</h2>
+<p>The generated service cannot add remote binding, raw-action routes, session host configuration, profile discovery, or privilege escalation. Those remain separate trusted-host decisions. Use Maqam for consequential browser actions and retain the bearer token in the owner-scoped data directory rather than shell history.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#bootstrap-and-probe-the-local-runtime">Bootstrap and probe the local runtime</a><a href="#generate-completion-scripts">Generate completion scripts</a><a href="#install-a-per-user-loopback-daemon">Install a per-user loopback daemon</a><a href="#inspect-before-activation">Inspect before activation</a><a href="#keep-service-authority-narrow">Keep service authority narrow</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>
