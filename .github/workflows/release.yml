@@ -38,14 +38,28 @@ jobs:
           package_version="$(node -p "require('./package.json').version")"
           package_spec="${package_name}@${package_version}"
           current_head="$(git rev-parse HEAD)"
+          pack_json="$(npm pack --dry-run --ignore-scripts --json)"
+          local_shasum="$(node -e "const fs=require('fs'); console.log(JSON.parse(fs.readFileSync(0, 'utf8'))[0].shasum)" <<<"$pack_json")"
+          local_integrity="$(node -e "const fs=require('fs'); console.log(JSON.parse(fs.readFileSync(0, 'utf8'))[0].integrity)" <<<"$pack_json")"
+
+          echo "shasum=${local_shasum}" >> "$GITHUB_OUTPUT"
+          echo "integrity=${local_integrity}" >> "$GITHUB_OUTPUT"
 
           if npm view "$package_spec" version >/dev/null 2>&1; then
-            published_head="$(npm view "$package_spec" gitHead)"
-            if [ "$published_head" != "$current_head" ]; then
+            published_head="$(npm view "$package_spec" gitHead 2>/dev/null || true)"
+            published_shasum="$(npm view "$package_spec" dist.shasum)"
+            published_integrity="$(npm view "$package_spec" dist.integrity)"
+
+            if [ -n "$published_head" ] && [ "$published_head" != "$current_head" ]; then
               echo "::error::${package_spec} already exists from gitHead ${published_head}, not ${current_head}"
               exit 1
             fi
-            echo "The exact npm artifact already exists at ${current_head}; publication is idempotent."
+            if [ "$published_shasum" != "$local_shasum" ] || [ "$published_integrity" != "$local_integrity" ]; then
+              echo "::error::${package_spec} exists, but its immutable tarball identity does not match this tag"
+              exit 1
+            fi
+
+            echo "The exact npm artifact already exists with matching SHA-1 and SHA-512 identities; publication is idempotent."
             echo "publish=false" >> "$GITHUB_OUTPUT"
           else
             echo "No existing npm artifact was found for ${package_spec}."
@@ -61,18 +75,27 @@ jobs:
           package_version="$(node -p "require('./package.json').version")"
           package_spec="${package_name}@${package_version}"
           current_head="$(git rev-parse HEAD)"
+          expected_shasum="${{ steps.registry.outputs.shasum }}"
+          expected_integrity="${{ steps.registry.outputs.integrity }}"
 
           for attempt in 1 2 3 4 5 6; do
             published_head="$(npm view "$package_spec" gitHead 2>/dev/null || true)"
-            if [ "$published_head" = "$current_head" ]; then
-              npm view "$package_spec" version dist.integrity dist.tarball gitHead
+            published_shasum="$(npm view "$package_spec" dist.shasum 2>/dev/null || true)"
+            published_integrity="$(npm view "$package_spec" dist.integrity 2>/dev/null || true)"
+
+            if [ "$published_shasum" = "$expected_shasum" ] && [ "$published_integrity" = "$expected_integrity" ]; then
+              if [ -n "$published_head" ] && [ "$published_head" != "$current_head" ]; then
+                echo "::error::npm exposes ${package_spec} from gitHead ${published_head}, not ${current_head}"
+                exit 1
+              fi
+              npm view "$package_spec" version dist.shasum dist.integrity dist.tarball gitHead
               exit 0
             fi
             echo "Waiting for npm registry propagation (${attempt}/6)..."
             sleep 10
           done
 
-          echo "::error::npm did not expose ${package_spec} with gitHead ${current_head}"
+          echo "::error::npm did not expose ${package_spec} with the expected immutable tarball identity"
           exit 1
       - name: Create GitHub release
         env:
