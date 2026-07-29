@@ -1,0 +1,17 @@
+name: Security guidance
+description: Get instructions for privately reporting a vulnerability.
+title: "security: use the private advisory channel"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not disclose security-sensitive details in a public issue.
+
+        Use the repository's **Security** tab and choose **Report a vulnerability**. Read `SECURITY.md` for scope and response expectations.
+  - type: checkboxes
+    id: acknowledgement
+    attributes:
+      label: Acknowledgement
+      options:
+        - label: I will use the private vulnerability reporting channel.
+          required: true

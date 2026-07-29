@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting started | Cockroach Browser</title>
+  <meta name="description" content="Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/getting-started/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Getting started | Cockroach Browser">
+  <meta property="og:description" content="Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/getting-started/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Getting started | Cockroach Browser">
+  <meta name="twitter:description" content="Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" aria-current="page">Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Getting started</p>
+      <h1>Getting started</h1>
+      <p class="kicker">Install once. Admit one origin. Keep every result.</p>
+      <p class="lede">Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.</p>
+    </header>
+    <section class="manual-section" id="install-the-package-and-chromium">
+    <span class="section-number">01</span>
+    <h2>Install the package and Chromium</h2>
+<p>The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-1">Copy</button></div>
+  <pre><code id="code-1">npm install --save-dev cockroach-browser
+npx cockroach-browser setup
+npx cockroach-browser doctor</code></pre>
+</div>
+  </section><section class="manual-section" id="start-the-authenticated-localhost-daemon">
+    <span class="section-number">02</span>
+    <h2>Start the authenticated localhost daemon</h2>
+<p>The daemon binds to loopback by default, generates a strong bearer token, and rejects requests without it. A non-loopback bind requires an explicit remote setting and TLS.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-2">Copy</button></div>
+  <pre><code id="code-2">npx cockroach-browser serve --host 127.0.0.1 --port 43110
+
+# The daemon writes a 32-byte bearer token to its local data directory.
+# Pass its path to every CLI call instead of putting a token in shell history.
+npx cockroach-browser session list --token-file .cockroach-browser/auth-token</code></pre>
+</div>
+  </section><section class="manual-section" id="create-the-smallest-useful-session">
+    <span class="section-number">03</span>
+    <h2>Create the smallest useful session</h2>
+<p>A session must state its purpose, allowed origins, effects, actions, and resource ceilings. The following session can observe one documentation origin. It cannot write, upload, download, access credentials, or leave that origin.</p>
+<div class="code-block">
+  <div class="code-head"><span>session.json</span><button class="copy-code" type="button" data-copy="#code-3">Copy</button></div>
+  <pre><code id="code-3">{
+  &quot;purpose&quot;: &quot;Verify the release checklist&quot;,
+  &quot;actor&quot;: &quot;release-agent&quot;,
+  &quot;mode&quot;: &quot;headless&quot;,
+  &quot;startUrl&quot;: &quot;https://docs.example.com/releases&quot;,
+  &quot;policy&quot;: {
+    &quot;allowedOrigins&quot;: [&quot;https://docs.example.com&quot;],
+    &quot;allowedEffects&quot;: [&quot;read&quot;],
+    &quot;allowedActions&quot;: [&quot;navigate&quot;, &quot;snapshot&quot;, &quot;extract&quot;, &quot;screenshot&quot;],
+    &quot;budget&quot;: {
+      &quot;maxActions&quot;: 40,
+      &quot;maxTabs&quot;: 2,
+      &quot;maxDurationMs&quot;: 300000
+    }
+  }
+}</code></pre>
+</div>
+  </section><section class="manual-section" id="embed-the-runtime">
+    <span class="section-number">04</span>
+    <h2>Embed the runtime</h2>
+<p>Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.</p>
+<div class="code-block">
+  <div class="code-head"><span>quickstart.mjs</span><button class="copy-code" type="button" data-copy="#code-4">Copy</button></div>
+  <pre><code id="code-4">import { BrowserRuntime } from &quot;cockroach-browser&quot;;
+
+const browser = new BrowserRuntime({ root: &quot;.cockroach-browser&quot; });
+await browser.initialize();
+
+const session = await browser.createSession({
+  purpose: &quot;Inspect the public release page&quot;,
+  mode: &quot;headless&quot;,
+  startUrl: &quot;https://docs.example.com/releases&quot;,
+  policy: {
+    allowedOrigins: [&quot;https://docs.example.com&quot;],
+    allowedEffects: [&quot;read&quot;],
+    allowedActions: [&quot;navigate&quot;, &quot;snapshot&quot;, &quot;extract&quot;, &quot;screenshot&quot;]
+  }
+});
+
+const snapshot = await browser.snapshot(session.id);
+console.log(snapshot.title, snapshot.refs);
+await browser.close();</code></pre>
+</div>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#install-the-package-and-chromium">Install the package and Chromium</a><a href="#start-the-authenticated-localhost-daemon">Start the authenticated localhost daemon</a><a href="#create-the-smallest-useful-session">Create the smallest useful session</a><a href="#embed-the-runtime">Embed the runtime</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

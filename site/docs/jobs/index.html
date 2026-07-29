@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jobs and retries | Cockroach Browser</title>
+  <meta name="description" content="The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/jobs/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Jobs and retries | Cockroach Browser">
+  <meta property="og:description" content="The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/jobs/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Jobs and retries | Cockroach Browser">
+  <meta name="twitter:description" content="The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" aria-current="page">Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Jobs and retries</p>
+      <h1>Jobs and retries</h1>
+      <p class="kicker">Persist a bounded plan. Retry observations. Never guess after an uncertain write.</p>
+      <p class="lede">The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.</p>
+    </header>
+    <section class="manual-section" id="queue-a-finite-plan">
+    <span class="section-number">01</span>
+    <h2>Queue a finite plan</h2>
+<p>Each job belongs to one session and contains a finite action list. The queue persists before and after execution so a restart can inspect the last completed checkpoint.</p>
+  </section><section class="manual-section" id="retry-only-safe-observations">
+    <span class="section-number">02</span>
+    <h2>Retry only safe observations</h2>
+<p>Automatic retry is limited to read-like operations such as snapshots, waits, and extraction. Navigation and mutations may have produced an external effect even when the client missed the response. Unknown results stop for review.</p>
+  </section><section class="manual-section" id="use-idempotency-above-the-browser">
+    <span class="section-number">03</span>
+    <h2>Use idempotency above the browser</h2>
+<p>Maqam and application services should carry stable operation IDs through policy, browser execution, downstream writes, and receipts. Cross-ledger writes are not one transaction, so use an explicit outbox and reconcile by ID.</p>
+  </section><section class="manual-section" id="durability-scope">
+    <span class="section-number">04</span>
+    <h2>Durability scope</h2>
+<p>The built-in queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling, signed webhooks, and team session control remain planned capabilities.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#queue-a-finite-plan">Queue a finite plan</a><a href="#retry-only-safe-observations">Retry only safe observations</a><a href="#use-idempotency-above-the-browser">Use idempotency above the browser</a><a href="#durability-scope">Durability scope</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

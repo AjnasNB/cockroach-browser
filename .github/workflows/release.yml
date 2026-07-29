@@ -1,0 +1,37 @@
+name: Release npm package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-production
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Verify immutable release identity
+        run: |
+          node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME; if(tag !== 'v'+p.version) throw new Error('tag '+tag+' does not match package '+p.version)"
+          git tag --points-at HEAD | grep -Fx "${GITHUB_REF_NAME}"
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm publish --access public --provenance
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Cockroach Browser $GITHUB_REF_NAME"

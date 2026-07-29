@@ -1,0 +1,112 @@
+{
+  "name": "cockroach-browser",
+  "version": "0.1.0",
+  "description": "A local-first browser runtime for AI agents with authorized sessions, snapshot-scoped references, evidence capture, MCP, and Maqam policy hooks.",
+  "license": "AGPL-3.0-or-later",
+  "author": "Ajnas NB",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "cockroach-browser": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "default": "./dist/client.js"
+    },
+    "./maqam": {
+      "types": "./dist/integrations/maqam.d.ts",
+      "default": "./dist/integrations/maqam.js"
+    },
+    "./qarinah": {
+      "types": "./dist/integrations/qarinah.d.ts",
+      "default": "./dist/integrations/qarinah.js"
+    },
+    "./crawler": {
+      "types": "./dist/integrations/crawler.d.ts",
+      "default": "./dist/integrations/crawler.js"
+    },
+    "./productloop": {
+      "types": "./dist/integrations/productloop.d.ts",
+      "default": "./dist/integrations/productloop.js"
+    },
+    "./capabilities": {
+      "types": "./dist/capabilities.d.ts",
+      "default": "./dist/capabilities.js"
+    },
+    "./server.json": "./server.json"
+  },
+  "files": [
+    "dist/",
+    "dashboard/",
+    "docs/",
+    "examples/",
+    "schemas/",
+    "server.json",
+    "README.md",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:test": "tsc -p tsconfig.test.json",
+    "clean": "node scripts/clean.mjs",
+    "test": "npm run build:test && node --test --test-reporter=spec .test-dist/test/*.test.js",
+    "test:source": "npm test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:package": "node scripts/check-package.mjs",
+    "check:site": "node scripts/check-site.mjs",
+    "check": "npm run typecheck && npm run build && npm test && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
+    "prepack": "npm run clean && npm run build && npm run check:package",
+    "prepublishOnly": "npm run check"
+  },
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0 || ^26.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AjnasNB/cockroach-browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AjnasNB/cockroach-browser/issues"
+  },
+  "homepage": "https://cockroachbrowser.com",
+  "keywords": [
+    "ai-agent",
+    "browser-automation",
+    "playwright",
+    "mcp",
+    "agent-browser",
+    "browser-runtime",
+    "accessibility-tree",
+    "browser-evidence",
+    "maqam",
+    "qarinah",
+    "cockroach-crawler"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "mcpName": "io.github.ajnasnb/cockroach-browser",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "pixelmatch": "^7.1.0",
+    "playwright-core": "^1.55.0",
+    "pngjs": "^7.0.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/pngjs": "^6.0.5",
+    "typescript": "^5.9.2"
+  }
+}

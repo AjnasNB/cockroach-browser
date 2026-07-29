@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capture and evidence | Cockroach Browser</title>
+  <meta name="description" content="Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/capture/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Capture and evidence | Cockroach Browser">
+  <meta property="og:description" content="Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/capture/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Capture and evidence | Cockroach Browser">
+  <meta name="twitter:description" content="Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" aria-current="page">Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Capture and evidence</p>
+      <h1>Capture and evidence</h1>
+      <p class="kicker">A browser result should be inspectable after the tab is gone.</p>
+      <p class="lede">Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.</p>
+    </header>
+    <section class="manual-section" id="evidence-types">
+    <span class="section-number">01</span>
+    <h2>Evidence types</h2>
+<p>Snapshots, screenshots, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.</p>
+  </section><section class="manual-section" id="receipts-form-a-chain">
+    <span class="section-number">02</span>
+    <h2>Receipts form a chain</h2>
+<p>Each action receipt links to the previous receipt hash. The chain exposes missing, reordered, or modified records. Verification checks the chain and artifact digests without replaying the browser session.</p>
+  </section><section class="manual-section" id="capture-only-what-the-workflow-needs">
+    <span class="section-number">03</span>
+    <h2>Capture only what the workflow needs</h2>
+<p>HAR, video, trace, console, and network capture can contain sensitive material. Enable them per session, apply evidence byte ceilings, and keep the evidence directory under deployment-owned access control.</p>
+  </section><section class="manual-section" id="carry-evidence-into-memory">
+    <span class="section-number">04</span>
+    <h2>Carry evidence into memory</h2>
+<p>The Qarinah adapter records cited browser outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions and does not store hidden reasoning.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#evidence-types">Evidence types</a><a href="#receipts-form-a-chain">Receipts form a chain</a><a href="#capture-only-what-the-workflow-needs">Capture only what the workflow needs</a><a href="#carry-evidence-into-memory">Carry evidence into memory</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

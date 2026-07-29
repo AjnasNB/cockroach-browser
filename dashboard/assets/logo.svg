@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Cockroach Browser</title>
+  <desc id="desc">A geometric cockroach inside a globe</desc>
+  <circle cx="48" cy="48" r="42" fill="#050a0d" stroke="#35f3cf" stroke-width="4"/>
+  <path d="M8 48h20m40 0h20M48 6c-9 10-14 24-14 42s5 32 14 42M48 6c9 10 14 24 14 42s-5 32-14 42" fill="none" stroke="#35f3cf" stroke-width="2" opacity=".62"/>
+  <path d="M42 27c0-7 2-12 6-12s6 5 6 12" fill="none" stroke="#35f3cf" stroke-width="4"/>
+  <path d="M48 28c-11 0-17 8-17 20s6 24 17 24 17-12 17-24-6-20-17-20Z" fill="#35f3cf"/>
+  <path d="M32 40l-10-7M31 51l-13 2M34 62l-10 9M64 40l10-7M65 51l13 2M62 62l10 9" fill="none" stroke="#35f3cf" stroke-width="4"/>
+</svg>

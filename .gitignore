@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.test-dist/
+coverage/
+.env
+.env.*
+!.env.example
+.cockroach-browser/
+test-results/
+playwright-report/
+*.log
+*.tgz
+.wrangler/

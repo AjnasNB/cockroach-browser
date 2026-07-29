@@ -1,0 +1,31 @@
+{
+  "purpose": "Read and inspect the public documentation",
+  "mode": "headless",
+  "startUrl": "https://example.com/",
+  "policy": {
+    "allowedOrigins": [
+      "https://example.com"
+    ],
+    "allowedActions": [
+      "navigate",
+      "snapshot",
+      "extract",
+      "screenshot",
+      "wait",
+      "tab.open",
+      "tab.close",
+      "tab.switch"
+    ],
+    "allowedEffects": [
+      "read"
+    ],
+    "requireApprovalFor": [],
+    "budget": {
+      "maxActions": 40,
+      "maxDurationMs": 300000,
+      "maxTabs": 3,
+      "maxSnapshotChars": 60000,
+      "maxEvidenceBytes": 16777216
+    }
+  }
+}

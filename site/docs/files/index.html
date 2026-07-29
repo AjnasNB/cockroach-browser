@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Files and downloads | Cockroach Browser</title>
+  <meta name="description" content="Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/files/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Files and downloads | Cockroach Browser">
+  <meta property="og:description" content="Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/files/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Files and downloads | Cockroach Browser">
+  <meta name="twitter:description" content="Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" aria-current="page">Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Files and downloads</p>
+      <h1>Files and downloads</h1>
+      <p class="kicker">Files cross a trust boundary. Make the direction and byte ceiling visible.</p>
+      <p class="lede">Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.</p>
+    </header>
+    <section class="manual-section" id="uploads">
+    <span class="section-number">01</span>
+    <h2>Uploads</h2>
+<p>Enable uploads only for a workflow that needs them. Supply explicit paths, verify ownership before creating the session, and keep <code>maxUploadBytes</code> below the deployment's acceptable ceiling. Maqam should approve consequential uploads against the exact file set and destination.</p>
+  </section><section class="manual-section" id="downloads">
+    <span class="section-number">02</span>
+    <h2>Downloads</h2>
+<p>Downloads land in the evidence directory, receive a digest, and are linked from the action receipt. The session stops a download that exceeds <code>maxDownloadBytes</code>. Treat downloaded files as untrusted input.</p>
+  </section><section class="manual-section" id="pdf-output">
+    <span class="section-number">03</span>
+    <h2>PDF output</h2>
+<p>Page PDF generation is available in Chromium sessions and is recorded as evidence. PDF parsing is not a browser action in this package. Hand document parsing to a bounded document tool or Cockroach Crawler when the workflow needs extracted document text.</p>
+  </section><section class="manual-section" id="storage-state-is-not-a-normal-file">
+    <span class="section-number">04</span>
+    <h2>Storage state is not a normal file</h2>
+<p>Profile import and export use encrypted storage managed by the profile vault. Do not route profile archives through agent-visible upload or download actions.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#uploads">Uploads</a><a href="#downloads">Downloads</a><a href="#pdf-output">PDF output</a><a href="#storage-state-is-not-a-normal-file">Storage state is not a normal file</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

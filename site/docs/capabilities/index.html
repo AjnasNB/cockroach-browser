@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capability matrix | Cockroach Browser</title>
+  <meta name="description" content="63 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/capabilities/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Capability matrix | Cockroach Browser">
+  <meta property="og:description" content="63 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/capabilities/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Capability matrix | Cockroach Browser">
+  <meta name="twitter:description" content="63 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" aria-current="page">Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Machine-derived from src/capabilities.ts</p>
+      <h1>Capability matrix</h1>
+      <p class="kicker">63 named surfaces. No hidden universal-access claim.</p>
+      <p class="lede"><strong>55</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>2</strong> remain planned.</p>
+    </header>
+    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.1.0. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
+    <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
+      <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
+      <button type="button" data-cap-filter="available" aria-pressed="false">Available 55</button>
+      <button type="button" data-cap-filter="adapter" aria-pressed="false">Adapter 6</button>
+      <button type="button" data-cap-filter="planned" aria-pressed="false">Planned 2</button>
+      <input class="cap-search" data-cap-search type="search" aria-label="Search capabilities" placeholder="Search screenshots, MCP, profiles, Maqam...">
+    </div>
+    <p class="cap-count" data-cap-count>63 capabilities shown</p>
+    <div class="cap-grid"><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>01 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Authorized browser sessions</h2>
+    <p>Create sessions only from explicit user or host configuration.</p>
+    <code>runtime.createSession</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>02 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Headless Chromium</h2>
+    <p>Run unattended Chromium with the same policy boundary.</p>
+    <code>mode=headless</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>03 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Headed Chromium</h2>
+    <p>Show the real browser for review, login, and human handoff.</p>
+    <code>mode=headed</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>04 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Attach over CDP</h2>
+    <p>Connect to a user-selected Chrome debugging endpoint.</p>
+    <code>cdpEndpoint</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>05 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Custom Chromium executable</h2>
+    <p>Launch an explicitly supplied compatible browser binary.</p>
+    <code>executablePath</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>06 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Named isolated profiles</h2>
+    <p>Keep cookies and storage separated by an explicit profile name.</p>
+    <code>profile</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>07 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Explicit storage-state import</h2>
+    <p>Import a user-selected encrypted storage-state file.</p>
+    <code>profile import</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>08 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Explicit storage-state export</h2>
+    <p>Export a selected session for an authorized workflow.</p>
+    <code>profile export</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>09 / sessions</span><span class="status status--available">available</span></div>
+    <h2>User-supplied proxy</h2>
+    <p>Route one session through an explicitly configured proxy.</p>
+    <code>proxy</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>10 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Locale and timezone</h2>
+    <p>Create deterministic locale and timezone contexts.</p>
+    <code>locale/timezoneId</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>11 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Tabs and popups</h2>
+    <p>Open, list, switch, and close bounded tabs.</p>
+    <code>tab.*</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>12 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Navigation</h2>
+    <p>Navigate, reload, go back, and go forward within allowed origins.</p>
+    <code>navigate/back/forward/reload</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>13 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Snapshot-scoped page references</h2>
+    <p>Act on compact semantic references bound to the current observed page revision.</p>
+    <code>snapshot refs</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>14 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Semantic snapshots</h2>
+    <p>Return visible text and interactive elements with roles and names.</p>
+    <code>snapshot</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>15 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Click and double-click</h2>
+    <p>Activate referenced or selected elements after policy evaluation.</p>
+    <code>click/doubleClick</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>16 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Form interaction</h2>
+    <p>Fill, type, press, select, check, and uncheck.</p>
+    <code>fill/type/press/select/check</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>17 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Hover and focus</h2>
+    <p>Move focus without relying on viewport coordinates.</p>
+    <code>hover/focus</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>18 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Bounded scrolling</h2>
+    <p>Scroll by explicit deltas under action ceilings.</p>
+    <code>scroll</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>19 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Drag and drop</h2>
+    <p>Drag between two authorized semantic references.</p>
+    <code>drag</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>20 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Page-state waits</h2>
+    <p>Wait for selectors, text, or bounded timeouts.</p>
+    <code>wait</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>21 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Open Shadow DOM access</h2>
+    <p>Resolve selectors and references through open shadow roots.</p>
+    <code>snapshot</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>22 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Same-origin iframe access</h2>
+    <p>Include readable same-origin frames in snapshots.</p>
+    <code>snapshot</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>23 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Policy-gated JavaScript</h2>
+    <p>Evaluate JavaScript only when the session policy and approval allow it.</p>
+    <code>evaluate</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>24 / interaction</span><span class="status status--available">available</span></div>
+    <h2>File upload</h2>
+    <p>Upload explicit paths under byte and policy limits.</p>
+    <code>upload</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>25 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Controlled downloads</h2>
+    <p>Capture downloads into the evidence directory under byte limits.</p>
+    <code>download</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>26 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Screenshots</h2>
+    <p>Capture PNG or JPEG evidence with source metadata.</p>
+    <code>screenshot</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>27 / evidence</span><span class="status status--available">available</span></div>
+    <h2>PDF capture</h2>
+    <p>Generate page PDFs in Chromium sessions.</p>
+    <code>pdf</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>28 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Playwright traces</h2>
+    <p>Start and stop trace archives for authorized sessions.</p>
+    <code>trace.*</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>29 / evidence</span><span class="status status--available">available</span></div>
+    <h2>HAR capture</h2>
+    <p>Record network archives when enabled at session creation.</p>
+    <code>recordHar</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>30 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Session video</h2>
+    <p>Record browser video when enabled at session creation.</p>
+    <code>recordVideo</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>31 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Console records</h2>
+    <p>Capture bounded console messages with timestamps.</p>
+    <code>session evidence</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>32 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Network records</h2>
+    <p>Capture bounded request and response metadata.</p>
+    <code>session evidence</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>33 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Hash-chained receipts</h2>
+    <p>Link action inputs, outputs, policy decisions, and evidence.</p>
+    <code>ActionReceipt</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>34 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Text and HTML extraction</h2>
+    <p>Return bounded readable text or HTML fragments.</p>
+    <code>extract</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>35 / audit</span><span class="status status--available">available</span></div>
+    <h2>Accessibility audit</h2>
+    <p>Inspect semantic names, labels, heading order, and obvious failures.</p>
+    <code>audit accessibility</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>36 / audit</span><span class="status status--available">available</span></div>
+    <h2>Page performance observations</h2>
+    <p>Collect navigation timing, paint entries, transfer sizes, and resource summaries.</p>
+    <code>audit performance</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>37 / audit</span><span class="status status--available">available</span></div>
+    <h2>Broken asset audit</h2>
+    <p>Report failed scripts, styles, images, and requests.</p>
+    <code>audit assets</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>38 / audit</span><span class="status status--available">available</span></div>
+    <h2>Console error audit</h2>
+    <p>Summarize browser errors and warnings.</p>
+    <code>audit console</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>39 / audit</span><span class="status status--available">available</span></div>
+    <h2>Page security observations</h2>
+    <p>Report mixed content and insecure form targets visible to the page runtime.</p>
+    <code>audit security</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>40 / audit</span><span class="status status--available">available</span></div>
+    <h2>Visual comparison</h2>
+    <p>Compare screenshots and emit a diff plus mismatch percentage.</p>
+    <code>compare</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>41 / security</span><span class="status status--available">available</span></div>
+    <h2>Challenge detection</h2>
+    <p>Detect login, consent, CAPTCHA, and access challenges.</p>
+    <code>challenge</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>42 / security</span><span class="status status--available">available</span></div>
+    <h2>Human challenge handoff</h2>
+    <p>Pause for a user or authorized resolver instead of bypassing controls.</p>
+    <code>challenge wait</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>43 / security</span><span class="status status--available">available</span></div>
+    <h2>Origin allowlists</h2>
+    <p>Fail closed when navigation leaves explicitly allowed origins.</p>
+    <code>allowedOrigins</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>44 / security</span><span class="status status--available">available</span></div>
+    <h2>Private-network blocking</h2>
+    <p>Reject private and loopback destinations in the public browser adapter.</p>
+    <code>policy</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>45 / security</span><span class="status status--available">available</span></div>
+    <h2>Effect-level policy</h2>
+    <p>Separate read, write, execute, upload, download, and credential authority.</p>
+    <code>allowedEffects</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>46 / security</span><span class="status status--available">available</span></div>
+    <h2>Finite budgets</h2>
+    <p>Clamp actions, tabs, time, upload, download, snapshot, and evidence size.</p>
+    <code>budget</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>47 / security</span><span class="status status--adapter">adapter</span></div>
+    <h2>Exact action approvals</h2>
+    <p>Bind high-risk approval to the canonical action input.</p>
+    <code>MaqamApprovalProvider</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>48 / security</span><span class="status status--adapter">adapter</span></div>
+    <h2>Secret references</h2>
+    <p>Resolve proxy and integration secrets through the host, never manifests.</p>
+    <code>SecretResolver</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>49 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Command-line interface</h2>
+    <p>Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in.</p>
+    <code>cockroach-browser</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>50 / deployment</span><span class="status status--available">available</span></div>
+    <h2>TypeScript SDK</h2>
+    <p>Embed the runtime or call an authenticated daemon.</p>
+    <code>BrowserRuntime/BrowserClient</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>51 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Authenticated HTTP API</h2>
+    <p>Expose the runtime through a bearer-token localhost server.</p>
+    <code>serve</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>52 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Observation-first MCP server</h2>
+    <p>Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio.</p>
+    <code>mcp</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>53 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Docker runtime</h2>
+    <p>Run Chromium and the authenticated daemon in a container.</p>
+    <code>Dockerfile</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>54 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Local dashboard</h2>
+    <p>Inspect sessions, evidence, challenges, and receipts.</p>
+    <code>dashboard</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>55 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Authenticated remote workers</h2>
+    <p>Connect SDK clients to explicitly configured remote daemons.</p>
+    <code>BrowserClient</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>56 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Durable local jobs</h2>
+    <p>Queue bounded action plans with checkpoints and retries.</p>
+    <code>JobQueue</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>57 / deployment</span><span class="status status--available">available</span></div>
+    <h2>Doctor and daemon health checks</h2>
+    <p>Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count.</p>
+    <code>doctor and /v1/health</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>58 / integration</span><span class="status status--adapter">adapter</span></div>
+    <h2>Maqam governance</h2>
+    <p>Route high-risk browser actions through exact approval and receipts.</p>
+    <code>cockroach-browser/maqam</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>59 / integration</span><span class="status status--adapter">adapter</span></div>
+    <h2>Qarinah memory</h2>
+    <p>Record cited browser outcomes without persisting hidden reasoning or secrets.</p>
+    <code>cockroach-browser/qarinah</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>60 / integration</span><span class="status status--adapter">adapter</span></div>
+    <h2>Cockroach Crawler handoff</h2>
+    <p>Hand breadth-first collection to the crawler while retaining browser evidence.</p>
+    <code>cockroach-browser/crawler</code>
+  </article><article class="cap-card" data-capability data-status="adapter">
+    <div class="cap-meta"><span>61 / integration</span><span class="status status--adapter">adapter</span></div>
+    <h2>ProductLoop OS manifest</h2>
+    <p>Register browser capabilities as a composable stack connector.</p>
+    <code>docs/integrations/productloop.md</code>
+  </article><article class="cap-card" data-capability data-status="planned">
+    <div class="cap-meta"><span>62 / integration</span><span class="status status--planned">planned</span></div>
+    <h2>Signed event webhooks</h2>
+    <p>Send receipt and job events to configured HTTPS endpoints.</p>
+    <code>roadmap</code>
+  </article><article class="cap-card" data-capability data-status="planned">
+    <div class="cap-meta"><span>63 / integration</span><span class="status status--planned">planned</span></div>
+    <h2>Team session control</h2>
+    <p>Share policy and receipts without sharing raw browser profiles.</p>
+    <code>roadmap</code>
+  </article></div>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#status-model">Status model</a><a href="#capability-filters">Capability filters</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

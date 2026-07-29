@@ -1,0 +1,33 @@
+# Cockroach Browser
+
+> A local-first browser runtime for AI agents with authorized sessions, snapshot-scoped page references, evidence capture, MCP, and Maqam policy hooks.
+
+Canonical website: https://cockroachbrowser.com
+Repository: https://github.com/AjnasNB/cockroach-browser
+npm: https://www.npmjs.com/package/cockroach-browser
+
+## Documentation
+- [Getting started](https://cockroachbrowser.com/docs/getting-started/)
+- [Sessions and profiles](https://cockroachbrowser.com/docs/sessions/)
+- [Actions and semantic refs](https://cockroachbrowser.com/docs/actions/)
+- [Capture and evidence](https://cockroachbrowser.com/docs/capture/)
+- [Network boundary](https://cockroachbrowser.com/docs/network/)
+- [Files and downloads](https://cockroachbrowser.com/docs/files/)
+- [Audits and comparisons](https://cockroachbrowser.com/docs/audits/)
+- [Jobs and retries](https://cockroachbrowser.com/docs/jobs/)
+- [MCP](https://cockroachbrowser.com/docs/mcp/)
+- [Maqam](https://cockroachbrowser.com/docs/maqam/)
+- [Qarinah](https://cockroachbrowser.com/docs/qarinah/)
+- [Cockroach Crawler](https://cockroachbrowser.com/docs/crawler/)
+- [ProductLoop OS](https://cockroachbrowser.com/docs/productloop/)
+- [Security](https://cockroachbrowser.com/docs/security/)
+- [Deployment](https://cockroachbrowser.com/docs/deployment/)
+- [Capability matrix](https://cockroachbrowser.com/docs/capabilities/)
+
+## Security boundary
+Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
+
+## Capability states
+- Available: implemented in the 0.1.0 runtime or shipped deployment surface.
+- Adapter: integration contract shipped, external authority or package required.
+- Planned: documented direction, not part of the current release.

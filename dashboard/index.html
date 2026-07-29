@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cockroach Browser Control Room</title>
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="./assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to dashboard</a>
+  <header>
+    <a class="brand" href="https://cockroachbrowser.com">
+      <img src="./assets/logo.svg" width="34" height="34" alt="">
+      <span>Cockroach Browser</span>
+      <small>Local control room</small>
+    </a>
+    <div class="connect">
+      <label>
+        <span>Daemon URL</span>
+        <input data-url autocomplete="off" spellcheck="false">
+      </label>
+      <label>
+        <span>Bearer token</span>
+        <input data-token type="password" placeholder="Kept in this page only" autocomplete="off">
+      </label>
+      <button type="button" data-connect>Connect</button>
+    </div>
+  </header>
+  <main id="main">
+    <aside>
+      <button type="button" aria-pressed="true" data-view="overview">Overview</button>
+      <button type="button" aria-pressed="false" data-view="sessions">Sessions</button>
+      <button type="button" aria-pressed="false" data-view="evidence">Evidence</button>
+      <button type="button" aria-pressed="false" data-view="challenges">Challenges</button>
+      <button type="button" aria-pressed="false" data-view="receipts">Receipts</button>
+    </aside>
+    <section class="content">
+      <div class="title-row">
+        <div>
+          <p class="eyebrow">Authenticated localhost inspector</p>
+          <h1 data-title>Browser control room</h1>
+        </div>
+        <div class="connection" data-status data-state="idle">Not connected</div>
+      </div>
+      <div class="notice">
+        <strong>Token handling</strong>
+        <p>The token stays in page memory and is never written to local storage. Prefer serving this dashboard from the authenticated daemon on loopback.</p>
+      </div>
+      <div class="grid" data-panels>
+        <article class="panel metric-panel">
+          <h2>Active sessions</h2>
+          <strong data-session-count>0</strong>
+          <p>Authorized Chromium contexts currently owned by this worker.</p>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Evidence records</h2>
+          <strong data-evidence-count>0</strong>
+          <p>Snapshots, artifacts, audits, comparisons, and action records.</p>
+        </article>
+        <article class="panel metric-panel">
+          <h2>Receipt chain</h2>
+          <strong data-chain>WAIT</strong>
+          <p>Integrity is verified against the local evidence ledger.</p>
+        </article>
+        <article class="panel panel-wide">
+          <h2>Sessions</h2>
+          <div class="empty" data-sessions>Connect to inspect authorized sessions.</div>
+        </article>
+        <article class="panel">
+          <h2>Challenges</h2>
+          <div class="empty" data-challenges>Login, consent, CAPTCHA, and access challenges pause here for human or authorized handoff.</div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js" defer></script>
+</body>
+</html>

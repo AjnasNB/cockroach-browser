@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cockroachbrowser.com/schemas/action.schema.json",
+  "title": "Cockroach Browser action",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "purpose"
+  ],
+  "properties": {
+    "kind": {
+      "$ref": "#/$defs/actionKind"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1000
+    },
+    "tabId": {
+      "type": "string"
+    },
+    "ref": {
+      "type": "string"
+    },
+    "selector": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "value": {
+      "type": "string"
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "key": {
+      "type": "string"
+    },
+    "text": {
+      "type": "string"
+    },
+    "expression": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 120000
+    },
+    "fullPage": {
+      "type": "boolean"
+    },
+    "format": {
+      "enum": [
+        "png",
+        "jpeg"
+      ]
+    },
+    "quality": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "x": {
+      "type": "number"
+    },
+    "y": {
+      "type": "number"
+    },
+    "deltaX": {
+      "type": "number"
+    },
+    "deltaY": {
+      "type": "number"
+    },
+    "targetRef": {
+      "type": "string"
+    },
+    "waitUntil": {
+      "enum": [
+        "load",
+        "domcontentloaded",
+        "networkidle",
+        "commit"
+      ]
+    },
+    "approvalId": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "actionKind": {
+      "enum": [
+        "navigate",
+        "back",
+        "forward",
+        "reload",
+        "click",
+        "doubleClick",
+        "fill",
+        "type",
+        "press",
+        "hover",
+        "focus",
+        "check",
+        "uncheck",
+        "select",
+        "scroll",
+        "drag",
+        "upload",
+        "download",
+        "evaluate",
+        "wait",
+        "screenshot",
+        "pdf",
+        "snapshot",
+        "extract",
+        "cookies.read",
+        "cookies.write",
+        "storage.read",
+        "storage.write",
+        "tab.open",
+        "tab.close",
+        "tab.switch",
+        "trace.start",
+        "trace.stop"
+      ]
+    }
+  }
+}

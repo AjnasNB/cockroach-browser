@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Maqam integration | Cockroach Browser</title>
+  <meta name="description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/maqam/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Maqam integration | Cockroach Browser">
+  <meta property="og:description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/maqam/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Maqam integration | Cockroach Browser">
+  <meta name="twitter:description" content="The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" aria-current="page">Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Maqam integration</p>
+      <h1>Maqam integration</h1>
+      <p class="kicker">Cockroach Browser executes. Maqam decides whether execution is allowed.</p>
+      <p class="lede">The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.</p>
+    </header>
+    <section class="manual-section" id="separate-the-authorities">
+    <span class="section-number">01</span>
+    <h2>Separate the authorities</h2>
+<p>The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.</p>
+  </section><section class="manual-section" id="observe-and-preview">
+    <span class="section-number">02</span>
+    <h2>Observe and preview</h2>
+<p><code>observe</code> returns current page state and a stable revision. <code>preview</code> resolves the requested operation against that revision. If the target changed, the operation must be observed and previewed again.</p>
+  </section><section class="manual-section" id="apply-or-submit-once">
+    <span class="section-number">03</span>
+    <h2>Apply or submit once</h2>
+<p><code>apply</code> covers structural browser operations. <code>submit</code> covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.</p>
+  </section><section class="manual-section" id="do-not-expose-the-managed-session-directly">
+    <span class="section-number">04</span>
+    <h2>Do not expose the managed session directly</h2>
+<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#separate-the-authorities">Separate the authorities</a><a href="#observe-and-preview">Observe and preview</a><a href="#apply-or-submit-once">Apply or submit once</a><a href="#do-not-expose-the-managed-session-directly">Do not expose the managed session directly</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

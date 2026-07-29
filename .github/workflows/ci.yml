@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test
+      - run: npm run check:package
+      - run: npm run check:site
+      - run: npm audit --omit=dev
+
+  chromium:
+    name: Chromium boundary smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run build:test
+      - run: node --test --test-reporter=spec .test-dist/test/browser-smoke.test.js
+        env:
+          COCKROACH_BROWSER_E2E: "1"
+
+  packed-consumer:
+    name: Packed npm consumer
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: node scripts/test-packed-consumer.mjs
+
+  container:
+    name: Hardened container smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker compose config
+      - run: docker build --tag cockroach-browser:ci .
+      - name: Start the loopback-only container
+        run: |
+          docker volume create cockroach-browser-ci-data
+          docker run --detach \
+            --name cockroach-browser-ci \
+            --publish 127.0.0.1:43110:43111 \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=256m \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --mount type=volume,source=cockroach-browser-ci-data,target=/data \
+            cockroach-browser:ci
+      - name: Verify authenticated health
+        run: |
+          for attempt in {1..30}; do
+            TOKEN="$(docker exec cockroach-browser-ci sh -c 'test -f /data/auth-token && cat /data/auth-token' || true)"
+            if [ -n "$TOKEN" ] && curl --fail --silent \
+              --header "Authorization: Bearer $TOKEN" \
+              http://127.0.0.1:43110/v1/health > /tmp/cockroach-browser-health.json; then
+              node -e "const r=require('/tmp/cockroach-browser-health.json'); if(!r.ok || r.name!=='cockroach-browser') process.exit(1)"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs cockroach-browser-ci
+          exit 1
+      - name: Clean container resources
+        if: always()
+        run: |
+          docker rm --force cockroach-browser-ci || true
+          docker volume rm cockroach-browser-ci-data || true

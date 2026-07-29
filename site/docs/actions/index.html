@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Actions and semantic refs | Cockroach Browser</title>
+  <meta name="description" content="Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/actions/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Actions and semantic refs | Cockroach Browser">
+  <meta property="og:description" content="Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/actions/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Actions and semantic refs | Cockroach Browser">
+  <meta name="twitter:description" content="Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" aria-current="page">Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Actions and semantic refs</p>
+      <h1>Actions and semantic refs</h1>
+      <p class="kicker">Observe first. Select a cited element. Act on exactly that target.</p>
+      <p class="lede">Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.</p>
+    </header>
+    <section class="manual-section" id="snapshot-before-action">
+    <span class="section-number">01</span>
+    <h2>Snapshot before action</h2>
+<p>A snapshot includes the current URL, title, bounded readable text, semantic references, challenge state, a digest, and a truncation flag. Open shadow roots and readable same-origin frames are included. Cross-origin frames retain their browser boundary.</p>
+  </section><section class="manual-section" id="use-a-ref-from-the-current-snapshot">
+    <span class="section-number">02</span>
+    <h2>Use a ref from the current snapshot</h2>
+<p>Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.</p>
+<div class="code-block">
+  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-6">Copy</button></div>
+  <pre><code id="code-6">const snapshot = await browser.snapshot(session.id);
+const releaseLink = snapshot.refs.find(
+  (ref) =&gt; ref.role === &quot;link&quot; &amp;&amp; ref.name.includes(&quot;Release notes&quot;)
+);
+
+if (!releaseLink) throw new Error(&quot;Release link was not present&quot;);
+
+const result = await browser.act(session.id, {
+  kind: &quot;click&quot;,
+  ref: releaseLink.ref,
+  purpose: &quot;Open the release notes selected from cited page state&quot;
+});
+
+console.log(result.receipt.receiptHash);</code></pre>
+</div>
+  </section><section class="manual-section" id="supported-interactions">
+    <span class="section-number">03</span>
+    <h2>Supported interactions</h2>
+<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>
+  </section><section class="manual-section" id="javascript-is-an-explicit-capability">
+    <span class="section-number">04</span>
+    <h2>JavaScript is an explicit capability</h2>
+<p>Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#snapshot-before-action">Snapshot before action</a><a href="#use-a-ref-from-the-current-snapshot">Use a ref from the current snapshot</a><a href="#supported-interactions">Supported interactions</a><a href="#javascript-is-an-explicit-capability">JavaScript is an explicit capability</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

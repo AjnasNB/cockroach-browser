@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible Cockroach Browser failure.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Do not include tokens, cookies, browser profiles, private URLs, or captured page content.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: node
+    attributes:
+      label: Node.js
+      options:
+        - "22"
+        - "24"
+        - "26"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - CLI
+        - JavaScript API
+        - MCP
+        - Docker
+        - Maqam adapter
+        - Qarinah adapter
+        - Cockroach Crawler handoff
+        - Website or documentation
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Use an owned local test page when browser content is involved.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Authority and security impact
+      description: State whether origins, credentials, JavaScript, writes, profiles, or resource budgets are involved.
+    validations:
+      required: true

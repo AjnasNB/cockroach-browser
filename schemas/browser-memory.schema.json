@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cockroachbrowser.com/schemas/browser-memory.schema.json",
+  "title": "Cockroach Browser Qarinah outcome",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "type",
+    "sessionId",
+    "purpose",
+    "timestamp",
+    "evidenceIds",
+    "metadata"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "cockroach.browser-memory.v1"
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sessionId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 3
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "inputDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "outputDigest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "receiptHash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "evidenceIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  }
+}

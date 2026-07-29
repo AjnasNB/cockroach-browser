@@ -1,0 +1,28 @@
+services:
+  browser:
+    build:
+      context: .
+    image: cockroach-browser:0.1.0
+    ports:
+      - "127.0.0.1:43110:43111"
+    restart: unless-stopped
+    read_only: true
+    init: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+    volumes:
+      - browser-data:/data
+    environment:
+      NODE_ENV: production
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: "2.0"
+
+volumes:
+  browser-data:

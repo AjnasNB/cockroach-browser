@@ -1,0 +1,317 @@
+# Cockroach Browser documentation
+
+## Getting started
+
+Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.
+
+### Install the package and Chromium
+The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.
+
+### Start the authenticated localhost daemon
+The daemon binds to loopback by default, generates a strong bearer token, and rejects requests without it. A non-loopback bind requires an explicit remote setting and TLS.
+
+### Create the smallest useful session
+A session must state its purpose, allowed origins, effects, actions, and resource ceilings. The following session can observe one documentation origin. It cannot write, upload, download, access credentials, or leave that origin.
+
+### Embed the runtime
+Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.
+
+## Sessions and profiles
+
+Every session has an owner, purpose, mode, origin boundary, action boundary, effect boundary, and finite budget. Profiles are named, isolated, and imported only by an authorized operator.
+
+### Choose the browser connection
+Launch bundled Chromium in headless or headed mode, supply a compatible executable, or attach to a user-selected CDP endpoint. CDP attachment is never discovered automatically. The host names the endpoint and accepts responsibility for that browser.- Headless: unattended evidence and audits.
+- Headed: review, login, consent, and human handoff.
+- CDP: attach to an explicitly selected Chrome debugging endpoint.
+- Custom executable: use a compatible browser binary selected by the operator.
+
+### Keep profiles explicit and encrypted
+Profiles isolate cookies and storage. Import and export require an explicit name, file path, and passphrase supplied through an environment variable. Passphrases are not accepted as command arguments and are not written to manifests.
+
+### Budget every session
+The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
+
+### Close deliberately
+Closing a session releases tabs, browser context, traces, and runtime state. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.
+
+## Actions and semantic refs
+
+Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.
+
+### Snapshot before action
+A snapshot includes the current URL, title, bounded readable text, semantic references, challenge state, a digest, and a truncation flag. Open shadow roots and readable same-origin frames are included. Cross-origin frames retain their browser boundary.
+
+### Use a ref from the current snapshot
+Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.
+
+### Supported interactions
+Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+
+### JavaScript is an explicit capability
+Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.
+
+## Capture and evidence
+
+Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.
+
+### Evidence types
+Snapshots, screenshots, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.
+
+### Receipts form a chain
+Each action receipt links to the previous receipt hash. The chain exposes missing, reordered, or modified records. Verification checks the chain and artifact digests without replaying the browser session.
+
+### Capture only what the workflow needs
+HAR, video, trace, console, and network capture can contain sensitive material. Enable them per session, apply evidence byte ceilings, and keep the evidence directory under deployment-owned access control.
+
+### Carry evidence into memory
+The Qarinah adapter records cited browser outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions and does not store hidden reasoning.
+
+## Network boundary
+
+Every navigation and subresource request is checked against the session's explicit origin policy. Public adapters block loopback and private-network targets by default.
+
+### Start from an allowlist
+List exact HTTPS origins whenever possible. Redirects and subresources are re-evaluated, so an admitted start URL cannot silently widen the session. Denied origins take precedence.
+
+### Private networks require an owned deployment decision
+The public browser adapter rejects loopback, link-local, and private-network destinations. A deployment owner may opt in to a specific internal workflow with allowPrivateNetwork. Never expose that session to untrusted callers.
+
+### Proxies are supplied, not discovered
+A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.
+
+### Remote workers require TLS
+The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.
+
+## Files and downloads
+
+Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.
+
+### Uploads
+Enable uploads only for a workflow that needs them. Supply explicit paths, verify ownership before creating the session, and keep maxUploadBytes below the deployment's acceptable ceiling. Maqam should approve consequential uploads against the exact file set and destination.
+
+### Downloads
+Downloads land in the evidence directory, receive a digest, and are linked from the action receipt. The session stops a download that exceeds maxDownloadBytes. Treat downloaded files as untrusted input.
+
+### PDF output
+Page PDF generation is available in Chromium sessions and is recorded as evidence. PDF parsing is not a browser action in this package. Hand document parsing to a bounded document tool or Cockroach Crawler when the workflow needs extracted document text.
+
+### Storage state is not a normal file
+Profile import and export use encrypted storage managed by the profile vault. Do not route profile archives through agent-visible upload or download actions.
+
+## Audits and comparisons
+
+Run accessibility, performance, broken asset, console, and page-security observations against the same authorized session used by the agent.
+
+### Run selected audits
+The CLI and client accept a comma-separated audit set. Results are bounded JSON evidence, not a claim of complete standards compliance.
+
+### Accessibility observations
+Inspect accessible names, obvious missing labels, heading order, and semantic failures visible to the browser. Use the result to find candidate defects, then validate with full accessibility tooling and human review.
+
+### Performance and page security
+Collect navigation timing, paint entries, transfer sizes, resource summaries, mixed content, and insecure form targets visible to the page runtime. Results describe the captured run and environment.
+
+### Visual comparison
+Compare a current screenshot with an explicit baseline, store the diff, and emit a mismatch percentage. Pin viewport, color scheme, browser version, data fixtures, and fonts for stable regression checks.
+
+## Jobs and retries
+
+The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.
+
+### Queue a finite plan
+Each job belongs to one session and contains a finite action list. The queue persists before and after execution so a restart can inspect the last completed checkpoint.
+
+### Retry only safe observations
+Automatic retry is limited to read-like operations such as snapshots, waits, and extraction. Navigation and mutations may have produced an external effect even when the client missed the response. Unknown results stop for review.
+
+### Use idempotency above the browser
+Maqam and application services should carry stable operation IDs through policy, browser execution, downstream writes, and receipts. Cross-ledger writes are not one transaction, so use an explicit outbox and reconcile by ID.
+
+### Durability scope
+The built-in queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling, signed webhooks, and team session control remain planned capabilities.
+
+## MCP
+
+The native stdio server exposes health, capabilities, sessions, snapshots, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.
+
+### Configure the local server
+Start the authenticated daemon first. Load its token into the MCP process through trusted environment or secret handling, and point the MCP server at the daemon URL. Do not commit a live token.
+
+### Observation-first tools
+The MCP surface provides browser_capabilities, browser_health, browser_sessions, browser_snapshot, browser_audit, and browser_propose_action. A proposal returns canonical action material for a governed dispatcher and does not execute it.
+
+### Keep lifecycle authority outside the model
+Session creation, profile import, login, secret resolution, remote binding, and raw action dispatch stay with the host. This prevents a model from expanding its own origins, credentials, browser state, or resource ceilings.
+
+### Route consequential work through Maqam
+MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, dispatches through the driver, rejects replay, and records governance evidence.
+
+## Maqam integration
+
+The Maqam adapter presents a four-step browser driver: observe, preview, apply, and submit. Maqam remains the authority for policy, exact approval, replay protection, and governance receipts.
+
+### Separate the authorities
+The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
+
+### Observe and preview
+observe returns current page state and a stable revision. preview resolves the requested operation against that revision. If the target changed, the operation must be observed and previewed again.
+
+### Apply or submit once
+apply covers structural browser operations. submit covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.
+
+### Do not expose the managed session directly
+A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. The browser adapter is an execution boundary, not a second policy system.
+
+## Qarinah integration
+
+Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.
+
+### Record metadata, not browser secrets
+The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the purpose, selected source, outcome, receipt hash, and evidence pointers needed to verify the memory.
+
+### Keep memory read-only with respect to the browser
+Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.
+
+### Use a causal receipt chain
+Connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt with stable IDs. This creates a reviewable path without claiming a single cross-system transaction.
+
+### Cross-tool context
+The same cited memory pack can be consumed by coding agents and CLIs that support the Qarinah integration. Authority remains scoped by workspace and source provenance.
+
+## Cockroach Crawler integration
+
+Cockroach Crawler maps and extracts public web content at bounded scale. Cockroach Browser handles stateful rendering, semantic interactions, screenshots, audits, and user-authorized sessions.
+
+### Choose the right engine
+Start with the crawler for static HTTP, mapping, structured extraction, documents, feeds, and public-source breadth. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.
+
+### Handoff by URL and purpose
+The adapter passes explicit URLs and bounded crawl options. It does not share browser profiles, cookies, session secrets, or raw browser authority with the crawler.
+
+### Normalize the evidence
+Keep source URL, capture time, content digest, extraction method, and failure state across the handoff. Maqam may govern both tools while retaining separate receipts and effect models.
+
+### Avoid duplicate work
+Map once with the crawler, rank candidate pages, then render only the pages that need a browser. This preserves browser budgets and makes the reason for each rendered session visible.
+
+## ProductLoop OS
+
+ProductLoop OS can describe Cockroach Browser as a composable connector while Maqam, Qarinah, Cockroach Crawler, and the browser retain distinct contracts and records.
+
+### Publish a deny-default manifest
+The connector manifest names observations, proposals, effects, required secrets, supported Node releases, and governance requirements. It never grants origins, profiles, or credentials by itself.
+
+### Use Maqam as the gateway
+Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Read-only research adapters may expose bounded observations directly when their host policy allows it.
+
+### Keep ledgers distinct
+Browser evidence proves what Chromium observed and executed. Maqam proves the policy and approval path. Qarinah preserves cited project memory. ProductLoop coordinates packages and workflows. Stable IDs connect these records without pretending they are one database.
+
+### Current status
+The ProductLoop integration is an adapter surface in 0.1.0. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
+
+## Security
+
+Cockroach Browser is built around explicit sessions, explicit origins, separate effects, finite budgets, authenticated transport, evidence receipts, and challenge handoff.
+
+### Threat boundary
+Assume page content is untrusted, agent input may be wrong, downloaded files may be hostile, and browser state may contain credentials. Keep session lifecycle, profile management, secret resolution, and remote binding in host-controlled code.
+
+### Challenges stop automation
+The runtime detects login, consent, CAPTCHA, and access challenges, pauses the session, records evidence, and waits for a human or authorized resolver. It does not bypass CAPTCHAs, defeat access controls, cloak automation, rotate fingerprints to evade defenses, or promise access after a site denies it.
+
+### Exact approval for consequential actions
+Use the Maqam adapter for writes, execute effects, uploads, downloads, credential use, JavaScript, and other high-risk operations. Approval must bind to the canonical action input and expire after use.
+
+### Deployment checklist
+- Bind to loopback unless remote operation is required.
+- Require TLS, bearer auth, and a CORS allowlist for remote workers.
+- Use exact HTTPS origin allowlists.
+- Keep private-network access disabled for untrusted callers.
+- Store profile passphrases and proxy credentials in a secret manager.
+- Clamp actions, tabs, time, files, snapshots, and evidence.
+- Protect evidence and dashboard access with OS or service identity.
+- Review third-party page terms and obtain authorization for the workflow.
+
+## Deployment
+
+Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.
+
+### Local daemon
+Use the CLI for a single-user workstation or development environment. The daemon creates its own token file and serves only on loopback unless you explicitly configure a remote deployment.
+
+### Container
+Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.
+
+### Remote worker
+Remote binding requires TLS and bearer authentication. Place the worker behind service identity where possible. Do not expose an unauthenticated daemon to the public internet. Keep browser profiles isolated by deployment and owner.
+
+### Release verification
+Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.
+
+## Capability matrix
+
+- Authorized browser sessions [available]: Create sessions only from explicit user or host configuration. Surface: runtime.createSession.
+- Headless Chromium [available]: Run unattended Chromium with the same policy boundary. Surface: mode=headless.
+- Headed Chromium [available]: Show the real browser for review, login, and human handoff. Surface: mode=headed.
+- Attach over CDP [available]: Connect to a user-selected Chrome debugging endpoint. Surface: cdpEndpoint.
+- Custom Chromium executable [available]: Launch an explicitly supplied compatible browser binary. Surface: executablePath.
+- Named isolated profiles [available]: Keep cookies and storage separated by an explicit profile name. Surface: profile.
+- Explicit storage-state import [available]: Import a user-selected encrypted storage-state file. Surface: profile import.
+- Explicit storage-state export [available]: Export a selected session for an authorized workflow. Surface: profile export.
+- User-supplied proxy [available]: Route one session through an explicitly configured proxy. Surface: proxy.
+- Locale and timezone [available]: Create deterministic locale and timezone contexts. Surface: locale/timezoneId.
+- Tabs and popups [available]: Open, list, switch, and close bounded tabs. Surface: tab.*.
+- Navigation [available]: Navigate, reload, go back, and go forward within allowed origins. Surface: navigate/back/forward/reload.
+- Snapshot-scoped page references [available]: Act on compact semantic references bound to the current observed page revision. Surface: snapshot refs.
+- Semantic snapshots [available]: Return visible text and interactive elements with roles and names. Surface: snapshot.
+- Click and double-click [available]: Activate referenced or selected elements after policy evaluation. Surface: click/doubleClick.
+- Form interaction [available]: Fill, type, press, select, check, and uncheck. Surface: fill/type/press/select/check.
+- Hover and focus [available]: Move focus without relying on viewport coordinates. Surface: hover/focus.
+- Bounded scrolling [available]: Scroll by explicit deltas under action ceilings. Surface: scroll.
+- Drag and drop [available]: Drag between two authorized semantic references. Surface: drag.
+- Page-state waits [available]: Wait for selectors, text, or bounded timeouts. Surface: wait.
+- Open Shadow DOM access [available]: Resolve selectors and references through open shadow roots. Surface: snapshot.
+- Same-origin iframe access [available]: Include readable same-origin frames in snapshots. Surface: snapshot.
+- Policy-gated JavaScript [available]: Evaluate JavaScript only when the session policy and approval allow it. Surface: evaluate.
+- File upload [available]: Upload explicit paths under byte and policy limits. Surface: upload.
+- Controlled downloads [available]: Capture downloads into the evidence directory under byte limits. Surface: download.
+- Screenshots [available]: Capture PNG or JPEG evidence with source metadata. Surface: screenshot.
+- PDF capture [available]: Generate page PDFs in Chromium sessions. Surface: pdf.
+- Playwright traces [available]: Start and stop trace archives for authorized sessions. Surface: trace.*.
+- HAR capture [available]: Record network archives when enabled at session creation. Surface: recordHar.
+- Session video [available]: Record browser video when enabled at session creation. Surface: recordVideo.
+- Console records [available]: Capture bounded console messages with timestamps. Surface: session evidence.
+- Network records [available]: Capture bounded request and response metadata. Surface: session evidence.
+- Hash-chained receipts [available]: Link action inputs, outputs, policy decisions, and evidence. Surface: ActionReceipt.
+- Text and HTML extraction [available]: Return bounded readable text or HTML fragments. Surface: extract.
+- Accessibility audit [available]: Inspect semantic names, labels, heading order, and obvious failures. Surface: audit accessibility.
+- Page performance observations [available]: Collect navigation timing, paint entries, transfer sizes, and resource summaries. Surface: audit performance.
+- Broken asset audit [available]: Report failed scripts, styles, images, and requests. Surface: audit assets.
+- Console error audit [available]: Summarize browser errors and warnings. Surface: audit console.
+- Page security observations [available]: Report mixed content and insecure form targets visible to the page runtime. Surface: audit security.
+- Visual comparison [available]: Compare screenshots and emit a diff plus mismatch percentage. Surface: compare.
+- Challenge detection [available]: Detect login, consent, CAPTCHA, and access challenges. Surface: challenge.
+- Human challenge handoff [available]: Pause for a user or authorized resolver instead of bypassing controls. Surface: challenge wait.
+- Origin allowlists [available]: Fail closed when navigation leaves explicitly allowed origins. Surface: allowedOrigins.
+- Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
+- Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.
+- Finite budgets [available]: Clamp actions, tabs, time, upload, download, snapshot, and evidence size. Surface: budget.
+- Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
+- Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
+- Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.
+- TypeScript SDK [available]: Embed the runtime or call an authenticated daemon. Surface: BrowserRuntime/BrowserClient.
+- Authenticated HTTP API [available]: Expose the runtime through a bearer-token localhost server. Surface: serve.
+- Observation-first MCP server [available]: Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio. Surface: mcp.
+- Docker runtime [available]: Run Chromium and the authenticated daemon in a container. Surface: Dockerfile.
+- Local dashboard [available]: Inspect sessions, evidence, challenges, and receipts. Surface: dashboard.
+- Authenticated remote workers [available]: Connect SDK clients to explicitly configured remote daemons. Surface: BrowserClient.
+- Durable local jobs [available]: Queue bounded action plans with checkpoints and retries. Surface: JobQueue.
+- Doctor and daemon health checks [available]: Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count. Surface: doctor and /v1/health.
+- Maqam governance [adapter]: Route high-risk browser actions through exact approval and receipts. Surface: cockroach-browser/maqam.
+- Qarinah memory [adapter]: Record cited browser outcomes without persisting hidden reasoning or secrets. Surface: cockroach-browser/qarinah.
+- Cockroach Crawler handoff [adapter]: Hand breadth-first collection to the crawler while retaining browser evidence. Surface: cockroach-browser/crawler.
+- ProductLoop OS manifest [adapter]: Register browser capabilities as a composable stack connector. Surface: docs/integrations/productloop.md.
+- Signed event webhooks [planned]: Send receipt and job events to configured HTTPS endpoints. Surface: roadmap.
+- Team session control [planned]: Share policy and receipts without sharing raw browser profiles. Surface: roadmap.

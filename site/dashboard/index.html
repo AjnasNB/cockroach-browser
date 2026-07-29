@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local dashboard | Cockroach Browser</title>
+  <meta name="description" content="Inspect authorized browser sessions, evidence, challenges, and receipt-chain health.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/dashboard/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Local dashboard | Cockroach Browser">
+  <meta property="og:description" content="Inspect authorized browser sessions, evidence, challenges, and receipt-chain health.">
+  <meta property="og:url" content="https://cockroachbrowser.com/dashboard/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Local dashboard | Cockroach Browser">
+  <meta name="twitter:description" content="Inspect authorized browser sessions, evidence, challenges, and receipt-chain health.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" >Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" aria-current="page">Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="dashboard-shell">
+  <nav class="dashboard-nav" aria-label="Dashboard sections">
+    <button type="button" aria-pressed="true">Overview</button>
+    <button type="button" aria-pressed="false">Sessions</button>
+    <button type="button" aria-pressed="false">Evidence</button>
+    <button type="button" aria-pressed="false">Challenges</button>
+    <button type="button" aria-pressed="false">Receipts</button>
+  </nav>
+  <section class="dashboard-main">
+    <div class="dashboard-head">
+      <div><p class="eyebrow">Local inspector</p><h1>Browser control room</h1></div>
+      <span class="connection">Demo data. Connect the packaged dashboard to localhost.</span>
+    </div>
+    <div class="dashboard-grid">
+      <article class="dashboard-panel"><h2>Active sessions</h2><span class="metric">2</span><p class="hero-copy">One read-only audit and one Maqam-managed release workflow.</p></article>
+      <article class="dashboard-panel"><h2>Evidence records</h2><span class="metric">38</span><p class="hero-copy">Snapshots, screenshots, audits, traces, and action records.</p></article>
+      <article class="dashboard-panel"><h2>Receipt chain</h2><span class="metric">OK</span><p class="hero-copy">Every recorded receipt and artifact digest verifies.</p></article>
+      <article class="dashboard-panel dashboard-panel--wide"><h2>Recent sessions</h2><ul class="data-list"><li><span>release-review / docs.example.com</span><code>read only</code></li><li><span>support-form / app.example.com</span><code>Maqam managed</code></li><li><span>visual-regression / preview.example.com</span><code>audit</code></li></ul></article>
+      <article class="dashboard-panel"><h2>Challenges</h2><div class="dashboard-empty">No active challenge.<br>Login, consent, CAPTCHA, and access challenges pause here.</div></article>
+    </div>
+  </section>
+</main>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>
