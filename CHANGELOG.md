@@ -11,6 +11,15 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - community validation across supported operating systems
 - additional provider adapters behind the same authority model
 
+## [0.1.1] - 2026-07-29
+
+### Fixed
+
+- corrected the case-sensitive MCP Registry identity to the GitHub-authorized
+  `io.github.AjnasNB/cockroach-browser` namespace
+- aligned the npm package, MCP manifest, CLI, daemon, Docker examples,
+  documentation, and website on the same immutable release version
+
 ## [0.1.0] - 2026-07-29
 
 ### Added
@@ -33,5 +42,6 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AjnasNB/cockroach-browser/releases/tag/v0.1.0

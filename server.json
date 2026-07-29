@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.ajnasnb/cockroach-browser",
+  "name": "io.github.AjnasNB/cockroach-browser",
   "description": "Observation-first browser tools for authorized sessions, with Maqam-governed action proposals.",
   "repository": {
     "url": "https://github.com/AjnasNB/cockroach-browser",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "cockroach-browser",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       },

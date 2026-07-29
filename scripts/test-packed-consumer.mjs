@@ -36,7 +36,7 @@ if (typeof createQarinahContextRecorder !== "function") throw new Error("Qarinah
 if (typeof createCrawlerHandoff !== "function") throw new Error("crawler adapter missing");
 if (typeof productLoopBrowserCapabilitySnapshot !== "function") throw new Error("ProductLoop snapshot missing");
 if (memorySchema.properties?.schemaVersion?.const !== "cockroach.browser-memory.v1") throw new Error("memory schema mismatch");
-if (server.name !== "io.github.ajnasnb/cockroach-browser") throw new Error("MCP identity mismatch");
+if (server.name !== "io.github.AjnasNB/cockroach-browser") throw new Error("MCP identity mismatch");
 process.stdout.write(JSON.stringify({ ok: true, capabilities: CAPABILITIES.length }) + "\\n");
 `
   );
