@@ -4,6 +4,7 @@
 # Keep their checkout bytes stable on every runner so the tagged source can
 # reproduce the immutable registry tarball without weakening identity checks.
 README.md text eol=crlf
+docs/README.md text eol=lf
 package.json text eol=crlf
 examples/crawler-handoff.mjs text eol=crlf
 examples/productloop-capability-snapshot.mjs text eol=crlf
