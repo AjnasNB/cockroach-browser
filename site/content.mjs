@@ -105,6 +105,29 @@ const result = await browser.act(session.id, {
 });
 
 console.log(result.receipt.receiptHash);`,
+  exactTarget: `await browser.act(session.id, {
+  kind: "fill",
+  xpath: "//*[@id='account-name']",
+  frame: { name: "account-panel" },
+  value: "Ajnas",
+  purpose: "Fill the reviewed same-origin account form"
+});`,
+  networkRoute: `await browser.act(session.id, {
+  kind: "network.route.add",
+  route: {
+    id: "release-fixture",
+    origin: "https://docs.example.com",
+    pathPattern: "/api/releases/**",
+    methods: ["GET"],
+    resourceTypes: ["fetch"],
+    response: {
+      action: "fulfill",
+      contentType: "application/json",
+      body: "{\\"releases\\":[]}"
+    }
+  },
+  purpose: "Install a deterministic response for the reviewed test"
+});`,
   mcp: `{
   "mcpServers": {
     "cockroach-browser": {
@@ -200,7 +223,7 @@ export const pages = [
       {
         title: "Budget every session",
         body:
-          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
+          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
       },
       {
         title: "Close deliberately",
@@ -231,7 +254,24 @@ export const pages = [
       {
         title: "Supported interactions",
         body:
-          "<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>"
+          "<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>"
+      },
+      {
+        title: "Target exact XPath and same-origin frames",
+        body:
+          "<p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>",
+        code: snippets.exactTarget,
+        label: "same-origin-frame.mjs"
+      },
+      {
+        title: "Handle dialogs explicitly",
+        body:
+          "<p>Undeclared JavaScript dialogs are dismissed. Accepting one requires <code>allowDialogAccept</code> and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.</p>"
+      },
+      {
+        title: "Inspect only this session's history",
+        body:
+          "<p><code>history.inspect</code> returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. <code>maxHistoryEntries</code> bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.</p>"
       },
       {
         title: "JavaScript is an explicit capability",
@@ -290,6 +330,18 @@ export const pages = [
         title: "Proxies are supplied, not discovered",
         body:
           "<p>A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.</p>"
+      },
+      {
+        title: "Intercept only exact-origin requests",
+        body:
+          "<p>Network interception is disabled unless <code>allowNetworkInterception</code> is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.</p>",
+        code: snippets.networkRoute,
+        label: "static-route.mjs"
+      },
+      {
+        title: "Put byte ceilings around fixtures",
+        body:
+          "<p><code>maxNetworkRules</code> limits active rules, <code>maxRouteFulfillBytes</code> limits one static body, and <code>maxInterceptedBytes</code> limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.</p>"
       },
       {
         title: "Remote workers require TLS",
@@ -606,8 +658,8 @@ export const homepage = {
   lede:
     "Authorized Chromium sessions, snapshot-scoped page references, bounded actions, browser evidence, MCP, and Maqam policy hooks in one local-first TypeScript package.",
   proof: [
-    ["63", "mapped capabilities"],
-    ["55", "available runtime surfaces"],
+    ["70", "mapped capabilities"],
+    ["62", "available runtime surfaces"],
     ["6", "adapter-backed surfaces"],
     ["2", "planned surfaces"]
   ]

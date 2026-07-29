@@ -36,9 +36,12 @@ The default daemon:
 - rejects direct HTTP action dispatch unless a deployment owner explicitly enables the raw-action surface
 - denies origins that are not listed on the session
 - denies private and loopback destinations unless a deployment owner explicitly opts in
-- limits actions, duration, tabs, uploads, downloads, snapshots, and evidence
+- limits actions, duration, tabs, uploads, downloads, snapshots, retained history, interception rules, static response bytes, and evidence
 - records hash-linked action receipts and content-addressed evidence
 - pauses when it detects access challenges that require a human
+- dismisses undeclared JavaScript dialogs and requires explicit policy plus exact approval before accepting one
+- limits explicit frame targeting to the current page's same-origin frames
+- permits network interception only as exact-origin request blocking or bounded static fulfillment
 
 MCP is observation-first. It can inspect health, capabilities, sessions, snapshots, audits, and canonical action proposals. It does not expose raw profile lifecycle, unrestricted JavaScript, direct mutation, or silent credential discovery. The HTTP daemon follows the same safe default: its direct action route is disabled unless the trusted host opts in.
 
@@ -56,6 +59,10 @@ Headless mode is not a sandbox. Browser rendering, JavaScript execution, downloa
 
 Cockroach Browser does not bypass CAPTCHAs, access controls, rate limits, paywalls, or site authorization. Challenge detection stops and requires a human or an explicitly authorized external workflow.
 
+XPath, low-level mouse and keyboard input, dialog handling, and request interception do not expand authority. They remain subject to the same origin, action, effect, approval, and resource policy as semantic-reference actions. Mouse coordinates are limited to the current viewport, prompt values come from opaque host references, and history inspection exposes only sanitized entries observed inside the current session.
+
+Network routes cannot use wildcard origins, redirect traffic, inject credentials, read response bodies, or modify arbitrary request headers. A route matches one admitted HTTP(S) origin and pathname pattern, then either aborts the request or returns a static response under per-rule and cumulative byte ceilings. Do not use interception to simulate authorization, defeat access controls, or conceal the destination a workflow actually uses.
+
 The daemon is not a public multi-tenant service. Deploy separate instances and data roots for separate trust domains.
 
 ## Deployment checklist
@@ -66,6 +73,8 @@ The daemon is not a public multi-tenant service. Deploy separate instances and d
 - Mount the data directory on encrypted storage and set an evidence retention period.
 - Use a dedicated browser profile for each trust domain.
 - Keep browser profiles, proxy credentials, and upload paths outside agent-provided input.
+- Keep dialog acceptance and network interception disabled unless the exact workflow requires them.
+- Set narrow `maxHistoryEntries`, `maxNetworkRules`, `maxRouteFulfillBytes`, and `maxInterceptedBytes` values.
 - Route consequential actions through Maqam.
 - Verify evidence integrity after every governed run.
 - Run the container as the included non-root user with all Linux capabilities dropped.

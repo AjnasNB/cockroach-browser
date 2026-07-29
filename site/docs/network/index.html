@@ -62,13 +62,40 @@
     <span class="section-number">03</span>
     <h2>Proxies are supplied, not discovered</h2>
 <p>A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.</p>
-  </section><section class="manual-section" id="remote-workers-require-tls">
+  </section><section class="manual-section" id="intercept-only-exact-origin-requests">
     <span class="section-number">04</span>
+    <h2>Intercept only exact-origin requests</h2>
+<p>Network interception is disabled unless <code>allowNetworkInterception</code> is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.</p>
+<div class="code-block">
+  <div class="code-head"><span>static-route.mjs</span><button class="copy-code" type="button" data-copy="#code-8">Copy</button></div>
+  <pre><code id="code-8">await browser.act(session.id, {
+  kind: &quot;network.route.add&quot;,
+  route: {
+    id: &quot;release-fixture&quot;,
+    origin: &quot;https://docs.example.com&quot;,
+    pathPattern: &quot;/api/releases/**&quot;,
+    methods: [&quot;GET&quot;],
+    resourceTypes: [&quot;fetch&quot;],
+    response: {
+      action: &quot;fulfill&quot;,
+      contentType: &quot;application/json&quot;,
+      body: &quot;{\&quot;releases\&quot;:[]}&quot;
+    }
+  },
+  purpose: &quot;Install a deterministic response for the reviewed test&quot;
+});</code></pre>
+</div>
+  </section><section class="manual-section" id="put-byte-ceilings-around-fixtures">
+    <span class="section-number">05</span>
+    <h2>Put byte ceilings around fixtures</h2>
+<p><code>maxNetworkRules</code> limits active rules, <code>maxRouteFulfillBytes</code> limits one static body, and <code>maxInterceptedBytes</code> limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.</p>
+  </section><section class="manual-section" id="remote-workers-require-tls">
+    <span class="section-number">06</span>
     <h2>Remote workers require TLS</h2>
 <p>The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#start-from-an-allowlist">Start from an allowlist</a><a href="#private-networks-require-an-owned-deployment-decision">Private networks require an owned deployment decision</a><a href="#proxies-are-supplied-not-discovered">Proxies are supplied, not discovered</a><a href="#remote-workers-require-tls">Remote workers require TLS</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#start-from-an-allowlist">Start from an allowlist</a><a href="#private-networks-require-an-owned-deployment-decision">Private networks require an owned deployment decision</a><a href="#proxies-are-supplied-not-discovered">Proxies are supplied, not discovered</a><a href="#intercept-only-exact-origin-requests">Intercept only exact-origin requests</a><a href="#put-byte-ceilings-around-fixtures">Put byte ceilings around fixtures</a><a href="#remote-workers-require-tls">Remote workers require TLS</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

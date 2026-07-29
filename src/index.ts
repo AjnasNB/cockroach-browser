@@ -2,6 +2,7 @@ export * from "./contracts.js";
 export * from "./errors.js";
 export * from "./canonical.js";
 export * from "./policy.js";
+export * from "./network-routes.js";
 export * from "./capabilities.js";
 export * from "./challenge.js";
 export * from "./snapshot.js";

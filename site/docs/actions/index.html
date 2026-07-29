@@ -78,14 +78,36 @@ console.log(result.receipt.receiptHash);</code></pre>
   </section><section class="manual-section" id="supported-interactions">
     <span class="section-number">03</span>
     <h2>Supported interactions</h2>
-<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>
-  </section><section class="manual-section" id="javascript-is-an-explicit-capability">
+<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>
+  </section><section class="manual-section" id="target-exact-xpath-and-same-origin-frames">
     <span class="section-number">04</span>
+    <h2>Target exact XPath and same-origin frames</h2>
+<p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>
+<div class="code-block">
+  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-7">Copy</button></div>
+  <pre><code id="code-7">await browser.act(session.id, {
+  kind: &quot;fill&quot;,
+  xpath: &quot;//*[@id='account-name']&quot;,
+  frame: { name: &quot;account-panel&quot; },
+  value: &quot;Ajnas&quot;,
+  purpose: &quot;Fill the reviewed same-origin account form&quot;
+});</code></pre>
+</div>
+  </section><section class="manual-section" id="handle-dialogs-explicitly">
+    <span class="section-number">05</span>
+    <h2>Handle dialogs explicitly</h2>
+<p>Undeclared JavaScript dialogs are dismissed. Accepting one requires <code>allowDialogAccept</code> and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.</p>
+  </section><section class="manual-section" id="inspect-only-this-session-s-history">
+    <span class="section-number">06</span>
+    <h2>Inspect only this session's history</h2>
+<p><code>history.inspect</code> returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. <code>maxHistoryEntries</code> bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.</p>
+  </section><section class="manual-section" id="javascript-is-an-explicit-capability">
+    <span class="section-number">07</span>
     <h2>JavaScript is an explicit capability</h2>
 <p>Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#snapshot-before-action">Snapshot before action</a><a href="#use-a-ref-from-the-current-snapshot">Use a ref from the current snapshot</a><a href="#supported-interactions">Supported interactions</a><a href="#javascript-is-an-explicit-capability">JavaScript is an explicit capability</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#snapshot-before-action">Snapshot before action</a><a href="#use-a-ref-from-the-current-snapshot">Use a ref from the current snapshot</a><a href="#supported-interactions">Supported interactions</a><a href="#target-exact-xpath-and-same-origin-frames">Target exact XPath and same-origin frames</a><a href="#handle-dialogs-explicitly">Handle dialogs explicitly</a><a href="#inspect-only-this-session-s-history">Inspect only this session's history</a><a href="#javascript-is-an-explicit-capability">JavaScript is an explicit capability</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

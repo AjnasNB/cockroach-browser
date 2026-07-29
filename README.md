@@ -23,7 +23,7 @@ Current release line: **0.1.1**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 63 entries, with 55 available, 6 adapter-backed, and 2 planned
+- Capability registry: 70 entries, with 62 available, 6 adapter-backed, and 2 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
@@ -250,20 +250,20 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 63 source-registered capabilities
+## 70 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Sessions | 10 | 0 | 0 | 10 |
-| Interaction | 15 | 0 | 0 | 15 |
+| Interaction | 21 | 0 | 0 | 21 |
 | Evidence | 9 | 0 | 0 | 9 |
 | Audit | 6 | 0 | 0 | 6 |
-| Security | 6 | 2 | 0 | 8 |
+| Security | 7 | 2 | 0 | 9 |
 | Deployment | 9 | 0 | 0 | 9 |
 | Integration | 0 | 4 | 2 | 6 |
-| **Total** | **55** | **6** | **2** | **63** |
+| **Total** | **62** | **6** | **2** | **70** |
 
 ### Sessions
 
@@ -271,7 +271,7 @@ Authorized browser sessions; headless Chromium; headed Chromium; CDP attachment;
 
 ### Interaction
 
-Tabs and popups; navigation, back, forward, and reload; snapshot-scoped semantic page references; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; drag and drop; page-state waits; open Shadow DOM access; readable same-origin iframe access; policy-gated JavaScript; controlled upload; controlled download.
+Tabs and popups; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history; policy-gated JavaScript; controlled upload; controlled download.
 
 ### Evidence
 
@@ -283,7 +283,7 @@ Accessibility; page performance observations; broken assets; console errors and 
 
 ### Security
 
-Challenge detection; human challenge handoff; origin allowlists; private-network blocking; effect-level policy; finite resource budgets.
+Challenge detection; human challenge handoff; origin allowlists; private-network blocking; effect-level policy; finite resource budgets; exact-origin static network interception.
 
 Adapter-backed security surfaces:
 
@@ -312,11 +312,65 @@ The complete searchable matrix, including capability IDs, implementation status,
 
 ## Action surface
 
-The typed runtime implements 34 action kinds:
+The typed runtime implements 45 action kinds:
 
-`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `upload`, `download`, `evaluate`, `wait`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `trace.start`, and `trace.stop`.
+`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `wait`, `history.inspect`, `network.route.add`, `network.route.remove`, `network.routes.list`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `trace.start`, and `trace.stop`.
 
 Availability in the type system does not grant authority. The session policy, effect policy, approval provider, server surface, origin checks, and resource budget decide whether an action can run.
+
+### Exact targets and same-origin frames
+
+An element action accepts exactly one snapshot ref, CSS selector, or XPath expression. A CSS or XPath target may include an exact same-origin frame selector by index, name, or URL. Semantic refs already carry their frame identity and cannot be combined with a separate frame target.
+
+```js
+await runtime.act(session.id, {
+  kind: "fill",
+  xpath: "//*[@id='account-name']",
+  frame: { name: "account-panel" },
+  value: "Ajnas",
+  purpose: "Fill the reviewed same-origin account form"
+});
+```
+
+Cross-origin frame targeting is rejected. XPath and selector strings are length-bounded and do not grant new origin authority.
+
+### Dialogs and low-level input
+
+Unexpected dialogs are dismissed. Accepting a dialog requires `allowDialogAccept: true`, remains approval-bound even when the session has an empty `requireApprovalFor` list, and may resolve prompt text only from an opaque host secret reference. Low-level mouse coordinates must remain inside the current viewport. Keyboard text, key names, click counts, and movement steps have finite ceilings.
+
+```js
+await runtime.act(session.id, {
+  kind: "click",
+  ref: confirmButton.ref,
+  dialog: { action: "accept" },
+  purpose: "Accept the exact reviewed confirmation"
+});
+```
+
+### Bounded history and network routes
+
+`history.inspect` returns a sanitized, session-local list capped by `maxHistoryEntries`. It is not browser-profile discovery and does not expose a user's ambient history.
+
+Network routes are off until `allowNetworkInterception` is enabled. A route may match one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It may only abort the request or return a static response. It cannot redirect requests, inject credentials, discover cookies, or widen the origin policy. Static response bodies are constrained by `maxRouteFulfillBytes`, and cumulative fulfilled bytes are constrained by `maxInterceptedBytes`.
+
+```js
+await runtime.act(session.id, {
+  kind: "network.route.add",
+  route: {
+    id: "release-fixture",
+    origin: "https://docs.example.com",
+    pathPattern: "/api/releases/**",
+    methods: ["GET"],
+    resourceTypes: ["fetch"],
+    response: {
+      action: "fulfill",
+      contentType: "application/json",
+      body: "{\"releases\":[]}"
+    }
+  },
+  purpose: "Install a deterministic response for the reviewed test"
+});
+```
 
 ## Product stack integrations
 

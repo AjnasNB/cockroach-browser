@@ -259,7 +259,7 @@ ${header("docs")}
     </header>
     ${groups}
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>Release</h2><a href="/docs/capabilities/">63 mapped capabilities</a><a href="/docs/security/">Security boundary</a><a href="/docs/deployment/">Deployment</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>Release</h2><a href="/docs/capabilities/">${capabilities.length} mapped capabilities</a><a href="/docs/security/">Security boundary</a><a href="/docs/deployment/">Deployment</a></aside>
 </main>
 ${footer()}`;
 }

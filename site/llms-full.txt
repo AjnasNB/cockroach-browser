@@ -30,7 +30,7 @@ Launch bundled Chromium in headless or headed mode, supply a compatible executab
 Profiles isolate cookies and storage. Import and export require an explicit name, file path, and passphrase supplied through an environment variable. Passphrases are not accepted as command arguments and are not written to manifests.
 
 ### Budget every session
-The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
+The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
 
 ### Close deliberately
 Closing a session releases tabs, browser context, traces, and runtime state. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.
@@ -46,7 +46,16 @@ A snapshot includes the current URL, title, bounded readable text, semantic refe
 Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.
 
 ### Supported interactions
-Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+
+### Target exact XPath and same-origin frames
+Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.
+
+### Handle dialogs explicitly
+Undeclared JavaScript dialogs are dismissed. Accepting one requires allowDialogAccept and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.
+
+### Inspect only this session's history
+history.inspect returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. maxHistoryEntries bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.
 
 ### JavaScript is an explicit capability
 Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.
@@ -79,6 +88,12 @@ The public browser adapter rejects loopback, link-local, and private-network des
 
 ### Proxies are supplied, not discovered
 A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.
+
+### Intercept only exact-origin requests
+Network interception is disabled unless allowNetworkInterception is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.
+
+### Put byte ceilings around fixtures
+maxNetworkRules limits active rules, maxRouteFulfillBytes limits one static body, and maxInterceptedBytes limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.
 
 ### Remote workers require TLS
 The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.
@@ -265,15 +280,21 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Tabs and popups [available]: Open, list, switch, and close bounded tabs. Surface: tab.*.
 - Navigation [available]: Navigate, reload, go back, and go forward within allowed origins. Surface: navigate/back/forward/reload.
 - Snapshot-scoped page references [available]: Act on compact semantic references bound to the current observed page revision. Surface: snapshot refs.
+- Explicit XPath targets [available]: Resolve a bounded XPath only when the exact action supplies it. Surface: action.xpath.
 - Semantic snapshots [available]: Return visible text and interactive elements with roles and names. Surface: snapshot.
 - Click and double-click [available]: Activate referenced or selected elements after policy evaluation. Surface: click/doubleClick.
 - Form interaction [available]: Fill, type, press, select, check, and uncheck. Surface: fill/type/press/select/check.
 - Hover and focus [available]: Move focus without relying on viewport coordinates. Surface: hover/focus.
 - Bounded scrolling [available]: Scroll by explicit deltas under action ceilings. Surface: scroll.
+- Low-level mouse actions [available]: Move, press, release, or click only at explicit in-viewport coordinates. Surface: mouse.*.
+- Low-level keyboard actions [available]: Press, release, or insert bounded text through explicit actions. Surface: keyboard.*.
 - Drag and drop [available]: Drag between two authorized semantic references. Surface: drag.
 - Page-state waits [available]: Wait for selectors, text, or bounded timeouts. Surface: wait.
 - Open Shadow DOM access [available]: Resolve selectors and references through open shadow roots. Surface: snapshot.
 - Same-origin iframe access [available]: Include readable same-origin frames in snapshots. Surface: snapshot.
+- Same-origin frame targeting [available]: Target an exact index, name, or URL without entering cross-origin frames. Surface: action.frame.
+- Explicit dialog handling [available]: Dismiss dialogs by default and require policy plus approval before accepting one. Surface: action.dialog.
+- Bounded browser history [available]: Inspect a sanitized, session-local record of observed page states under a finite retention ceiling. Surface: history.inspect.
 - Policy-gated JavaScript [available]: Evaluate JavaScript only when the session policy and approval allow it. Surface: evaluate.
 - File upload [available]: Upload explicit paths under byte and policy limits. Surface: upload.
 - Controlled downloads [available]: Capture downloads into the evidence directory under byte limits. Surface: download.
@@ -298,6 +319,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
 - Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.
 - Finite budgets [available]: Clamp actions, tabs, time, upload, download, snapshot, and evidence size. Surface: budget.
+- Policy-bounded network routes [available]: Abort or statically fulfill exact-origin requests under per-rule and session byte ceilings. Surface: network.route.*.
 - Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
 - Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
 - Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.

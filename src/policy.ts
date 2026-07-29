@@ -22,7 +22,16 @@ const WRITE_ACTIONS = new Set<ActionKind>([
   "uncheck",
   "select",
   "drag",
+  "mouse.move",
+  "mouse.down",
+  "mouse.up",
+  "mouse.click",
+  "keyboard.down",
+  "keyboard.up",
+  "keyboard.insertText",
   "upload",
+  "network.route.add",
+  "network.route.remove",
   "cookies.write",
   "storage.write"
 ]);
@@ -37,7 +46,16 @@ const HIGH_RISK_ACTIONS = new Set<ActionKind>([
   "cookies.read",
   "cookies.write",
   "storage.read",
-  "storage.write"
+  "storage.write",
+  "mouse.move",
+  "mouse.down",
+  "mouse.up",
+  "mouse.click",
+  "keyboard.down",
+  "keyboard.up",
+  "keyboard.insertText",
+  "network.route.add",
+  "network.route.remove"
 ]);
 
 const DEFAULT_APPROVAL_ACTIONS = new Set<ActionKind>([
@@ -45,18 +63,28 @@ const DEFAULT_APPROVAL_ACTIONS = new Set<ActionKind>([
   ...HIGH_RISK_ACTIONS
 ]);
 
-export function effectForAction(action: ActionKind): Effect {
-  if (action === "upload") return "upload";
-  if (action === "download") return "download";
-  if (action === "evaluate") return "execute";
-  if (action.startsWith("cookies.") || action.startsWith("storage.")) return "credential";
-  return WRITE_ACTIONS.has(action) ? "write" : "read";
+export function effectForAction(action: ActionKind | BrowserAction): Effect {
+  const kind = typeof action === "string" ? action : action.kind;
+  if (kind === "upload") return "upload";
+  if (kind === "download") return "download";
+  if (kind === "evaluate") return "execute";
+  if (kind.startsWith("cookies.") || kind.startsWith("storage.")) return "credential";
+  if (typeof action !== "string" && action.dialog?.action === "accept") return "write";
+  return WRITE_ACTIONS.has(kind) ? "write" : "read";
 }
 
-export function riskForAction(action: ActionKind): RiskLevel {
-  if (action === "evaluate" || action === "cookies.write" || action === "storage.write") return "critical";
-  if (HIGH_RISK_ACTIONS.has(action)) return "high";
-  if (WRITE_ACTIONS.has(action) || action === "navigate") return "medium";
+export function riskForAction(action: ActionKind | BrowserAction): RiskLevel {
+  const kind = typeof action === "string" ? action : action.kind;
+  if (
+    kind === "evaluate"
+    || kind === "cookies.write"
+    || kind === "storage.write"
+    || kind === "network.route.add"
+    || kind === "network.route.remove"
+  ) return "critical";
+  if (typeof action !== "string" && action.dialog?.action === "accept") return "high";
+  if (HIGH_RISK_ACTIONS.has(kind)) return "high";
+  if (WRITE_ACTIONS.has(kind) || kind === "navigate") return "medium";
   return "low";
 }
 
@@ -75,7 +103,19 @@ export function clampBudget(input?: Partial<ResourceBudget>): ResourceBudget {
     maxDownloadBytes: positive(input?.maxDownloadBytes, DEFAULT_BUDGET.maxDownloadBytes, 2 * 1024 ** 3),
     maxUploadBytes: positive(input?.maxUploadBytes, DEFAULT_BUDGET.maxUploadBytes, 2 * 1024 ** 3),
     maxSnapshotChars: positive(input?.maxSnapshotChars, DEFAULT_BUDGET.maxSnapshotChars, 2_000_000),
-    maxEvidenceBytes: positive(input?.maxEvidenceBytes, DEFAULT_BUDGET.maxEvidenceBytes, 10 * 1024 ** 3)
+    maxEvidenceBytes: positive(input?.maxEvidenceBytes, DEFAULT_BUDGET.maxEvidenceBytes, 10 * 1024 ** 3),
+    maxHistoryEntries: positive(input?.maxHistoryEntries, DEFAULT_BUDGET.maxHistoryEntries, 1_000),
+    maxNetworkRules: positive(input?.maxNetworkRules, DEFAULT_BUDGET.maxNetworkRules, 256),
+    maxRouteFulfillBytes: positive(
+      input?.maxRouteFulfillBytes,
+      DEFAULT_BUDGET.maxRouteFulfillBytes,
+      4 * 1024 * 1024
+    ),
+    maxInterceptedBytes: positive(
+      input?.maxInterceptedBytes,
+      DEFAULT_BUDGET.maxInterceptedBytes,
+      64 * 1024 * 1024
+    )
   });
 }
 
@@ -278,8 +318,8 @@ export interface PolicyDecision {
 
 export function evaluateAction(policy: BrowserPolicy, action: BrowserAction): PolicyDecision {
   const normalized = normalizePolicy(policy);
-  const effect = effectForAction(action.kind);
-  const risk = riskForAction(action.kind);
+  const effect = effectForAction(action);
+  const risk = riskForAction(action);
   let allowed = normalized.allowedActions?.includes(action.kind) ?? false;
   let reason = allowed ? "Action and effect are permitted by the session policy." : "Action is not permitted.";
   if (!normalized.allowedEffects?.includes(effect)) {
@@ -306,8 +346,22 @@ export function evaluateAction(policy: BrowserPolicy, action: BrowserAction): Po
     allowed = false;
     reason = "Uploads are disabled for this session.";
   }
+  if (action.dialog?.action === "accept" && !normalized.allowDialogAccept) {
+    allowed = false;
+    reason = "Dialog acceptance is disabled for this session; undeclared dialogs are dismissed.";
+  }
+  if (
+    (action.kind === "network.route.add" || action.kind === "network.route.remove")
+    && !normalized.allowNetworkInterception
+  ) {
+    allowed = false;
+    reason = "Network interception is disabled for this session.";
+  }
   if (action.url) assertUrlAllowed(normalized, action.url);
-  const requiresApproval = allowed && (normalized.requireApprovalFor?.includes(action.kind) ?? false);
+  const requiresApproval = allowed && (
+    (normalized.requireApprovalFor?.includes(action.kind) ?? false)
+    || action.dialog?.action === "accept"
+  );
   const digest = sha256({
     allowed,
     effect,

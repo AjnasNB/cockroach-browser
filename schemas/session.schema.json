@@ -151,7 +151,16 @@
         "allowUploads": {
           "type": "boolean"
         },
+        "allowDialogAccept": {
+          "type": "boolean"
+        },
+        "allowNetworkInterception": {
+          "type": "boolean"
+        },
         "allowPrivateNetwork": {
+          "type": "boolean"
+        },
+        "allowRemote": {
           "type": "boolean"
         },
         "requireApprovalFor": {
@@ -196,6 +205,26 @@
             "maxEvidenceBytes": {
               "type": "integer",
               "minimum": 1
+            },
+            "maxHistoryEntries": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "maxNetworkRules": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 256
+            },
+            "maxRouteFulfillBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4194304
+            },
+            "maxInterceptedBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 67108864
             }
           }
         }
