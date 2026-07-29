@@ -9,7 +9,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "cockroach-browser": "./dist/cli.js"
+    "cockroach-browser": "dist/cli.js"
   },
   "exports": {
     ".": {
