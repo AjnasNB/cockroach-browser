@@ -30,8 +30,56 @@ jobs:
           git tag --points-at HEAD | grep -Fx "${GITHUB_REF_NAME}"
       - run: npm ci --ignore-scripts
       - run: npm run check
-      - run: npm publish --access public --provenance
+      - name: Check for an existing immutable npm artifact
+        id: registry
+        shell: bash
+        run: |
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          package_spec="${package_name}@${package_version}"
+          current_head="$(git rev-parse HEAD)"
+
+          if npm view "$package_spec" version >/dev/null 2>&1; then
+            published_head="$(npm view "$package_spec" gitHead)"
+            if [ "$published_head" != "$current_head" ]; then
+              echo "::error::${package_spec} already exists from gitHead ${published_head}, not ${current_head}"
+              exit 1
+            fi
+            echo "The exact npm artifact already exists at ${current_head}; publication is idempotent."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "No existing npm artifact was found for ${package_spec}."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish to npm with provenance
+        if: steps.registry.outputs.publish == 'true'
+        run: npm publish --access public --provenance
+      - name: Verify npm release identity
+        shell: bash
+        run: |
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          package_spec="${package_name}@${package_version}"
+          current_head="$(git rev-parse HEAD)"
+
+          for attempt in 1 2 3 4 5 6; do
+            published_head="$(npm view "$package_spec" gitHead 2>/dev/null || true)"
+            if [ "$published_head" = "$current_head" ]; then
+              npm view "$package_spec" version dist.integrity dist.tarball gitHead
+              exit 0
+            fi
+            echo "Waiting for npm registry propagation (${attempt}/6)..."
+            sleep 10
+          done
+
+          echo "::error::npm did not expose ${package_spec} with gitHead ${current_head}"
+          exit 1
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Cockroach Browser $GITHUB_REF_NAME"
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "GitHub release ${GITHUB_REF_NAME} already exists."
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Cockroach Browser $GITHUB_REF_NAME"
+          fi
