@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./site/assets/logo.svg" width="112" alt="Cockroach Browser logo">
+  <img src="https://cockroachbrowser.com/assets/logo.png" width="144" alt="Cockroach Browser globe and cockroach logo">
 </p>
 
 <h1 align="center">Cockroach Browser</h1>

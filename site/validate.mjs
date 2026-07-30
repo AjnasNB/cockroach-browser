@@ -61,6 +61,7 @@ for (const required of [
   "_headers",
   "_redirects",
   "assets/logo.svg",
+  "assets/logo.png",
   "assets/favicon.svg",
   "assets/og-card.svg"
 ]) {

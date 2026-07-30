@@ -207,7 +207,7 @@ ${header("home")}
       </div>
     </div>
     <div class="hero-runtime">
-      <img class="hero-mark" src="/assets/logo.svg" alt="Cockroach Browser cockroach and globe mark" width="260" height="260">
+      <img class="hero-mark" src="/assets/logo.png" alt="Cockroach Browser cockroach and globe mark" width="320" height="320">
       <div class="terminal" aria-label="Cockroach Browser terminal example">
         <pre data-terminal-output><span class="prompt">$</span> npm i -g cockroach-browser
 <span class="prompt">$</span> cockroach-browser bootstrap

@@ -5,7 +5,7 @@ export const site = {
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "The browser runtime AI agents can use without inheriting your whole machine."
+    "The browser runtime your AI agents can use without inheriting your whole machine."
 };
 
 export const navGroups = [

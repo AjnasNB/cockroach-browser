@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Cockroach Browser</title>
-  <desc id="desc">The browser runtime AI agents can use without inheriting the whole machine</desc>
+  <desc id="desc">The browser runtime your AI agents can use without inheriting your whole machine</desc>
   <rect width="1200" height="630" fill="#050a0d"/>
   <path d="M0 80h1200M0 550h1200M80 0v630M1120 0v630" stroke="#203038" stroke-width="2"/>
   <g transform="translate(800 90) scale(3.7)">

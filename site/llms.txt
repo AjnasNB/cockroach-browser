@@ -1,6 +1,6 @@
 # Cockroach Browser
 
-> The browser runtime AI agents can use without inheriting your whole machine.
+> The browser runtime your AI agents can use without inheriting your whole machine.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
