@@ -4,7 +4,7 @@
 
 <h1 align="center">Cockroach Browser</h1>
 
-<p align="center"><strong>Give AI agents a real browser. Keep the keys.</strong></p>
+<p align="center"><strong>The browser runtime your AI agents can use without inheriting your whole machine.</strong></p>
 
 <p align="center">
   Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions
@@ -28,7 +28,19 @@ Current release line: **0.2.0**
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 
-## Install
+## Install once for your user account
+
+Install the CLI globally when the same operator account should use Cockroach Browser across projects:
+
+```bash
+npm install --global cockroach-browser
+cockroach-browser bootstrap
+cockroach-browser doctor
+```
+
+The global installation makes the CLI available across the current computer account. It does not grant access to ambient browser profiles, cookies, origins, or machine resources. Each session still requires explicit authority.
+
+## Install inside one project
 
 ```bash
 npm install cockroach-browser

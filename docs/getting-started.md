@@ -11,6 +11,12 @@ Public manual: https://cockroachbrowser.com/docs/getting-started/
 The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
 
 ```
+# Install once for the current computer account
+npm install --global cockroach-browser
+cockroach-browser bootstrap
+cockroach-browser doctor
+
+# Or keep it inside one project
 npm install --save-dev cockroach-browser
 npx cockroach-browser bootstrap
 ```
