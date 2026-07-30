@@ -40,6 +40,10 @@
       "types": "./dist/capabilities.d.ts",
       "default": "./dist/capabilities.js"
     },
+    "./operator-install": {
+      "types": "./dist/operator-install.d.ts",
+      "default": "./dist/operator-install.js"
+    },
     "./schemas/browser-memory.schema.json": "./schemas/browser-memory.schema.json",
     "./server.json": "./server.json"
   },

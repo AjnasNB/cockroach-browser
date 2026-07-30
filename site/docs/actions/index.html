@@ -41,7 +41,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" aria-current="page">Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" aria-current="page">Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -59,8 +59,8 @@
     <h2>Use a ref from the current snapshot</h2>
 <p>Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.</p>
 <div class="code-block">
-  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-6">Copy</button></div>
-  <pre><code id="code-6">const snapshot = await browser.snapshot(session.id);
+  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-10">Copy</button></div>
+  <pre><code id="code-10">const snapshot = await browser.snapshot(session.id);
 const releaseLink = snapshot.refs.find(
   (ref) =&gt; ref.role === &quot;link&quot; &amp;&amp; ref.name.includes(&quot;Release notes&quot;)
 );
@@ -84,8 +84,8 @@ console.log(result.receipt.receiptHash);</code></pre>
     <h2>Target exact XPath and same-origin frames</h2>
 <p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>
 <div class="code-block">
-  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-7">Copy</button></div>
-  <pre><code id="code-7">await browser.act(session.id, {
+  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-11">Copy</button></div>
+  <pre><code id="code-11">await browser.act(session.id, {
   kind: &quot;fill&quot;,
   xpath: &quot;//*[@id='account-name']&quot;,
   frame: { name: &quot;account-panel&quot; },

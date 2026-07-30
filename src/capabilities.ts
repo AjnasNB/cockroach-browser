@@ -66,6 +66,9 @@ export const CAPABILITIES: readonly Capability[] = Object.freeze([
   ["security.approvals", "security", "Exact action approvals", "Bind high-risk approval to the canonical action input.", "adapter", "MaqamApprovalProvider"],
   ["security.secrets", "security", "Secret references", "Resolve proxy and integration secrets through the host, never manifests.", "adapter", "SecretResolver"],
   ["deploy.cli", "deployment", "Command-line interface", "Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in.", "available", "cockroach-browser"],
+  ["deploy.completions", "deployment", "Shell completions", "Generate auditable bash, zsh, or PowerShell completion scripts without modifying shell profiles.", "available", "completion bash|zsh|powershell"],
+  ["deploy.user_service", "deployment", "Per-user daemon autostart", "Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation.", "available", "service install|status|uninstall"],
+  ["deploy.bootstrap", "deployment", "One-command bootstrap", "Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon.", "available", "bootstrap"],
   ["deploy.sdk", "deployment", "TypeScript SDK", "Embed the runtime or call an authenticated daemon.", "available", "BrowserRuntime/BrowserClient"],
   ["deploy.http", "deployment", "Authenticated HTTP API", "Expose the runtime through a bearer-token localhost server.", "available", "serve"],
   ["deploy.mcp", "deployment", "Observation-first MCP server", "Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio.", "available", "mcp"],
@@ -78,7 +81,7 @@ export const CAPABILITIES: readonly Capability[] = Object.freeze([
   ["integration.qarinah", "integration", "Qarinah memory", "Record cited browser outcomes without persisting hidden reasoning or secrets.", "adapter", "cockroach-browser/qarinah"],
   ["integration.crawler", "integration", "Cockroach Crawler handoff", "Hand breadth-first collection to the crawler while retaining browser evidence.", "adapter", "cockroach-browser/crawler"],
   ["integration.productloop", "integration", "ProductLoop capability snapshot", "Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority.", "adapter", "docs/productloop.md"],
-  ["integration.webhooks", "integration", "Signed event webhooks", "Send receipt and job events to configured HTTPS endpoints.", "planned", "roadmap"],
+  ["integration.webhooks", "integration", "Signed lifecycle webhooks", "Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery.", "available", "SignedWebhookDispatcher"],
   ["integration.team_sync", "integration", "Team session control", "Share policy and receipts without sharing raw browser profiles.", "planned", "roadmap"]
 ].map(([id, group, title, summary, status, surface]) => ({ id, group, title, summary, status, surface })) as Capability[]);
 

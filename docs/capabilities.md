@@ -60,6 +60,9 @@ This file is generated from `src/capabilities.ts`.
 | `security.approvals` | security | Exact action approvals | **adapter** | `MaqamApprovalProvider` |
 | `security.secrets` | security | Secret references | **adapter** | `SecretResolver` |
 | `deploy.cli` | deployment | Command-line interface | **available** | `cockroach-browser` |
+| `deploy.completions` | deployment | Shell completions | **available** | `completion bash|zsh|powershell` |
+| `deploy.user_service` | deployment | Per-user daemon autostart | **available** | `service install|status|uninstall` |
+| `deploy.bootstrap` | deployment | One-command bootstrap | **available** | `bootstrap` |
 | `deploy.sdk` | deployment | TypeScript SDK | **available** | `BrowserRuntime/BrowserClient` |
 | `deploy.http` | deployment | Authenticated HTTP API | **available** | `serve` |
 | `deploy.mcp` | deployment | Observation-first MCP server | **available** | `mcp` |
@@ -72,7 +75,7 @@ This file is generated from `src/capabilities.ts`.
 | `integration.qarinah` | integration | Qarinah memory | **adapter** | `cockroach-browser/qarinah` |
 | `integration.crawler` | integration | Cockroach Crawler handoff | **adapter** | `cockroach-browser/crawler` |
 | `integration.productloop` | integration | ProductLoop capability snapshot | **adapter** | `docs/productloop.md` |
-| `integration.webhooks` | integration | Signed event webhooks | **planned** | `roadmap` |
+| `integration.webhooks` | integration | Signed lifecycle webhooks | **available** | `SignedWebhookDispatcher` |
 | `integration.team_sync` | integration | Team session control | **planned** | `roadmap` |
 
 ## Status model

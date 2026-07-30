@@ -22,6 +22,7 @@ import type {
   ApprovalDecision,
   ApprovalProvider,
   BrowserAction,
+  BrowserEventPublisher,
   BrowserHistoryEntry,
   ChallengeReport,
   ContextRecorder,
@@ -64,6 +65,7 @@ export interface BrowserRuntimeOptions {
   root?: string;
   approvalProvider?: ApprovalProvider;
   contextRecorder?: ContextRecorder;
+  eventPublisher?: BrowserEventPublisher;
   secretResolver?: SecretResolver;
   dnsResolver?: DnsResolver;
   uploadRoots?: string[];
@@ -134,6 +136,7 @@ export class BrowserRuntime {
   readonly evidence: EvidenceStore;
   readonly approvalProvider?: ApprovalProvider;
   readonly contextRecorder?: ContextRecorder;
+  readonly eventPublisher?: BrowserEventPublisher;
   readonly secretResolver?: SecretResolver;
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
@@ -146,6 +149,7 @@ export class BrowserRuntime {
     this.evidence = new EvidenceStore({ root: join(this.root, "evidence"), maxBytes: 10 * 1024 ** 3 });
     if (options.approvalProvider) this.approvalProvider = options.approvalProvider;
     if (options.contextRecorder) this.contextRecorder = options.contextRecorder;
+    if (options.eventPublisher) this.eventPublisher = options.eventPublisher;
     if (options.secretResolver) this.secretResolver = options.secretResolver;
     if (options.dnsResolver) this.dnsResolver = options.dnsResolver;
     this.uploadRoots = Object.freeze(
@@ -313,6 +317,11 @@ export class BrowserRuntime {
         mode: input.mode ?? "headless",
         profile: input.profile ?? null
       });
+      await this.#publishEvent(session, "browser.session.created", {
+        policyDigest: policyDigest(policy),
+        mode: input.mode ?? "headless",
+        profile: input.profile ?? null
+      });
       return await this.session(id);
     } catch (error) {
       if (context && attached && managedSession?.routeHandler) {
@@ -415,6 +424,10 @@ export class BrowserRuntime {
     session.state = "closed";
     session.updatedAt = nowIso();
     await this.#recordContext(session, "browser.session.closed", {});
+    await this.#publishEvent(session, "browser.session.closed", {
+      actionsUsed: session.actionsUsed,
+      evidenceBytes: session.evidenceBytes
+    });
     this.#sessions.delete(id);
   }
 
@@ -469,6 +482,7 @@ export class BrowserRuntime {
     let output: unknown;
     let status: ActionReceipt["status"] = "succeeded";
     let failure: { code: string; message: string } | undefined;
+    let challengeTransition: "detected" | undefined;
     const evidenceIds: string[] = [];
 
     try {
@@ -536,10 +550,12 @@ export class BrowserRuntime {
         await this.#recordHistory(session, page, action.kind);
       }
       if (["navigate", "reload", "click", "doubleClick", "press", "wait"].includes(action.kind)) {
+        const wasChallenge = Boolean(session.challenge?.detected);
         session.challenge = await detectChallenge(page);
         if (session.challenge.detected) {
           session.state = "challenge";
           status = "challenge";
+          if (!wasChallenge) challengeTransition = "detected";
         } else {
           session.state = "ready";
         }
@@ -585,6 +601,35 @@ export class BrowserRuntime {
       receiptHash: receipt.receiptHash,
       evidenceIds
     });
+    await this.#publishEvent(
+      session,
+      "browser.action.completed",
+      {
+        action: action.kind,
+        effect,
+        risk,
+        status,
+        inputDigest,
+        outputDigest,
+        policyDigest: policyHash,
+        ...(failure ? { errorCode: failure.code } : {})
+      },
+      {
+        receiptHash: receipt.receiptHash,
+        evidenceIds
+      }
+    );
+    if (challengeTransition === "detected") {
+      await this.#publishEvent(
+        session,
+        "browser.challenge.detected",
+        {
+          kind: session.challenge?.kind ?? "unknown",
+          evidence: session.challenge?.evidence ?? []
+        },
+        { receiptHash: receipt.receiptHash }
+      );
+    }
     if (failure) throw new CockroachBrowserError(failure.code, failure.message, { receipt });
     return { output, receipt };
   }
@@ -928,10 +973,16 @@ export class BrowserRuntime {
 
   async resumeAfterHuman(sessionId: string): Promise<ChallengeReport> {
     const session = this.#requireSession(sessionId);
+    const wasChallenge = Boolean(session.challenge?.detected);
     const report = await detectChallenge(this.#page(session));
     session.challenge = report;
     session.state = report.detected ? "challenge" : "ready";
     session.updatedAt = nowIso();
+    if (wasChallenge && !report.detected) {
+      await this.#publishEvent(session, "browser.challenge.resolved", {
+        resolution: "human-handoff"
+      });
+    }
     return report;
   }
 
@@ -1351,6 +1402,7 @@ export class BrowserRuntime {
       sessionId: session.id
     });
     session.evidenceBytes += record.size;
+    await this.#publishEvidenceEvent(session, record);
     return record;
   }
 
@@ -1406,6 +1458,7 @@ export class BrowserRuntime {
       sessionId: session.id
     });
     session.evidenceBytes += record.size;
+    await this.#publishEvidenceEvent(session, record);
     return record;
   }
 
@@ -1630,6 +1683,49 @@ export class BrowserRuntime {
       timestamp: nowIso(),
       metadata
     });
+  }
+
+  async #publishEvidenceEvent(session: ManagedSession, record: EvidenceRecord): Promise<void> {
+    await this.#publishEvent(
+      session,
+      "browser.evidence.recorded",
+      {
+        evidenceId: record.id,
+        kind: record.kind,
+        contentType: record.contentType,
+        size: record.size,
+        digest: record.digest
+      },
+      { evidenceIds: [record.id] }
+    );
+  }
+
+  async #publishEvent(
+    session: ManagedSession,
+    type: Parameters<BrowserEventPublisher["publish"]>[0]["type"],
+    metadata: Record<string, unknown>,
+    links: {
+      receiptHash?: string;
+      evidenceIds?: string[];
+    } = {}
+  ): Promise<void> {
+    if (!this.eventPublisher) return;
+    try {
+      await this.eventPublisher.publish({
+        id: newId("event"),
+        type,
+        occurredAt: nowIso(),
+        sessionId: session.id,
+        ...(session.input.actor ? { actor: session.input.actor } : {}),
+        purpose: session.input.purpose,
+        ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+        ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
+        metadata
+      });
+    } catch {
+      // Lifecycle delivery is operational telemetry. A failed endpoint must
+      // never change the result of a browser action or evidence capture.
+    }
   }
 }
 

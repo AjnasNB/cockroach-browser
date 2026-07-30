@@ -7,6 +7,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 ## Manuals
 
 - [Getting started](./getting-started.md)
+- [Operator install](./operator-install.md)
 - [Sessions and profiles](./sessions.md)
 - [Actions and semantic refs](./actions.md)
 - [Capture and evidence](./capture.md)
@@ -15,6 +16,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Audits and comparisons](./audits.md)
 - [Jobs and retries](./jobs.md)
 - [MCP](./mcp.md)
+- [Signed webhooks](./webhooks.md)
 - [Maqam](./maqam.md)
 - [Qarinah](./qarinah.md)
 - [Cockroach Crawler](./crawler.md)
