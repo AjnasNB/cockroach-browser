@@ -32,6 +32,7 @@ Current release line: **0.2.1**
 - Capability registry: 80 entries, with 73 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 - Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
+- DOI: [10.5281/zenodo.21701792](https://doi.org/10.5281/zenodo.21701792)
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 

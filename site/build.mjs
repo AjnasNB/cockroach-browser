@@ -415,6 +415,7 @@ ${header("paper")}
       <p class="lede">Ajnas NB · July 2026 · Cockroach Browser 0.2.0</p>
       <div class="hero-actions">
         <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.0.pdf">Download the PDF</a>
+        <a class="button" href="https://doi.org/10.5281/zenodo.21701792">Cite on Zenodo</a>
         <a class="button" href="${site.repository}/blob/main/docs/whitepaper.md">Read the source</a>
       </div>
     </header>
@@ -434,6 +435,7 @@ ${header("paper")}
       <span class="section-number">Status</span>
       <h2>Implementation-backed and open for technical review.</h2>
       <p>This is an implementation-backed technical white paper for Cockroach Browser 0.2.0. The paper has not undergone independent peer review.</p>
+      <p>Permanent publication record: <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
   </article>
