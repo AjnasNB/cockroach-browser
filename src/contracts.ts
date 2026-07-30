@@ -388,6 +388,33 @@ export interface ContextRecorder {
   }): Promise<void>;
 }
 
+export const BROWSER_EVENT_TYPES = [
+  "browser.session.created",
+  "browser.session.closed",
+  "browser.action.completed",
+  "browser.challenge.detected",
+  "browser.challenge.resolved",
+  "browser.evidence.recorded"
+] as const;
+
+export type BrowserEventType = (typeof BROWSER_EVENT_TYPES)[number];
+
+export interface BrowserLifecycleEvent {
+  id: string;
+  type: BrowserEventType;
+  occurredAt: string;
+  sessionId: string;
+  actor?: string;
+  purpose: string;
+  receiptHash?: string;
+  evidenceIds?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserEventPublisher {
+  publish(event: BrowserLifecycleEvent): Promise<void>;
+}
+
 export interface CrawlerHandoff {
   crawl(input: {
     seeds: string[];

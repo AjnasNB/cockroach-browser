@@ -23,7 +23,7 @@ Current release line: **0.1.1**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 73 entries, with 65 available, 6 adapter-backed, and 2 planned
+- Capability registry: 73 entries, with 66 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
@@ -286,8 +286,8 @@ The registry is generated from `src/capabilities.ts`, not from a marketing check
 | Audit | 6 | 0 | 0 | 6 |
 | Security | 7 | 2 | 0 | 9 |
 | Deployment | 12 | 0 | 0 | 12 |
-| Integration | 0 | 4 | 2 | 6 |
-| **Total** | **65** | **6** | **2** | **73** |
+| Integration | 1 | 4 | 1 | 6 |
+| **Total** | **66** | **6** | **1** | **73** |
 
 ### Sessions
 
@@ -327,12 +327,112 @@ Adapter-backed:
 - Cockroach Crawler handoff
 - ProductLoop OS capability snapshot
 
+Available:
+
+- Signed browser lifecycle webhooks with a local durable outbox, HMAC-SHA256
+  signatures, bounded retries, dead letters, and hash-linked delivery receipts
+
 Planned:
 
-- Signed event webhooks
 - Team session control without raw profile sharing
 
 The complete searchable matrix, including capability IDs, implementation status, and exact API surfaces, is in [docs/capabilities.md](./docs/capabilities.md).
+
+## Signed lifecycle webhooks
+
+`SignedWebhookDispatcher` implements `BrowserEventPublisher` and can be attached
+to `BrowserRuntime`. Browser lifecycle events are sanitized and written to a
+local durable outbox before any network work occurs. `publish()` does not
+resolve DNS, read a signing key, or contact an endpoint. An operator-controlled
+`drain()` performs those privileged steps later.
+
+```ts
+import {
+  BrowserRuntime,
+  SignedWebhookDispatcher
+} from "cockroach-browser";
+
+const webhookUrl = process.env.COCKROACH_BROWSER_WEBHOOK_URL;
+if (!webhookUrl) throw new Error("COCKROACH_BROWSER_WEBHOOK_URL is required");
+
+const webhooks = new SignedWebhookDispatcher({
+  root: ".cockroach-browser/webhooks",
+  secretResolver: {
+    async resolve(reference) {
+      const prefix = "ref:env/";
+      if (!reference.startsWith(prefix)) {
+        throw new Error("Unsupported webhook secret reference");
+      }
+      const value = process.env[reference.slice(prefix.length)];
+      if (!value) throw new Error(`Missing secret for ${reference}`);
+      return value;
+    }
+  },
+  maxPayloadBytes: 64 * 1024,
+  maxQueueItems: 10_000,
+  maxStorageBytes: 256 * 1024 * 1024
+});
+
+await webhooks.initialize();
+await webhooks.upsertEndpoint({
+  id: "release-automation",
+  url: webhookUrl,
+  secretRef: "ref:env/COCKROACH_BROWSER_WEBHOOK_SECRET",
+  keyId: "release-2026-07",
+  events: [
+    "browser.action.completed",
+    "browser.challenge.detected",
+    "browser.evidence.recorded"
+  ],
+  maxAttempts: 3,
+  timeoutMs: 5_000
+});
+
+const runtime = new BrowserRuntime({
+  root: ".cockroach-browser/runtime",
+  eventPublisher: webhooks
+});
+await runtime.initialize();
+
+// Run this from an operator-owned worker or scheduler.
+const result = await webhooks.drain({
+  maxItems: 50,
+  deadlineMs: 30_000
+});
+console.log(result, await webhooks.health());
+```
+
+Endpoint configuration stores only an opaque `ref:` value. The host resolver
+returns the signing key during `drain()`, and the key is never written to the
+outbox or receipt ledger. Endpoints must be credential-free public HTTPS URLs
+without a query string or fragment. DNS is checked again and pinned for every
+attempt; private, loopback, translated, and mixed public/private results are
+rejected, and redirects are never followed.
+
+Each request carries:
+
+- `x-cockroach-browser-event`
+- `x-cockroach-browser-delivery`
+- `x-cockroach-browser-timestamp`
+- `x-cockroach-browser-nonce`
+- `x-cockroach-browser-key-id`
+- `x-cockroach-browser-signature: v1=<HMAC-SHA256>`
+
+Use `verifyWebhookSignature()` and `WebhookReplayGuard` at the receiver. A
+normal retry keeps the same stable delivery ID while using a fresh timestamp
+and nonce, so the receiver must also persist processed delivery IDs and return
+success for duplicates. This is a local durable at-least-once outbox, not a
+distributed exactly-once queue. A manual dead-letter retry intentionally
+creates a new delivery ID.
+
+Transient transport failures and HTTP `408`, `425`, `429`, and `5xx` responses
+retry within the configured attempt and deadline ceilings. Other non-`2xx`
+responses become dead letters. `Retry-After` is honored up to 30 seconds.
+`health()` reports queue, receipt, dead-letter, and storage counts;
+`retryDeadLetter()` and `purgeDeadLetter()` provide explicit recovery;
+`verify()` checks the hash-linked terminal receipt chain. See the
+[signed webhook manual](./docs/webhooks.md) for receiver verification, replay
+handling, quotas, and recovery procedures.
 
 ## Action surface
 

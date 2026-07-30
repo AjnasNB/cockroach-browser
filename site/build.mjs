@@ -6,6 +6,13 @@ const root = resolve(import.meta.dirname);
 const sourceRoot = resolve(root, "..");
 
 const capabilities = parseCapabilities(await readFile(resolve(sourceRoot, "src/capabilities.ts"), "utf8"));
+const capabilityCounts = capabilities.reduce(
+  (counts, capability) => {
+    counts[capability.status] += 1;
+    return counts;
+  },
+  { available: 0, adapter: 0, planned: 0 }
+);
 let codeBlockIndex = 0;
 
 await writePage("index.html", homePage());
@@ -165,7 +172,12 @@ function footer() {
 }
 
 function homePage() {
-  const proof = homepage.proof.map(([value, label]) => `<div class="proof"><strong>${value}</strong><span>${label}</span></div>`).join("");
+  const proof = [
+    [capabilities.length, "mapped capabilities"],
+    [capabilityCounts.available, "available runtime surfaces"],
+    [capabilityCounts.adapter, "adapter-backed surfaces"],
+    [capabilityCounts.planned, "planned surfaces"]
+  ].map(([value, label]) => `<div class="proof"><strong>${value}</strong><span>${label}</span></div>`).join("");
   return `${baseHead({
     title: site.name,
     description: site.description,
