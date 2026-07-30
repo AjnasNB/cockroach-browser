@@ -1,7 +1,7 @@
 {
   "name": "cockroach-browser",
-  "version": "0.1.1",
-  "description": "A local-first browser runtime for AI agents with authorized sessions, snapshot-scoped references, evidence capture, MCP, and Maqam policy hooks.",
+  "version": "0.2.0",
+  "description": "A local-first Chromium runtime for AI agents with authorized sessions, semantic refs, paired evidence, MCP, and Maqam-governed actions.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",
   "type": "module",

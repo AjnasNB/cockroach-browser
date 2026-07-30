@@ -34,7 +34,7 @@ test("binds to loopback by default and rejects unauthenticated requests", async 
   assert.deepEqual(await allowed.json(), {
     ok: true,
     name: "cockroach-browser",
-    version: "0.1.1",
+    version: "0.2.0",
     sessions: 0,
     evidence: { ok: true, records: 0, bytes: 0, failures: [] }
   });

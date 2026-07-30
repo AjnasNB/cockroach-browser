@@ -6,8 +6,16 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-30
+
 ### Added
 
+- paired screenshot and semantic-snapshot capture with optional stability
+  rejection and semantic-reference bounds
+- bounded, redacted network inspection and JSON, NDJSON, or HAR-compatible
+  evidence export through the SDK, HTTP API, CLI, and MCP
+- encrypted named session-state checkpoints, policy-gated clipboard access,
+  exclusive tab leases, and temporary semantic-reference annotations
 - one-command bootstrap that initializes the local data root, installs Chromium
   only when missing, and probes an authenticated ephemeral loopback daemon
 - generated bash, zsh, and PowerShell completion scripts that never edit shell
@@ -19,6 +27,8 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
   diagnostics, startup recovery, and hash-linked terminal delivery receipts
 - HMAC-SHA256 webhook signing with key identifiers, timestamps, nonces,
   receiver verification, a bounded replay guard, and explicit key rotation
+- canonical Browser-to-Qarinah outcome links carrying exact input and output
+  digests, evidence IDs, and the browser receipt hash
 
 ### Security
 
@@ -68,6 +78,7 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AjnasNB/cockroach-browser/releases/tag/v0.1.0

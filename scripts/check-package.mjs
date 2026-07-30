@@ -72,9 +72,28 @@ assert(
   siteContent.includes(`version: "${packageJson.version}"`),
   "website source version is stale"
 );
+const readme = await readFile(resolve(root, "README.md"), "utf8");
+assert(
+  readme.includes(`Current release line: **${packageJson.version}**`),
+  "README release line is stale"
+);
 
 const cli = await readFile(resolve(root, "dist/cli.js"), "utf8");
 assert(cli.startsWith("#!/usr/bin/env node"), "built CLI must preserve its Node shebang");
+assert(
+  cli.includes(`version: "${packageJson.version}"`),
+  "built CLI version is stale"
+);
+const serverRuntime = await readFile(resolve(root, "dist/server.js"), "utf8");
+assert(
+  serverRuntime.includes(`version: "${packageJson.version}"`),
+  "daemon health version is stale"
+);
+const mcpRuntime = await readFile(resolve(root, "dist/mcp.js"), "utf8");
+assert(
+  mcpRuntime.includes(`version: "${packageJson.version}"`),
+  "MCP server version is stale"
+);
 
 const packed = spawnNpm(["pack", "--dry-run", "--json", "--ignore-scripts"]);
 if (packed.status !== 0) {
