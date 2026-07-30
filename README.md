@@ -10,6 +10,12 @@
   Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions
 </p>
 
+<p align="center">
+  <a href="https://cockroachbrowser.com/docs/">Documentation</a> ·
+  <a href="https://cockroachbrowser.com/docs/capabilities/">80-capability registry</a> ·
+  <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
+</p>
+
 Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-capable AI agents. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
 
 The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
@@ -25,6 +31,7 @@ Current release line: **0.2.0**
 - Registry: `cockroach-browser`
 - Capability registry: 80 entries, with 73 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
+- Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 
