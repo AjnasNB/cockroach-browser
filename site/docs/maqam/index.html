@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -62,13 +62,17 @@
     <span class="section-number">03</span>
     <h2>Apply or submit once</h2>
 <p><code>apply</code> covers structural browser operations. <code>submit</code> covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.</p>
-  </section><section class="manual-section" id="do-not-expose-the-managed-session-directly">
+  </section><section class="manual-section" id="register-every-additional-effect-as-an-exact-tool">
     <span class="section-number">04</span>
+    <h2>Register every additional effect as an exact tool</h2>
+<p>Uploads, downloads, clipboard writes, JavaScript, state restore, network interception, PDF generation, and other high-risk actions are runtime capabilities, not implicit Maqam driver methods. A host that exposes one must register a typed Maqam tool with an exact input schema, effect class, policy, approval rule, and receipt mapping.</p>
+  </section><section class="manual-section" id="do-not-expose-the-managed-session-directly">
+    <span class="section-number">05</span>
     <h2>Do not expose the managed session directly</h2>
 <p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#separate-the-authorities">Separate the authorities</a><a href="#observe-and-preview">Observe and preview</a><a href="#apply-or-submit-once">Apply or submit once</a><a href="#do-not-expose-the-managed-session-directly">Do not expose the managed session directly</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#separate-the-authorities">Separate the authorities</a><a href="#observe-and-preview">Observe and preview</a><a href="#apply-or-submit-once">Apply or submit once</a><a href="#register-every-additional-effect-as-an-exact-tool">Register every additional effect as an exact tool</a><a href="#do-not-expose-the-managed-session-directly">Do not expose the managed session directly</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

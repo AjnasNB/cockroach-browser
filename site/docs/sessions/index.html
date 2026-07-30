@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -67,17 +67,39 @@ npx cockroach-browser profile import \
 
 npx cockroach-browser profile list</code></pre>
 </div>
-  </section><section class="manual-section" id="budget-every-session">
+  </section><section class="manual-section" id="checkpoint-only-the-current-authorized-session">
     <span class="section-number">03</span>
+    <h2>Checkpoint only the current authorized session</h2>
+<p>Named state checkpoints save and restore the current session's admitted storage state beneath the deployment-owned data root. They are encrypted, size-bounded, and never discover ambient browser profiles. A checkpoint name cannot contain a path, and restoring it does not widen the session origin or action policy.</p>
+<div class="code-block">
+  <div class="code-head"><span>checkpoint.mjs</span><button class="copy-code" type="button" data-copy="#code-10">Copy</button></div>
+  <pre><code id="code-10">await browser.act(session.id, {
+  kind: &quot;state.save&quot;,
+  name: &quot;after-reviewed-login&quot;,
+  purpose: &quot;Save the exact authorized session state&quot;
+});
+
+await browser.act(session.id, {
+  kind: &quot;state.load&quot;,
+  name: &quot;after-reviewed-login&quot;,
+  purpose: &quot;Restore the reviewed checkpoint&quot;
+});</code></pre>
+</div>
+  </section><section class="manual-section" id="keep-clipboard-and-tabs-under-policy">
+    <span class="section-number">04</span>
+    <h2>Keep clipboard and tabs under policy</h2>
+<p>Clipboard reads and writes are separate actions with bounded text output and secret-value references. Exclusive tab locks prevent two workers from silently controlling the same tab; lock, unlock, and status operations remain session-local and receipt-linked.</p>
+  </section><section class="manual-section" id="budget-every-session">
+    <span class="section-number">05</span>
     <h2>Budget every session</h2>
 <p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>
   </section><section class="manual-section" id="close-deliberately">
-    <span class="section-number">04</span>
+    <span class="section-number">06</span>
     <h2>Close deliberately</h2>
 <p>Closing a session releases tabs, browser context, traces, and runtime state. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#choose-the-browser-connection">Choose the browser connection</a><a href="#keep-profiles-explicit-and-encrypted">Keep profiles explicit and encrypted</a><a href="#budget-every-session">Budget every session</a><a href="#close-deliberately">Close deliberately</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#choose-the-browser-connection">Choose the browser connection</a><a href="#keep-profiles-explicit-and-encrypted">Keep profiles explicit and encrypted</a><a href="#checkpoint-only-the-current-authorized-session">Checkpoint only the current authorized session</a><a href="#keep-clipboard-and-tabs-under-policy">Keep clipboard and tabs under policy</a><a href="#budget-every-session">Budget every session</a><a href="#close-deliberately">Close deliberately</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

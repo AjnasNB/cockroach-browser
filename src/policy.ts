@@ -33,7 +33,15 @@ const WRITE_ACTIONS = new Set<ActionKind>([
   "network.route.add",
   "network.route.remove",
   "cookies.write",
-  "storage.write"
+  "storage.write",
+  "annotate.show",
+  "annotate.clear",
+  "clipboard.write",
+  "state.save",
+  "state.load",
+  "state.delete",
+  "tab.lock",
+  "tab.unlock"
 ]);
 
 const HIGH_RISK_ACTIONS = new Set<ActionKind>([
@@ -55,7 +63,14 @@ const HIGH_RISK_ACTIONS = new Set<ActionKind>([
   "keyboard.up",
   "keyboard.insertText",
   "network.route.add",
-  "network.route.remove"
+  "network.route.remove",
+  "clipboard.read",
+  "clipboard.write",
+  "state.save",
+  "state.load",
+  "state.delete",
+  "tab.lock",
+  "tab.unlock"
 ]);
 
 const DEFAULT_APPROVAL_ACTIONS = new Set<ActionKind>([
@@ -68,7 +83,12 @@ export function effectForAction(action: ActionKind | BrowserAction): Effect {
   if (kind === "upload") return "upload";
   if (kind === "download") return "download";
   if (kind === "evaluate") return "execute";
-  if (kind.startsWith("cookies.") || kind.startsWith("storage.")) return "credential";
+  if (
+    kind.startsWith("cookies.")
+    || kind.startsWith("storage.")
+    || kind.startsWith("state.")
+    || kind.startsWith("clipboard.")
+  ) return "credential";
   if (typeof action !== "string" && action.dialog?.action === "accept") return "write";
   return WRITE_ACTIONS.has(kind) ? "write" : "read";
 }
@@ -79,6 +99,10 @@ export function riskForAction(action: ActionKind | BrowserAction): RiskLevel {
     kind === "evaluate"
     || kind === "cookies.write"
     || kind === "storage.write"
+    || kind === "state.load"
+    || kind === "state.delete"
+    || kind === "clipboard.read"
+    || kind === "clipboard.write"
     || kind === "network.route.add"
     || kind === "network.route.remove"
   ) return "critical";
@@ -105,6 +129,9 @@ export function clampBudget(input?: Partial<ResourceBudget>): ResourceBudget {
     maxSnapshotChars: positive(input?.maxSnapshotChars, DEFAULT_BUDGET.maxSnapshotChars, 2_000_000),
     maxEvidenceBytes: positive(input?.maxEvidenceBytes, DEFAULT_BUDGET.maxEvidenceBytes, 10 * 1024 ** 3),
     maxHistoryEntries: positive(input?.maxHistoryEntries, DEFAULT_BUDGET.maxHistoryEntries, 1_000),
+    maxNetworkEntries: positive(input?.maxNetworkEntries, DEFAULT_BUDGET.maxNetworkEntries, 50_000),
+    maxClipboardBytes: positive(input?.maxClipboardBytes, DEFAULT_BUDGET.maxClipboardBytes, 1024 * 1024),
+    maxSavedStates: positive(input?.maxSavedStates, DEFAULT_BUDGET.maxSavedStates, 1_000),
     maxNetworkRules: positive(input?.maxNetworkRules, DEFAULT_BUDGET.maxNetworkRules, 256),
     maxRouteFulfillBytes: positive(
       input?.maxRouteFulfillBytes,
@@ -345,6 +372,18 @@ export function evaluateAction(policy: BrowserPolicy, action: BrowserAction): Po
   if (action.kind === "upload" && !normalized.allowUploads) {
     allowed = false;
     reason = "Uploads are disabled for this session.";
+  }
+  if ((action.kind === "clipboard.read" || action.kind === "clipboard.write") && !normalized.allowClipboard) {
+    allowed = false;
+    reason = "Clipboard access is disabled for this session.";
+  }
+  if (action.kind.startsWith("state.") && !normalized.allowStateExport) {
+    allowed = false;
+    reason = "Encrypted browser-state management is disabled for this session.";
+  }
+  if (action.kind.startsWith("annotate.") && !normalized.allowAnnotations) {
+    allowed = false;
+    reason = "Page annotations are disabled for this session.";
   }
   if (action.dialog?.action === "accept" && !normalized.allowDialogAccept) {
     allowed = false;

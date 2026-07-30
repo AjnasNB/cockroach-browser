@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
 import type { BrowserContext } from "playwright-core";
 import { CockroachBrowserError } from "./errors.js";
@@ -92,6 +92,10 @@ export class ProfileVault {
   async exportFile(name: string, destinationPath: string, passphrase: string): Promise<void> {
     const state = await this.load(name, passphrase);
     await atomicWrite(resolve(destinationPath), `${JSON.stringify(state, null, 2)}\n`);
+  }
+
+  async delete(name: string): Promise<void> {
+    await rm(this.#path(name), { force: false });
   }
 
   #path(name: string): string {

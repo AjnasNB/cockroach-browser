@@ -3,7 +3,11 @@ import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
-import { BrowserClient } from "./client.js";
+import {
+  BrowserClient,
+  type NetworkReadOptions,
+  type PairedCaptureOptions
+} from "./client.js";
 import { CAPABILITIES } from "./capabilities.js";
 import type { BrowserAction, SessionCreateInput } from "./contracts.js";
 import {
@@ -20,7 +24,7 @@ import { startMcpServer } from "./mcp.js";
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const [command = "help", subcommand, ...rest] = argv;
   if (command === "help" || command === "--help" || command === "-h") return printHelp();
-  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.1.1" });
+  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.2.0" });
   if (command === "capabilities") {
     const status = flag(rest, "--status");
     return print(CAPABILITIES.filter((entry) => !status || entry.status === status));
@@ -46,6 +50,50 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   }
   if (command === "snapshot") {
     return print(await client.snapshot(requiredFlag(rest, "--session"), flag(rest, "--tab")));
+  }
+  if (command === "capture") {
+    const formatValue = flag(rest, "--format");
+    if (formatValue && formatValue !== "png" && formatValue !== "jpeg") {
+      throw new Error("--format must be png or jpeg.");
+    }
+    const format: "png" | "jpeg" | undefined =
+      formatValue === "png" || formatValue === "jpeg" ? formatValue : undefined;
+    const tabId = flag(rest, "--tab");
+    const purpose = flag(rest, "--purpose");
+    const quality = numberFlag(rest, "--quality");
+    const options: PairedCaptureOptions = {
+      ...(tabId ? { tabId } : {}),
+      ...(purpose ? { purpose } : {}),
+      ...(format ? { format } : {}),
+      ...(quality !== undefined ? { quality } : {}),
+      fullPage: rest.includes("--full-page"),
+      requireStable: rest.includes("--require-stable"),
+      includeBounds: rest.includes("--include-bounds")
+    };
+    return print(await client.capture(requiredFlag(rest, "--session"), options));
+  }
+  if (command === "network" && subcommand !== "export") {
+    return print(await client.network(requiredFlag(rest, "--session"), networkOptions(rest)));
+  }
+  if (command === "network" && subcommand === "export") {
+    const outputFormatValue = flag(rest, "--format");
+    if (
+      outputFormatValue &&
+      outputFormatValue !== "json" &&
+      outputFormatValue !== "ndjson" &&
+      outputFormatValue !== "har"
+    ) {
+      throw new Error("--format must be json, ndjson, or har.");
+    }
+    const outputFormat: "json" | "ndjson" | "har" | undefined =
+      outputFormatValue === "json" || outputFormatValue === "ndjson" || outputFormatValue === "har"
+        ? outputFormatValue
+        : undefined;
+    const options: NetworkReadOptions & { outputFormat?: "json" | "ndjson" | "har" } = {
+      ...networkOptions(rest),
+      ...(outputFormat ? { outputFormat } : {})
+    };
+    return print(await client.exportNetwork(requiredFlag(rest, "--session"), options));
   }
   if (command === "audit") {
     const kinds = flag(rest, "--kinds")?.split(",") as Array<"accessibility" | "performance" | "assets" | "console" | "security"> | undefined;
@@ -291,6 +339,30 @@ function numberFlag(args: string[], name: string): number | undefined {
   return parsed;
 }
 
+function networkOptions(args: string[]): {
+  tabId?: string;
+  purpose?: string;
+  method?: string;
+  status?: number;
+  resourceType?: string;
+  limit?: number;
+} {
+  const tabId = flag(args, "--tab");
+  const purpose = flag(args, "--purpose");
+  const method = flag(args, "--method");
+  const status = numberFlag(args, "--status");
+  const resourceType = flag(args, "--resource-type");
+  const limit = numberFlag(args, "--limit");
+  return {
+    ...(tabId ? { tabId } : {}),
+    ...(purpose ? { purpose } : {}),
+    ...(method ? { method } : {}),
+    ...(status !== undefined ? { status } : {}),
+    ...(resourceType ? { resourceType } : {}),
+    ...(limit !== undefined ? { limit } : {})
+  };
+}
+
 function requiredShell(value: string | undefined): CompletionShell {
   if (value === "bash" || value === "zsh" || value === "powershell") return value;
   throw new Error("Choose a completion shell: bash, zsh, or powershell.");
@@ -305,7 +377,7 @@ function printText(value: string): void {
 }
 
 function printHelp(): void {
-  process.stdout.write(`Cockroach Browser 0.1.1
+  process.stdout.write(`Cockroach Browser 0.2.0
 
 Usage:
   cockroach-browser bootstrap [--root PATH] [--check-only]
@@ -322,6 +394,12 @@ Usage:
   cockroach-browser session create --config session.json --token-file TOKEN_FILE
   cockroach-browser session list --token-file TOKEN_FILE
   cockroach-browser snapshot --session ID --token-file TOKEN_FILE
+  cockroach-browser capture --session ID [--full-page] [--require-stable]
+    [--include-bounds] [--format png|jpeg] --token-file TOKEN_FILE
+  cockroach-browser network --session ID [--method GET] [--status 200]
+    [--resource-type document] [--limit 100] --token-file TOKEN_FILE
+  cockroach-browser network export --session ID [--format json|ndjson|har]
+    --token-file TOKEN_FILE
   cockroach-browser act --session ID --input action.json --token-file TOKEN_FILE
   cockroach-browser audit --session ID --kinds accessibility,security --token-file TOKEN_FILE
   cockroach-browser profile list

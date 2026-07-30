@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -53,22 +53,38 @@
     <section class="manual-section" id="evidence-types">
     <span class="section-number">01</span>
     <h2>Evidence types</h2>
-<p>Snapshots, screenshots, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.</p>
-  </section><section class="manual-section" id="receipts-form-a-chain">
+<p>Snapshots, screenshots, paired visual-plus-semantic captures, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, annotations, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.</p>
+  </section><section class="manual-section" id="capture-the-pixels-and-the-cited-page-state-together">
     <span class="section-number">02</span>
+    <h2>Capture the pixels and the cited page state together</h2>
+<p><code>capture.paired</code> records a screenshot and semantic snapshot under one receipt. <code>requireStable</code> rejects a capture when the page revision changes during collection. Optional element bounds connect numbered semantic refs to visible regions without turning coordinates into long-lived selectors.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-13">Copy</button></div>
+  <pre><code id="code-13">npx cockroach-browser capture \
+  --session &quot;$SESSION_ID&quot; \
+  --require-stable \
+  --include-bounds \
+  --token-file .cockroach-browser/auth-token</code></pre>
+</div>
+  </section><section class="manual-section" id="add-temporary-review-annotations">
+    <span class="section-number">03</span>
+    <h2>Add temporary review annotations</h2>
+<p><code>annotate.show</code> overlays bounded numbered markers for reviewed refs, CSS selectors, or XPath targets. <code>annotate.clear</code> removes only Cockroach Browser's temporary overlay. Annotation actions are explicit, receipt-linked, and do not alter application data.</p>
+  </section><section class="manual-section" id="receipts-form-a-chain">
+    <span class="section-number">04</span>
     <h2>Receipts form a chain</h2>
 <p>Each action receipt links to the previous receipt hash. The chain exposes missing, reordered, or modified records. Verification checks the chain and artifact digests without replaying the browser session.</p>
   </section><section class="manual-section" id="capture-only-what-the-workflow-needs">
-    <span class="section-number">03</span>
+    <span class="section-number">05</span>
     <h2>Capture only what the workflow needs</h2>
 <p>HAR, video, trace, console, and network capture can contain sensitive material. Enable them per session, apply evidence byte ceilings, and keep the evidence directory under deployment-owned access control.</p>
   </section><section class="manual-section" id="carry-evidence-into-memory">
-    <span class="section-number">04</span>
+    <span class="section-number">06</span>
     <h2>Carry evidence into memory</h2>
-<p>The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.</p>
+<p>The Qarinah adapter records canonical input and output digests, evidence IDs, the browser receipt hash, and bounded descriptive metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#evidence-types">Evidence types</a><a href="#receipts-form-a-chain">Receipts form a chain</a><a href="#capture-only-what-the-workflow-needs">Capture only what the workflow needs</a><a href="#carry-evidence-into-memory">Carry evidence into memory</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#evidence-types">Evidence types</a><a href="#capture-the-pixels-and-the-cited-page-state-together">Capture the pixels and the cited page state together</a><a href="#add-temporary-review-annotations">Add temporary review annotations</a><a href="#receipts-form-a-chain">Receipts form a chain</a><a href="#capture-only-what-the-workflow-needs">Capture only what the workflow needs</a><a href="#carry-evidence-into-memory">Carry evidence into memory</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

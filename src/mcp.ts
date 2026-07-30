@@ -22,7 +22,7 @@ export async function startMcpServer(options: BrowserMcpOptions = {}): Promise<v
   const client = options.client ?? (token
     ? new BrowserClient({ ...(baseUrl ? { baseUrl } : {}), token })
     : undefined);
-  const server = new McpServer({ name: "cockroach-browser", version: "0.1.1" });
+  const server = new McpServer({ name: "cockroach-browser", version: "0.2.0" });
 
   server.registerTool(
     "browser_capabilities",
@@ -69,6 +69,54 @@ export async function startMcpServer(options: BrowserMcpOptions = {}): Promise<v
       }
     },
     async ({ sessionId, tabId }) => result(await requireClient(client).snapshot(sessionId, tabId))
+  );
+
+  server.registerTool(
+    "browser_capture",
+    {
+      title: "Capture paired browser evidence",
+      description: "Captures one screenshot and one semantic snapshot from the same authorized page state.",
+      inputSchema: {
+        sessionId: z.string().min(1),
+        tabId: z.string().min(1).optional(),
+        fullPage: z.boolean().optional(),
+        requireStable: z.boolean().optional(),
+        includeBounds: z.boolean().optional()
+      }
+    },
+    async ({ sessionId, tabId, fullPage, requireStable, includeBounds }) => result(
+      await requireClient(client).capture(sessionId, {
+        ...(tabId ? { tabId } : {}),
+        ...(fullPage === undefined ? {} : { fullPage }),
+        ...(requireStable === undefined ? {} : { requireStable }),
+        ...(includeBounds === undefined ? {} : { includeBounds })
+      })
+    )
+  );
+
+  server.registerTool(
+    "browser_network",
+    {
+      title: "Inspect the browser network ledger",
+      description: "Returns redacted request failures and responses retained for an authorized session.",
+      inputSchema: {
+        sessionId: z.string().min(1),
+        tabId: z.string().min(1).optional(),
+        method: z.string().min(1).max(32).optional(),
+        status: z.number().int().min(0).max(999).optional(),
+        resourceType: z.string().min(1).max(64).optional(),
+        limit: z.number().int().min(1).max(2_000).optional()
+      }
+    },
+    async ({ sessionId, tabId, method, status, resourceType, limit }) => result(
+      await requireClient(client).network(sessionId, {
+        ...(tabId ? { tabId } : {}),
+        ...(method ? { method } : {}),
+        ...(status === undefined ? {} : { status }),
+        ...(resourceType ? { resourceType } : {}),
+        ...(limit === undefined ? {} : { limit })
+      })
+    )
   );
 
   server.registerTool(
@@ -146,7 +194,86 @@ const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
     deltaY: z.number().finite().min(-100_000).max(100_000).optional()
   }).strict(),
   z.object({ kind: z.literal("drag"), ...purposeFree, ref: refField, targetRef: refField }).strict(),
-  z.object({ kind: z.literal("wait"), ...purposeFree, timeoutMs: z.number().int().min(1).max(60_000) }).strict()
+  z.object({ kind: z.literal("wait"), ...purposeFree, timeoutMs: z.number().int().min(1).max(60_000) }).strict(),
+  z.object({
+    kind: z.literal("capture.paired"),
+    ...purposeFree,
+    fullPage: z.boolean().optional(),
+    format: z.enum(["png", "jpeg"]).optional(),
+    quality: z.number().int().min(1).max(100).optional(),
+    requireStable: z.boolean().optional(),
+    includeBounds: z.boolean().optional()
+  }).strict(),
+  z.object({ kind: z.literal("annotate.show"), ...purposeFree }).strict(),
+  z.object({ kind: z.literal("annotate.clear"), ...purposeFree }).strict(),
+  z.object({ kind: z.literal("clipboard.read"), ...purposeFree }).strict(),
+  z.object({
+    kind: z.literal("clipboard.write"),
+    ...purposeFree,
+    valueRef: valueRefField
+  }).strict(),
+  z.object({
+    kind: z.literal("network.inspect"),
+    ...purposeFree,
+    method: z.string().min(1).max(32).optional(),
+    status: z.number().int().min(0).max(999).optional(),
+    resourceType: z.string().min(1).max(64).optional(),
+    limit: z.number().int().min(1).max(50_000).optional()
+  }).strict(),
+  z.object({
+    kind: z.literal("network.export"),
+    ...purposeFree,
+    outputFormat: z.enum(["json", "ndjson", "har"]).optional(),
+    method: z.string().min(1).max(32).optional(),
+    status: z.number().int().min(0).max(999).optional(),
+    resourceType: z.string().min(1).max(64).optional(),
+    limit: z.number().int().min(1).max(50_000).optional()
+  }).strict(),
+  z.object({
+    kind: z.literal("state.save"),
+    ...purposeFree,
+    stateName: refField,
+    passphraseRef: valueRefField
+  }).strict(),
+  z.object({
+    kind: z.literal("state.load"),
+    ...purposeFree,
+    stateName: refField,
+    passphraseRef: valueRefField
+  }).strict(),
+  z.object({ kind: z.literal("state.list"), ...purposeFree }).strict(),
+  z.object({
+    kind: z.literal("state.delete"),
+    ...purposeFree,
+    stateName: refField
+  }).strict(),
+  z.object({
+    kind: z.literal("tab.lock"),
+    tabId: refField.optional(),
+    lockOwner: z.string().min(1).max(200),
+    lockTokenRef: valueRefField,
+    lockTtlMs: z.number().int().min(1_000).max(86_400_000).optional()
+  }).strict(),
+  z.object({
+    kind: z.literal("tab.unlock"),
+    tabId: refField.optional(),
+    lockTokenRef: valueRefField
+  }).strict(),
+  z.object({ kind: z.literal("tab.lock.status"), tabId: refField.optional() }).strict(),
+  z.object({ kind: z.literal("screenshot"), ...purposeFree, fullPage: z.boolean().optional() }).strict(),
+  z.object({ kind: z.literal("pdf"), ...purposeFree }).strict(),
+  z.object({
+    kind: z.literal("extract"),
+    ...purposeFree,
+    ref: refField.optional(),
+    selector: z.string().min(1).max(512).optional(),
+    xpath: z.string().min(1).max(1_024).optional()
+  }).strict(),
+  z.object({
+    kind: z.literal("evaluate"),
+    ...purposeFree,
+    expression: z.string().min(1).max(65_536)
+  }).strict()
 ]);
 
 function requireClient(client: BrowserClient | undefined): BrowserClient {

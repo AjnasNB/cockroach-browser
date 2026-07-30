@@ -112,7 +112,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, {
           ok: true,
           name: "cockroach-browser",
-          version: "0.1.1",
+          version: "0.2.0",
           sessions: (await runtime.sessions()).length,
           evidence: await runtime.evidence.verify()
         });
@@ -150,6 +150,67 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         if (request.method === "POST" && segments[3] === "snapshot") {
           const input = await readJson<{ tabId?: string }>(request, maxRequestBytes, {});
           return sendJson(response, 200, await runtime.snapshot(sessionId, input.tabId));
+        }
+        if (request.method === "POST" && segments[3] === "capture") {
+          const input = await readJson<{
+            tabId?: string;
+            purpose?: string;
+            fullPage?: boolean;
+            format?: "png" | "jpeg";
+            quality?: number;
+            requireStable?: boolean;
+            includeBounds?: boolean;
+          }>(request, maxRequestBytes, {});
+          return sendJson(response, 200, await runtime.act(sessionId, {
+            kind: "capture.paired",
+            purpose: input.purpose?.trim() || "Capture paired visual and semantic evidence",
+            ...(input.tabId ? { tabId: input.tabId } : {}),
+            ...(input.fullPage === undefined ? {} : { fullPage: input.fullPage }),
+            ...(input.format ? { format: input.format } : {}),
+            ...(input.quality === undefined ? {} : { quality: input.quality }),
+            ...(input.requireStable === undefined ? {} : { requireStable: input.requireStable }),
+            ...(input.includeBounds === undefined ? {} : { includeBounds: input.includeBounds })
+          }));
+        }
+        if (request.method === "POST" && segments[3] === "network" && segments.length === 4) {
+          const input = await readJson<{
+            tabId?: string;
+            purpose?: string;
+            method?: string;
+            status?: number;
+            resourceType?: string;
+            limit?: number;
+          }>(request, maxRequestBytes, {});
+          return sendJson(response, 200, await runtime.act(sessionId, {
+            kind: "network.inspect",
+            purpose: input.purpose?.trim() || "Inspect the bounded browser network ledger",
+            ...(input.tabId ? { tabId: input.tabId } : {}),
+            ...(input.method ? { method: input.method } : {}),
+            ...(input.status === undefined ? {} : { status: input.status }),
+            ...(input.resourceType ? { resourceType: input.resourceType } : {}),
+            ...(input.limit === undefined ? {} : { limit: input.limit })
+          }));
+        }
+        if (request.method === "POST" && segments[3] === "network" && segments[4] === "export") {
+          const input = await readJson<{
+            tabId?: string;
+            purpose?: string;
+            method?: string;
+            status?: number;
+            resourceType?: string;
+            limit?: number;
+            outputFormat?: "json" | "ndjson" | "har";
+          }>(request, maxRequestBytes, {});
+          return sendJson(response, 200, await runtime.act(sessionId, {
+            kind: "network.export",
+            purpose: input.purpose?.trim() || "Export the bounded browser network ledger",
+            outputFormat: input.outputFormat ?? "json",
+            ...(input.tabId ? { tabId: input.tabId } : {}),
+            ...(input.method ? { method: input.method } : {}),
+            ...(input.status === undefined ? {} : { status: input.status }),
+            ...(input.resourceType ? { resourceType: input.resourceType } : {}),
+            ...(input.limit === undefined ? {} : { limit: input.limit })
+          }));
         }
         if (request.method === "POST" && segments[3] === "audit") {
           const input = await readJson<{ kinds?: Array<"accessibility" | "performance" | "assets" | "console" | "security"> }>(

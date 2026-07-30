@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -53,7 +53,7 @@
     <section class="manual-section" id="record-metadata-not-browser-secrets">
     <span class="section-number">01</span>
     <h2>Record metadata, not browser secrets</h2>
-<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.</p>
+<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the canonical input digest, output digest, browser receipt hash, evidence IDs, source URL, and bounded descriptive metadata as cited context links. The host supplies the persistence callback supported by its installed Qarinah release.</p>
   </section><section class="manual-section" id="keep-memory-read-only-with-respect-to-the-browser">
     <span class="section-number">02</span>
     <h2>Keep memory read-only with respect to the browser</h2>

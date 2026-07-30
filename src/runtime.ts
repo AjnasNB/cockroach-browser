@@ -1,4 +1,5 @@
 import { lstat, mkdir, readFile, readdir, realpath, stat } from "node:fs/promises";
+import { timingSafeEqual } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, extname, isAbsolute, join, relative, resolve } from "node:path";
 import pixelmatch from "pixelmatch";
@@ -24,6 +25,7 @@ import type {
   BrowserAction,
   BrowserEventPublisher,
   BrowserHistoryEntry,
+  BrowserNetworkRecord,
   ChallengeReport,
   ContextRecorder,
   EvidenceRecord,
@@ -32,6 +34,7 @@ import type {
   ResourceBudget,
   SessionCreateInput,
   SessionSummary,
+  TabLockSummary,
   TabSummary
 } from "./contracts.js";
 import { canonicalJson, newId, nowIso, sha256 } from "./canonical.js";
@@ -72,14 +75,8 @@ export interface BrowserRuntimeOptions {
   now?: () => Date;
 }
 
-interface NetworkRecord {
-  timestamp: string;
-  type: "requestfailed" | "response";
-  method?: string;
-  url: string;
-  status?: number;
-  resourceType?: string;
-  error?: string;
+interface InternalTabLock extends TabLockSummary {
+  tokenDigest: string;
 }
 
 interface ConsoleRecord {
@@ -104,7 +101,7 @@ interface ManagedSession {
   pageIds: WeakMap<Page, string>;
   activeTabId: string;
   console: ConsoleRecord[];
-  network: NetworkRecord[];
+  network: BrowserNetworkRecord[];
   history: BrowserHistoryEntry[];
   networkRules: Map<string, CompiledNetworkRoute>;
   interceptedBytes: number;
@@ -114,6 +111,7 @@ interface ManagedSession {
   actionTail: Promise<void>;
   dnsPins: Map<string, readonly string[]>;
   consumedApprovals: Set<string>;
+  tabLocks: Map<string, InternalTabLock>;
   routeHandler?: (route: Route) => Promise<void>;
   pageHandler?: (page: Page) => void;
 }
@@ -121,12 +119,17 @@ interface ManagedSession {
 const CHALLENGE_SAFE_ACTIONS = new Set([
   "snapshot",
   "screenshot",
+  "capture.paired",
   "pdf",
   "extract",
   "wait",
   "tab.switch",
   "tab.close",
+  "tab.lock.status",
   "history.inspect",
+  "network.inspect",
+  "network.export",
+  "state.list",
   "network.routes.list"
 ]);
 
@@ -301,7 +304,8 @@ export class BrowserRuntime {
         evidenceBytes: 0,
         actionTail: Promise.resolve(),
         dnsPins,
-        consumedApprovals: new Set()
+        consumedApprovals: new Set(),
+        tabLocks: new Map()
       };
       managedSession = session;
       this.#sessions.set(id, session);
@@ -500,6 +504,9 @@ export class BrowserRuntime {
       }
       const decision = evaluateAction(session.input.policy, action);
       page = this.#page(session, action.tabId);
+      if (!["tab.lock", "tab.unlock", "tab.lock.status"].includes(action.kind)) {
+        await this.#assertTabLock(session, session.activeTabId, action.lockTokenRef);
+      }
       urlBefore = page.url();
       if (urlBefore !== "about:blank") {
         await assertUrlResolvedAllowed(session.input.policy, urlBefore, session.dnsPins, this.dnsResolver);
@@ -593,14 +600,24 @@ export class BrowserRuntime {
       evidenceIds,
       ...(failure ? { error: failure } : {})
     });
-    await this.#recordContext(session, "browser.action.completed", {
-      action: action.kind,
-      status,
-      inputDigest,
-      outputDigest,
-      receiptHash: receipt.receiptHash,
-      evidenceIds
-    });
+    await this.#recordContext(
+      session,
+      "browser.action.completed",
+      {
+        action: action.kind,
+        status,
+        effect,
+        risk,
+        policyDigest: policyHash,
+        completedAt
+      },
+      {
+        inputDigest,
+        outputDigest,
+        receiptHash: receipt.receiptHash,
+        evidenceIds
+      }
+    );
     await this.#publishEvent(
       session,
       "browser.action.completed",
@@ -1196,6 +1213,47 @@ export class BrowserRuntime {
           interceptedByteCeiling: session.budget.maxInterceptedBytes
         };
       }
+      case "network.inspect": {
+        const records = this.#networkRecords(session, action);
+        return {
+          records,
+          returned: records.length,
+          retained: session.network.length,
+          ceiling: session.budget.maxNetworkEntries
+        };
+      }
+      case "network.export": {
+        const records = this.#networkRecords(session, action);
+        const format = action.outputFormat ?? "json";
+        const artifact = serializeNetworkExport(records, format);
+        const evidence = await this.#addBufferEvidence(session, {
+          kind: "har",
+          contentType: artifact.contentType,
+          data: Buffer.from(artifact.body, "utf8"),
+          extension: artifact.extension,
+          sourceUrl: page.url(),
+          metadata: {
+            format,
+            records: records.length,
+            filtered: Boolean(action.tabId || action.method || action.status || action.resourceType)
+          }
+        });
+        evidenceIds.push(evidence.id);
+        return { evidenceId: evidence.id, format, records: records.length, bytes: evidence.size };
+      }
+      case "capture.paired":
+        return this.#capturePaired(session, page, action, evidenceIds);
+      case "annotate.show":
+        return this.#showAnnotations(session, page, action);
+      case "annotate.clear": {
+        const removed = await page.evaluate(() => {
+          const root = document.getElementById("cockroach-browser-annotations");
+          if (!root) return false;
+          root.remove();
+          return true;
+        });
+        return { cleared: removed };
+      }
       case "screenshot": {
         await this.#assertCaptureGeometry(page, session, action.fullPage ?? true);
         const buffer = await page.screenshot({
@@ -1312,6 +1370,76 @@ export class BrowserRuntime {
           sessionStorageKeysWritten: Object.keys(sessionValues).length
         };
       }
+      case "clipboard.read": {
+        await session.context.grantPermissions(["clipboard-read"], {
+          origin: new URL(page.url()).origin
+        });
+        try {
+          const value = await page.evaluate(() => navigator.clipboard.readText());
+          const bytes = Buffer.byteLength(value);
+          if (bytes > session.budget.maxClipboardBytes) {
+            throw new CockroachBrowserError(
+              "CLIPBOARD_BUDGET_EXCEEDED",
+              "Clipboard content exceeds the session byte limit."
+            );
+          }
+          return { value, bytes };
+        } finally {
+          await session.context.clearPermissions();
+        }
+      }
+      case "clipboard.write": {
+        const value = await this.#resolveSecret(action.valueRef);
+        const bytes = Buffer.byteLength(value);
+        if (bytes > session.budget.maxClipboardBytes) {
+          throw new CockroachBrowserError(
+            "CLIPBOARD_BUDGET_EXCEEDED",
+            "Clipboard content exceeds the session byte limit."
+          );
+        }
+        await session.context.grantPermissions(["clipboard-write"], {
+          origin: new URL(page.url()).origin
+        });
+        try {
+          await page.evaluate((text) => navigator.clipboard.writeText(text), value);
+          return { bytes };
+        } finally {
+          await session.context.clearPermissions();
+        }
+      }
+      case "state.save": {
+        const name = stateName(action.stateName);
+        const passphrase = await this.#resolveSecret(action.passphraseRef);
+        const existing = await this.profiles.list();
+        if (!existing.includes(name) && existing.length >= session.budget.maxSavedStates) {
+          throw new CockroachBrowserError(
+            "SAVED_STATE_LIMIT_EXCEEDED",
+            "The runtime saved-state limit has been reached."
+          );
+        }
+        await this.profiles.saveContext(name, session.context, passphrase);
+        return { saved: name, profiles: existing.includes(name) ? existing.length : existing.length + 1 };
+      }
+      case "state.load": {
+        const name = stateName(action.stateName);
+        const passphrase = await this.#resolveSecret(action.passphraseRef);
+        const state = await this.profiles.load(name, passphrase);
+        const applied = await this.#applySavedState(session, page, state);
+        return { loaded: name, ...applied };
+      }
+      case "state.list": {
+        const profiles = await this.profiles.list();
+        return {
+          profiles: profiles.slice(0, session.budget.maxSavedStates),
+          count: profiles.length,
+          ceiling: session.budget.maxSavedStates
+        };
+      }
+      case "state.delete": {
+        const name = stateName(action.stateName);
+        await this.profiles.delete(name);
+        return { deleted: name };
+      }
       case "tab.open": {
         if (session.tabs.size >= session.budget.maxTabs) {
           throw new CockroachBrowserError("TAB_BUDGET_EXCEEDED", "The session tab limit has been reached.");
@@ -1332,8 +1460,10 @@ export class BrowserRuntime {
       case "tab.close": {
         const targetId = action.tabId ?? session.activeTabId;
         const target = this.#page(session, targetId);
+        await this.#assertTabLock(session, targetId, action.lockTokenRef);
         await target.close();
         session.tabs.delete(targetId);
+        session.tabLocks.delete(targetId);
         const replacement = session.tabs.keys().next().value as string | undefined;
         if (!replacement) throw new CockroachBrowserError("LAST_TAB_CLOSED", "The final tab was closed; close the session.");
         session.activeTabId = replacement;
@@ -1345,6 +1475,55 @@ export class BrowserRuntime {
         await target.bringToFront();
         session.activeTabId = action.tabId;
         return { active: action.tabId, url: target.url() };
+      }
+      case "tab.lock": {
+        const tabId = action.tabId ?? session.activeTabId;
+        const active = this.#activeTabLock(session, tabId);
+        if (active) {
+          throw new CockroachBrowserError(
+            "TAB_ALREADY_LOCKED",
+            `Tab ${tabId} is already locked by ${active.owner} until ${active.expiresAt}.`
+          );
+        }
+        const owner = action.lockOwner?.trim();
+        if (!owner || owner.length > 200) {
+          throw new CockroachBrowserError(
+            "TAB_LOCK_OWNER_REQUIRED",
+            "Tab locking requires an owner of at most 200 characters."
+          );
+        }
+        const token = await this.#resolveSecret(action.lockTokenRef);
+        const ttlMs = boundedInteger(
+          action.lockTtlMs ?? 5 * 60_000,
+          1_000,
+          24 * 60 * 60_000,
+          "TAB_LOCK_TTL_INVALID"
+        );
+        const acquiredAt = nowIso();
+        const lock: InternalTabLock = {
+          tabId,
+          owner,
+          acquiredAt,
+          expiresAt: new Date(Date.now() + ttlMs).toISOString(),
+          tokenDigest: sha256(token)
+        };
+        session.tabLocks.set(tabId, lock);
+        return { lock: publicTabLock(lock) };
+      }
+      case "tab.unlock": {
+        const tabId = action.tabId ?? session.activeTabId;
+        const lock = this.#activeTabLock(session, tabId);
+        if (!lock) {
+          throw new CockroachBrowserError("TAB_NOT_LOCKED", `Tab ${tabId} is not locked.`);
+        }
+        await this.#assertTabLock(session, tabId, action.lockTokenRef);
+        session.tabLocks.delete(tabId);
+        return { unlocked: tabId, owner: lock.owner };
+      }
+      case "tab.lock.status": {
+        const tabId = action.tabId ?? session.activeTabId;
+        const lock = this.#activeTabLock(session, tabId);
+        return { tabId, lock: lock ? publicTabLock(lock) : null };
       }
       case "trace.start":
         if (session.traceActive) throw new CockroachBrowserError("TRACE_ALREADY_ACTIVE", "Tracing is already active.");
@@ -1368,6 +1547,276 @@ export class BrowserRuntime {
         evidenceIds.push(evidence.id);
         return { active: false, evidenceId: evidence.id };
       }
+    }
+  }
+
+  #networkRecords(session: ManagedSession, action: BrowserAction): BrowserNetworkRecord[] {
+    const method = action.method?.trim().toUpperCase();
+    const resourceType = action.resourceType?.trim().toLowerCase();
+    const limit = boundedInteger(
+      action.limit ?? Math.min(250, session.budget.maxNetworkEntries),
+      1,
+      session.budget.maxNetworkEntries,
+      "NETWORK_LIMIT_INVALID"
+    );
+    return session.network
+      .filter((record) => !action.tabId || record.tabId === action.tabId)
+      .filter((record) => !method || record.method?.toUpperCase() === method)
+      .filter((record) => action.status === undefined || record.status === action.status)
+      .filter((record) => !resourceType || record.resourceType?.toLowerCase() === resourceType)
+      .slice(-limit)
+      .map((record) => ({ ...record }));
+  }
+
+  async #capturePaired(
+    session: ManagedSession,
+    page: Page,
+    action: BrowserAction,
+    evidenceIds: string[]
+  ): Promise<unknown> {
+    await this.#assertCaptureGeometry(page, session, action.fullPage ?? true);
+    const before = await page.evaluate(() => {
+      const scope = globalThis as typeof globalThis & {
+        __cockroachMutationCount?: number;
+        __cockroachMutationObserver?: MutationObserver;
+      };
+      if (!scope.__cockroachMutationObserver) {
+        scope.__cockroachMutationCount = 0;
+        scope.__cockroachMutationObserver = new MutationObserver((changes) => {
+          scope.__cockroachMutationCount = (scope.__cockroachMutationCount ?? 0) + changes.length;
+        });
+        scope.__cockroachMutationObserver.observe(document, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          characterData: true
+        });
+      }
+      return {
+        mutationCount: scope.__cockroachMutationCount ?? 0,
+        url: location.href,
+        title: document.title
+      };
+    });
+    const format = action.format ?? "png";
+    const image = await page.screenshot({
+      fullPage: action.fullPage ?? true,
+      type: format,
+      ...(format === "jpeg" && action.quality ? { quality: action.quality } : {})
+    });
+    const snapshot = await captureSnapshot({
+      page,
+      sessionId: session.id,
+      tabId: action.tabId ?? session.activeTabId,
+      maxChars: session.budget.maxSnapshotChars
+    });
+    const bounds: Record<string, { x: number; y: number; width: number; height: number }> = {};
+    if (action.includeBounds) {
+      for (const item of snapshot.refs.slice(0, 250)) {
+        const box = await (await locatorFor(page, item.ref)).boundingBox().catch(() => null);
+        if (box) bounds[item.ref] = box;
+      }
+    }
+    const after = await page.evaluate(() => {
+      const scope = globalThis as typeof globalThis & { __cockroachMutationCount?: number };
+      return {
+        mutationCount: scope.__cockroachMutationCount ?? 0,
+        url: location.href,
+        title: document.title
+      };
+    });
+    const drift = {
+      mutationDelta: Math.max(0, after.mutationCount - before.mutationCount),
+      urlChanged: before.url !== after.url,
+      titleChanged: before.title !== after.title
+    };
+    if (action.requireStable && (drift.mutationDelta > 0 || drift.urlChanged)) {
+      throw new CockroachBrowserError(
+        "CAPTURE_DRIFT",
+        "The page changed while the paired screenshot and semantic snapshot were captured.",
+        drift
+      );
+    }
+    const screenshot = await this.#addBufferEvidence(session, {
+      kind: "screenshot",
+      contentType: format === "jpeg" ? "image/jpeg" : "image/png",
+      data: image,
+      extension: format === "jpeg" ? ".jpg" : ".png",
+      sourceUrl: page.url(),
+      metadata: { paired: true }
+    });
+    evidenceIds.push(screenshot.id);
+    const pair = await this.#addJsonEvidence(session, {
+      kind: "action",
+      value: {
+        screenshotEvidenceId: screenshot.id,
+        snapshot: redactSnapshot(snapshot),
+        ...(action.includeBounds ? { bounds } : {}),
+        drift
+      },
+      sourceUrl: page.url(),
+      metadata: { pairedCapture: true, includeBounds: Boolean(action.includeBounds) }
+    });
+    evidenceIds.push(pair.id);
+    return {
+      screenshotEvidenceId: screenshot.id,
+      pairEvidenceId: pair.id,
+      snapshotDigest: snapshot.digest,
+      refs: snapshot.refs.length,
+      bounds: Object.keys(bounds).length,
+      drift
+    };
+  }
+
+  async #showAnnotations(
+    session: ManagedSession,
+    page: Page,
+    action: BrowserAction
+  ): Promise<{ annotations: number }> {
+    const snapshot = await captureSnapshot({
+      page,
+      sessionId: session.id,
+      tabId: action.tabId ?? session.activeTabId,
+      maxChars: session.budget.maxSnapshotChars
+    });
+    const boxes: Array<{
+      ref: string;
+      label: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }> = [];
+    for (const item of snapshot.refs.slice(0, 250)) {
+      const box = await (await locatorFor(page, item.ref)).boundingBox().catch(() => null);
+      if (!box) continue;
+      boxes.push({
+        ref: item.ref,
+        label: `${item.role}: ${item.name}`.slice(0, 120),
+        ...box
+      });
+    }
+    await page.evaluate((items) => {
+      document.getElementById("cockroach-browser-annotations")?.remove();
+      const root = document.createElement("div");
+      root.id = "cockroach-browser-annotations";
+      root.setAttribute("aria-hidden", "true");
+      Object.assign(root.style, {
+        position: "absolute",
+        inset: "0",
+        zIndex: "2147483647",
+        pointerEvents: "none"
+      });
+      for (const item of items) {
+        const outline = document.createElement("div");
+        Object.assign(outline.style, {
+          position: "absolute",
+          left: `${item.x + window.scrollX}px`,
+          top: `${item.y + window.scrollY}px`,
+          width: `${item.width}px`,
+          height: `${item.height}px`,
+          border: "2px solid #20e39a",
+          boxSizing: "border-box",
+          background: "rgba(32, 227, 154, 0.06)"
+        });
+        const label = document.createElement("span");
+        label.textContent = `${item.ref} ${item.label}`;
+        Object.assign(label.style, {
+          position: "absolute",
+          left: "0",
+          top: "0",
+          transform: "translateY(-100%)",
+          maxWidth: "360px",
+          padding: "3px 5px",
+          background: "#07110d",
+          color: "#eafbf3",
+          border: "1px solid #20e39a",
+          font: "11px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis"
+        });
+        outline.append(label);
+        root.append(outline);
+      }
+      document.documentElement.append(root);
+    }, boxes);
+    return { annotations: boxes.length };
+  }
+
+  async #applySavedState(
+    session: ManagedSession,
+    page: Page,
+    state: Record<string, unknown>
+  ): Promise<{ cookiesApplied: number; localStorageKeysApplied: number; originsAvailable: number }> {
+    const cookies = Array.isArray(state.cookies) ? state.cookies : [];
+    const allowedHosts = new Set(session.input.policy.allowedOrigins.map((origin) => new URL(origin).hostname));
+    const admittedCookies = cookies.filter((entry): entry is Record<string, unknown> => {
+      if (!isPlainObject(entry) || typeof entry.domain !== "string") return false;
+      const domain = entry.domain.replace(/^\./, "").toLowerCase();
+      return [...allowedHosts].some((host) => host === domain || host.endsWith(`.${domain}`));
+    });
+    if (admittedCookies.length > 0) {
+      await session.context.addCookies(
+        admittedCookies as unknown as Parameters<BrowserContext["addCookies"]>[0]
+      );
+    }
+    const origins = Array.isArray(state.origins)
+      ? state.origins.filter((entry): entry is Record<string, unknown> =>
+          isPlainObject(entry) && typeof entry.origin === "string" && Array.isArray(entry.localStorage)
+        )
+      : [];
+    const currentOrigin = new URL(page.url()).origin;
+    const current = origins.find((entry) => entry.origin === currentOrigin);
+    const values = current
+      ? (current.localStorage as unknown[]).filter(
+          (entry): entry is { name: string; value: string } =>
+            isPlainObject(entry) && typeof entry.name === "string" && typeof entry.value === "string"
+        )
+      : [];
+    if (values.length > 0) {
+      await page.evaluate((entries) => {
+        for (const entry of entries) localStorage.setItem(entry.name, entry.value);
+      }, values);
+    }
+    return {
+      cookiesApplied: admittedCookies.length,
+      localStorageKeysApplied: values.length,
+      originsAvailable: origins.length
+    };
+  }
+
+  #activeTabLock(session: ManagedSession, tabId: string): InternalTabLock | undefined {
+    const lock = session.tabLocks.get(tabId);
+    if (!lock) return undefined;
+    if (Date.parse(lock.expiresAt) <= Date.now()) {
+      session.tabLocks.delete(tabId);
+      return undefined;
+    }
+    return lock;
+  }
+
+  async #assertTabLock(
+    session: ManagedSession,
+    tabId: string,
+    tokenReference?: string
+  ): Promise<void> {
+    const lock = this.#activeTabLock(session, tabId);
+    if (!lock) return;
+    if (!tokenReference?.startsWith("ref:")) {
+      throw new CockroachBrowserError(
+        "TAB_LOCK_DENIED",
+        `Tab ${tabId} is exclusively locked by ${lock.owner} until ${lock.expiresAt}.`
+      );
+    }
+    const token = await this.#resolveSecret(tokenReference);
+    const actual = Buffer.from(sha256(token), "hex");
+    const expected = Buffer.from(lock.tokenDigest, "hex");
+    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+      throw new CockroachBrowserError(
+        "TAB_LOCK_DENIED",
+        `Tab ${tabId} is exclusively locked by ${lock.owner} until ${lock.expiresAt}.`
+      );
     }
   }
 
@@ -1523,10 +1972,11 @@ export class BrowserRuntime {
     session.tabs.set(id, page);
     session.activeTabId = id;
     page.on("console", (message) => this.#captureConsole(session, message));
-    page.on("requestfailed", (request) => this.#captureRequestFailure(session, request));
-    page.on("response", (response) => this.#captureResponse(session, response));
+    page.on("requestfailed", (request) => this.#captureRequestFailure(session, id, request));
+    page.on("response", (response) => this.#captureResponse(session, id, response));
     page.on("close", () => {
       session.tabs.delete(id);
+      session.tabLocks.delete(id);
       if (session.activeTabId === id) {
         session.activeTabId = session.tabs.keys().next().value as string ?? "";
       }
@@ -1544,9 +1994,11 @@ export class BrowserRuntime {
     if (session.console.length > 1_000) session.console.shift();
   }
 
-  #captureRequestFailure(session: ManagedSession, request: Request): void {
+  #captureRequestFailure(session: ManagedSession, tabId: string, request: Request): void {
     const failure = request.failure()?.errorText;
     session.network.push({
+      id: newId("network"),
+      tabId,
       timestamp: nowIso(),
       type: "requestfailed",
       method: request.method(),
@@ -1554,11 +2006,13 @@ export class BrowserRuntime {
       resourceType: request.resourceType(),
       ...(failure ? { error: failure } : {})
     });
-    if (session.network.length > 2_000) session.network.shift();
+    if (session.network.length > session.budget.maxNetworkEntries) session.network.shift();
   }
 
-  #captureResponse(session: ManagedSession, response: Response): void {
+  #captureResponse(session: ManagedSession, tabId: string, response: Response): void {
     session.network.push({
+      id: newId("network"),
+      tabId,
       timestamp: nowIso(),
       type: "response",
       method: response.request().method(),
@@ -1566,7 +2020,7 @@ export class BrowserRuntime {
       status: response.status(),
       resourceType: response.request().resourceType()
     });
-    if (session.network.length > 2_000) session.network.shift();
+    if (session.network.length > session.budget.maxNetworkEntries) session.network.shift();
   }
 
   async #recordHistory(
@@ -1666,14 +2120,30 @@ export class BrowserRuntime {
     }
   }
 
-  async #resolveSecret(reference: string): Promise<string> {
+  async #resolveSecret(reference: string | undefined): Promise<string> {
+    if (!reference?.startsWith("ref:")) {
+      throw new CockroachBrowserError(
+        "VALUE_REF_REQUIRED",
+        "Credential-bearing browser actions require an opaque ref: value."
+      );
+    }
     if (!this.secretResolver) {
       throw new CockroachBrowserError("SECRET_RESOLVER_REQUIRED", `Secret reference ${reference} requires a host resolver.`);
     }
     return this.secretResolver.resolve(reference);
   }
 
-  async #recordContext(session: ManagedSession, type: string, metadata: Record<string, unknown>): Promise<void> {
+  async #recordContext(
+    session: ManagedSession,
+    type: string,
+    metadata: Record<string, unknown>,
+    links: {
+      inputDigest?: string;
+      outputDigest?: string;
+      receiptHash?: string;
+      evidenceIds?: string[];
+    } = {}
+  ): Promise<void> {
     if (!this.contextRecorder) return;
     await this.contextRecorder.record({
       type,
@@ -1681,6 +2151,10 @@ export class BrowserRuntime {
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       purpose: session.input.purpose,
       timestamp: nowIso(),
+      ...(links.inputDigest ? { inputDigest: links.inputDigest } : {}),
+      ...(links.outputDigest ? { outputDigest: links.outputDigest } : {}),
+      ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+      ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
       metadata
     });
   }
@@ -1727,6 +2201,91 @@ export class BrowserRuntime {
       // never change the result of a browser action or evidence capture.
     }
   }
+}
+
+function stateName(input: string | undefined): string {
+  const name = input?.trim();
+  if (!name || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(name) || name === "." || name === "..") {
+    throw new CockroachBrowserError(
+      "STATE_NAME_INVALID",
+      "Saved-state names may contain only letters, numbers, dots, underscores, and hyphens."
+    );
+  }
+  return name;
+}
+
+function publicTabLock(lock: InternalTabLock): TabLockSummary {
+  return {
+    tabId: lock.tabId,
+    owner: lock.owner,
+    acquiredAt: lock.acquiredAt,
+    expiresAt: lock.expiresAt
+  };
+}
+
+function serializeNetworkExport(
+  records: BrowserNetworkRecord[],
+  format: "json" | "ndjson" | "har"
+): { body: string; contentType: string; extension: string } {
+  if (format === "ndjson") {
+    return {
+      body: records.map((record) => JSON.stringify(record)).join("\n"),
+      contentType: "application/x-ndjson",
+      extension: ".ndjson"
+    };
+  }
+  if (format === "har") {
+    return {
+      body: JSON.stringify({
+        log: {
+          version: "1.2",
+          creator: { name: "Cockroach Browser", version: "0.1" },
+          entries: records.map((record) => ({
+            startedDateTime: record.timestamp,
+            time: 0,
+            request: {
+              method: record.method ?? "GET",
+              url: record.url,
+              httpVersion: "HTTP/1.1",
+              cookies: [],
+              headers: [],
+              queryString: [],
+              headersSize: -1,
+              bodySize: -1
+            },
+            response: {
+              status: record.status ?? 0,
+              statusText: record.error ?? "",
+              httpVersion: "HTTP/1.1",
+              cookies: [],
+              headers: [],
+              content: {
+                size: 0,
+                mimeType: record.resourceType ?? "application/octet-stream"
+              },
+              redirectURL: "",
+              headersSize: -1,
+              bodySize: -1
+            },
+            cache: {},
+            timings: { send: 0, wait: 0, receive: 0 },
+            _cockroach: {
+              id: record.id,
+              tabId: record.tabId,
+              type: record.type
+            }
+          }))
+        }
+      }),
+      contentType: "application/json",
+      extension: ".har"
+    };
+  }
+  return {
+    body: JSON.stringify({ records, count: records.length }),
+    contentType: "application/json",
+    extension: ".json"
+  };
 }
 
 function sanitizeUrl(input: string): string {

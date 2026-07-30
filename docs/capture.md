@@ -8,7 +8,23 @@ Public manual: https://cockroachbrowser.com/docs/capture/
 
 ## Evidence types
 
-Snapshots, screenshots, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.
+Snapshots, screenshots, paired visual-plus-semantic captures, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, annotations, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.
+
+## Capture the pixels and the cited page state together
+
+capture.paired records a screenshot and semantic snapshot under one receipt. requireStable rejects a capture when the page revision changes during collection. Optional element bounds connect numbered semantic refs to visible regions without turning coordinates into long-lived selectors.
+
+```
+npx cockroach-browser capture \
+  --session "$SESSION_ID" \
+  --require-stable \
+  --include-bounds \
+  --token-file .cockroach-browser/auth-token
+```
+
+## Add temporary review annotations
+
+annotate.show overlays bounded numbered markers for reviewed refs, CSS selectors, or XPath targets. annotate.clear removes only Cockroach Browser's temporary overlay. Annotation actions are explicit, receipt-linked, and do not alter application data.
 
 ## Receipts form a chain
 
@@ -20,9 +36,9 @@ HAR, video, trace, console, and network capture can contain sensitive material. 
 
 ## Carry evidence into memory
 
-The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.
+The Qarinah adapter records canonical input and output digests, evidence IDs, the browser receipt hash, and bounded descriptive metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.
 
 
 ## Release status
 
-This manual targets Cockroach Browser 0.1.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.2.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

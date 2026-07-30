@@ -2,7 +2,7 @@ services:
   browser:
     build:
       context: .
-    image: cockroach-browser:0.1.1
+    image: cockroach-browser:0.2.0
     ports:
       - "127.0.0.1:43110:43111"
     restart: unless-stopped
