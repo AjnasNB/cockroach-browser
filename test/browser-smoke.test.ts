@@ -36,8 +36,21 @@ test(
     const origin = `http://127.0.0.1:${address.port}`;
 
     const lifecycleEvents: BrowserLifecycleEvent[] = [];
+    const secrets = new Map([
+      ["ref:profile-passphrase", "a-strong-profile-passphrase"],
+      ["ref:tab-lock", "one-exclusive-tab-token"],
+      ["ref:clipboard", "clipboard fixture value"],
+      ["ref:storage-original", JSON.stringify({ localStorage: { fixture: "original" } })]
+    ]);
     const runtime = new BrowserRuntime({
       root,
+      secretResolver: {
+        async resolve(reference) {
+          const value = secrets.get(reference);
+          if (!value) throw new Error(`Unknown test secret ${reference}`);
+          return value;
+        }
+      },
       eventPublisher: {
         async publish(event) {
           lifecycleEvents.push(structuredClone(event));
@@ -71,12 +84,31 @@ test(
           "mouse.move",
           "keyboard.insertText",
           "history.inspect",
+          "capture.paired",
+          "annotate.show",
+          "annotate.clear",
+          "clipboard.read",
+          "clipboard.write",
+          "network.inspect",
+          "network.export",
           "network.route.add",
-          "network.routes.list"
+          "network.routes.list",
+          "state.save",
+          "state.load",
+          "state.list",
+          "state.delete",
+          "storage.read",
+          "storage.write",
+          "tab.lock",
+          "tab.unlock",
+          "tab.lock.status"
         ],
-        allowedEffects: ["read", "write"],
+        allowedEffects: ["read", "write", "credential"],
         allowDialogAccept: true,
         allowNetworkInterception: true,
+        allowClipboard: true,
+        allowStateExport: true,
+        allowAnnotations: true,
         requireApprovalFor: []
       }
     });
@@ -167,6 +199,122 @@ test(
       purpose: "Inspect the bounded session history"
     });
     assert.equal((history.output as { returned: number }).returned >= 1, true);
+
+    const paired = await runtime.act(session.id, {
+      kind: "capture.paired",
+      includeBounds: true,
+      purpose: "Capture synchronized visual and semantic fixture evidence"
+    });
+    assert.equal((paired.output as { refs: number }).refs >= 4, true);
+    assert.equal((paired.output as { bounds: number }).bounds >= 1, true);
+    assert.equal(paired.receipt.evidenceIds.length, 2);
+
+    const annotated = await runtime.act(session.id, {
+      kind: "annotate.show",
+      purpose: "Overlay snapshot references on the local fixture"
+    });
+    assert.equal((annotated.output as { annotations: number }).annotations >= 1, true);
+    await runtime.act(session.id, {
+      kind: "annotate.clear",
+      purpose: "Clear the fixture annotations"
+    });
+
+    const network = await runtime.act(session.id, {
+      kind: "network.inspect",
+      method: "GET",
+      purpose: "Inspect the bounded fixture network ledger"
+    });
+    assert.equal((network.output as { returned: number }).returned >= 1, true);
+    const networkExport = await runtime.act(session.id, {
+      kind: "network.export",
+      outputFormat: "har",
+      purpose: "Export a redacted fixture HAR"
+    });
+    assert.equal((networkExport.output as { records: number }).records >= 1, true);
+    assert.equal(networkExport.receipt.evidenceIds.length, 1);
+
+    await runtime.act(session.id, {
+      kind: "storage.write",
+      dataRef: "ref:storage-original",
+      purpose: "Write fixture storage before the encrypted checkpoint"
+    });
+    await runtime.act(session.id, {
+      kind: "state.save",
+      stateName: "fixture-state",
+      passphraseRef: "ref:profile-passphrase",
+      purpose: "Save the encrypted fixture state"
+    });
+    secrets.set(
+      "ref:storage-changed",
+      JSON.stringify({ localStorage: { fixture: "changed" } })
+    );
+    await runtime.act(session.id, {
+      kind: "storage.write",
+      dataRef: "ref:storage-changed",
+      purpose: "Change storage after the encrypted checkpoint"
+    });
+    await runtime.act(session.id, {
+      kind: "state.load",
+      stateName: "fixture-state",
+      passphraseRef: "ref:profile-passphrase",
+      purpose: "Restore the encrypted fixture state"
+    });
+    const restored = await runtime.act(session.id, {
+      kind: "storage.read",
+      purpose: "Verify restored local fixture state"
+    });
+    assert.equal(
+      (restored.output as { localStorage: Record<string, string> }).localStorage.fixture,
+      "original"
+    );
+    const states = await runtime.act(session.id, {
+      kind: "state.list",
+      purpose: "List encrypted fixture states"
+    });
+    assert.deepEqual((states.output as { profiles: string[] }).profiles, ["fixture-state"]);
+
+    await runtime.act(session.id, {
+      kind: "clipboard.write",
+      valueRef: "ref:clipboard",
+      purpose: "Write the exact fixture value to the browser clipboard"
+    });
+    const clipboard = await runtime.act(session.id, {
+      kind: "clipboard.read",
+      purpose: "Read the bounded browser clipboard value"
+    });
+    assert.equal((clipboard.output as { value: string }).value, "clipboard fixture value");
+
+    await runtime.act(session.id, {
+      kind: "tab.lock",
+      lockOwner: "fixture-worker",
+      lockTokenRef: "ref:tab-lock",
+      lockTtlMs: 30_000,
+      purpose: "Acquire exclusive fixture tab ownership"
+    });
+    await assert.rejects(
+      runtime.act(session.id, {
+        kind: "snapshot",
+        purpose: "Verify that an unowned action cannot enter the locked tab"
+      }),
+      (error: unknown) => Boolean(
+        error && typeof error === "object" && "code" in error && error.code === "TAB_LOCK_DENIED"
+      )
+    );
+    const lock = await runtime.act(session.id, {
+      kind: "tab.lock.status",
+      purpose: "Inspect the exclusive fixture tab lock"
+    });
+    assert.equal((lock.output as { lock: { owner: string } }).lock.owner, "fixture-worker");
+    await runtime.act(session.id, {
+      kind: "tab.unlock",
+      lockTokenRef: "ref:tab-lock",
+      purpose: "Release exclusive fixture tab ownership"
+    });
+    await runtime.act(session.id, {
+      kind: "state.delete",
+      stateName: "fixture-state",
+      purpose: "Delete the encrypted fixture state"
+    });
     assert.equal((await runtime.evidence.verify()).ok, true);
     assert.equal(
       lifecycleEvents.some((event) => event.type === "browser.session.created"),

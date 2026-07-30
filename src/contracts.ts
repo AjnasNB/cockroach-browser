@@ -27,9 +27,20 @@ export const ACTION_KINDS = [
   "evaluate",
   "wait",
   "history.inspect",
+  "capture.paired",
+  "annotate.show",
+  "annotate.clear",
+  "clipboard.read",
+  "clipboard.write",
+  "network.inspect",
+  "network.export",
   "network.route.add",
   "network.route.remove",
   "network.routes.list",
+  "state.save",
+  "state.load",
+  "state.list",
+  "state.delete",
   "screenshot",
   "pdf",
   "snapshot",
@@ -41,6 +52,9 @@ export const ACTION_KINDS = [
   "tab.open",
   "tab.close",
   "tab.switch",
+  "tab.lock",
+  "tab.unlock",
+  "tab.lock.status",
   "trace.start",
   "trace.stop"
 ] as const;
@@ -60,6 +74,9 @@ export interface ResourceBudget {
   maxSnapshotChars: number;
   maxEvidenceBytes: number;
   maxHistoryEntries: number;
+  maxNetworkEntries: number;
+  maxClipboardBytes: number;
+  maxSavedStates: number;
   maxNetworkRules: number;
   maxRouteFulfillBytes: number;
   maxInterceptedBytes: number;
@@ -74,6 +91,9 @@ export const DEFAULT_BUDGET: Readonly<ResourceBudget> = Object.freeze({
   maxSnapshotChars: 120_000,
   maxEvidenceBytes: 256 * 1024 * 1024,
   maxHistoryEntries: 100,
+  maxNetworkEntries: 2_000,
+  maxClipboardBytes: 64 * 1024,
+  maxSavedStates: 64,
   maxNetworkRules: 32,
   maxRouteFulfillBytes: 256 * 1024,
   maxInterceptedBytes: 8 * 1024 * 1024
@@ -90,6 +110,9 @@ export interface BrowserPolicy {
   allowCookieWrite?: boolean;
   allowDownloads?: boolean;
   allowUploads?: boolean;
+  allowClipboard?: boolean;
+  allowStateExport?: boolean;
+  allowAnnotations?: boolean;
   /** Allow an exact action to accept a JavaScript dialog. Dismiss remains the safe default. */
   allowDialogAccept?: boolean;
   /** Allow host-reviewed request blocking or static response fulfillment rules. */
@@ -167,6 +190,17 @@ export interface BrowserAction {
   targetRef?: string;
   route?: NetworkRouteInput;
   routeId?: string;
+  lockOwner?: string;
+  lockTokenRef?: string;
+  lockTtlMs?: number;
+  stateName?: string;
+  passphraseRef?: string;
+  outputFormat?: "json" | "ndjson" | "har";
+  requireStable?: boolean;
+  includeBounds?: boolean;
+  method?: string;
+  status?: number;
+  resourceType?: string;
   limit?: number;
   waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
   purpose: string;
@@ -242,6 +276,25 @@ export interface BrowserHistoryEntry {
   title: string;
   observedAt: string;
   source: ActionKind | "session.start";
+}
+
+export interface BrowserNetworkRecord {
+  id: string;
+  tabId: string;
+  timestamp: string;
+  type: "requestfailed" | "response";
+  method?: string;
+  url: string;
+  status?: number;
+  resourceType?: string;
+  error?: string;
+}
+
+export interface TabLockSummary {
+  tabId: string;
+  owner: string;
+  acquiredAt: string;
+  expiresAt: string;
 }
 
 export interface PageRef {

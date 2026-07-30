@@ -29,6 +29,9 @@ test("normalizes origins and applies finite resource ceilings", () => {
   assert.deepEqual(normalized.allowedOrigins, ["https://example.com"]);
   assert.equal(normalized.budget.maxActions, 10_000);
   assert.equal(normalized.budget.maxTabs, 1);
+  assert.equal(normalized.budget.maxNetworkEntries, 2_000);
+  assert.equal(normalized.budget.maxClipboardBytes, 64 * 1024);
+  assert.equal(normalized.budget.maxSavedStates, 64);
   assert.throws(
     () => clampBudget({ maxTabs: 0.5 }),
     (error: unknown) => hasCode(error, "INVALID_BUDGET")
@@ -160,6 +163,38 @@ test("denies optional high-authority surfaces until each is enabled", () => {
   );
   assert.equal(networkRoute.allowed, false);
   assert.match(networkRoute.reason, /Network interception is disabled/);
+
+  const clipboard = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "clipboard.read"],
+      allowedEffects: [...(PUBLIC_POLICY.allowedEffects ?? []), "credential"]
+    },
+    { kind: "clipboard.read" }
+  );
+  assert.equal(clipboard.allowed, false);
+  assert.match(clipboard.reason, /Clipboard access is disabled/);
+
+  const state = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "state.save"],
+      allowedEffects: [...(PUBLIC_POLICY.allowedEffects ?? []), "credential"]
+    },
+    { kind: "state.save", stateName: "release", passphraseRef: "ref:passphrase" }
+  );
+  assert.equal(state.allowed, false);
+  assert.match(state.reason, /browser-state management is disabled/);
+
+  const annotations = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "annotate.show"]
+    },
+    { kind: "annotate.show" }
+  );
+  assert.equal(annotations.allowed, false);
+  assert.match(annotations.reason, /annotations are disabled/i);
 });
 
 test("marks configured mutations for exact approval", () => {
