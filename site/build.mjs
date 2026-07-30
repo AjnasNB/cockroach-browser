@@ -130,11 +130,14 @@ function baseHead({ title, description, canonical, type = "website" }) {
   <meta property="og:title" content="${escapeAttr(pageTitle)}">
   <meta property="og:description" content="${escapeAttr(description)}">
   <meta property="og:url" content="${canonical}">
-  <meta property="og:image" content="${site.origin}/assets/og-card.svg">
-  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="${site.origin}/assets/logo.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1250">
+  <meta property="og:image:height" content="1250">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${escapeAttr(pageTitle)}">
   <meta name="twitter:description" content="${escapeAttr(description)}">
-  <meta name="twitter:image" content="${site.origin}/assets/og-card.svg">
+  <meta name="twitter:image" content="${site.origin}/assets/logo.png">
 </head>`;
 }
 

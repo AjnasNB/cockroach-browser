@@ -44,7 +44,6 @@ const DASHBOARD_FILES = new Map<string, { file: string; contentType: string }>([
   ["/dashboard/", { file: "index.html", contentType: "text/html; charset=utf-8" }],
   ["/dashboard/app.js", { file: "app.js", contentType: "text/javascript; charset=utf-8" }],
   ["/dashboard/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }],
-  ["/dashboard/assets/logo.svg", { file: "assets/logo.svg", contentType: "image/svg+xml; charset=utf-8" }],
   ["/dashboard/assets/logo.png", { file: "assets/logo.png", contentType: "image/png" }]
 ]);
 
