@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import type { BrowserRuntime } from "../src/runtime.js";
+import { BrowserClient } from "../src/client.js";
 import { startBrowserServer } from "../src/server.js";
 
 test("binds to loopback by default and rejects unauthenticated requests", async (t) => {
@@ -115,6 +116,35 @@ test("disables raw action dispatch by default and requires an explicit host opt-
   const allowed = await actionRequest(explicit.url, token);
   assert.equal(allowed.status, 200);
   assert.equal(dispatched, 1);
+});
+
+test("exposes only typed read-only capture and network routes without enabling raw actions", async (t) => {
+  const token = "o".repeat(32);
+  const actions: Array<{ kind: string; purpose: string; outputFormat?: string }> = [];
+  const runtime = {
+    ...fakeRuntime(await temporaryDirectory(t)),
+    act: async (_sessionId: string, action: { kind: string; purpose: string; outputFormat?: string }) => {
+      actions.push(structuredClone(action));
+      return {
+        output: { kind: action.kind },
+        receipt: { id: `receipt-${actions.length}` }
+      };
+    }
+  } as unknown as BrowserRuntime;
+  const server = await startBrowserServer({ runtime, port: 0, token });
+  t.after(() => server.close());
+  const client = new BrowserClient({ baseUrl: server.url, token });
+
+  await client.capture("session-a", { includeBounds: true });
+  await client.network("session-a", { method: "GET", limit: 10 });
+  await client.exportNetwork("session-a", { outputFormat: "har" });
+
+  assert.deepEqual(
+    actions.map((action) => action.kind),
+    ["capture.paired", "network.inspect", "network.export"]
+  );
+  assert.equal(actions[0]?.purpose, "Capture paired visual and semantic evidence");
+  assert.equal(actions[2]?.outputFormat, "har");
 });
 
 test("refuses a non-loopback listener without explicit remote mode and TLS", async () => {

@@ -1,5 +1,7 @@
 import type {
+  ActionReceipt,
   BrowserAction,
+  BrowserNetworkRecord,
   PageSnapshot,
   SessionCreateInput,
   SessionSummary
@@ -11,6 +13,30 @@ export interface BrowserClientOptions {
   baseUrl?: string;
   token: string;
   fetch?: typeof globalThis.fetch;
+}
+
+export interface BrowserActionResult<T> {
+  output: T;
+  receipt: ActionReceipt;
+}
+
+export interface PairedCaptureOptions {
+  tabId?: string;
+  purpose?: string;
+  fullPage?: boolean;
+  format?: "png" | "jpeg";
+  quality?: number;
+  requireStable?: boolean;
+  includeBounds?: boolean;
+}
+
+export interface NetworkReadOptions {
+  tabId?: string;
+  purpose?: string;
+  method?: string;
+  status?: number;
+  resourceType?: string;
+  limit?: number;
 }
 
 export class BrowserClient {
@@ -54,6 +80,47 @@ export class BrowserClient {
 
   snapshot(id: string, tabId?: string): Promise<PageSnapshot> {
     return this.request("POST", `/v1/sessions/${encodeURIComponent(id)}/snapshot`, { tabId });
+  }
+
+  capture(
+    id: string,
+    options: PairedCaptureOptions = {}
+  ): Promise<BrowserActionResult<{
+    screenshotEvidenceId: string;
+    pairEvidenceId: string;
+    snapshotDigest: string;
+    refs: number;
+    bounds: number;
+  }>> {
+    return this.request("POST", `/v1/sessions/${encodeURIComponent(id)}/capture`, options);
+  }
+
+  network(
+    id: string,
+    options: NetworkReadOptions = {}
+  ): Promise<BrowserActionResult<{
+    records: BrowserNetworkRecord[];
+    returned: number;
+    retained: number;
+    ceiling: number;
+  }>> {
+    return this.request("POST", `/v1/sessions/${encodeURIComponent(id)}/network`, options);
+  }
+
+  exportNetwork(
+    id: string,
+    options: NetworkReadOptions & { outputFormat?: "json" | "ndjson" | "har" } = {}
+  ): Promise<BrowserActionResult<{
+    evidenceId: string;
+    format: "json" | "ndjson" | "har";
+    records: number;
+    bytes: number;
+  }>> {
+    return this.request(
+      "POST",
+      `/v1/sessions/${encodeURIComponent(id)}/network/export`,
+      options
+    );
   }
 
   audit(
