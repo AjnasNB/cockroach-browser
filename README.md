@@ -23,7 +23,7 @@ Current release line: **0.1.1**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 63 entries, with 55 available, 6 adapter-backed, and 2 planned
+- Capability registry: 73 entries, with 66 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
@@ -32,11 +32,30 @@ Verify the npm version, provenance, Git commit, and matching GitHub release befo
 
 ```bash
 npm install cockroach-browser
-npx cockroach-browser setup
-npx cockroach-browser doctor
+npx cockroach-browser bootstrap
 ```
 
-`setup` installs the Chromium build used by Playwright 1.55.0 and then runs the environment doctor.
+`bootstrap` verifies Node.js, installs the Chromium build used by Playwright 1.55.0 only when it is missing, initializes the owner-scoped data root, and probes an authenticated ephemeral loopback daemon. Use `--check-only` when the command must not download a browser.
+
+## Operator bootstrap, completions, and per-user autostart
+
+Completion generation writes to standard output and never edits your shell profile:
+
+```bash
+cockroach-browser completion bash
+cockroach-browser completion zsh
+cockroach-browser completion powershell
+```
+
+The optional daemon installer is deliberately a per-user operation. It requires an explicit local-owner confirmation, always binds the generated daemon to `127.0.0.1`, and never invokes `sudo`, an administrator prompt, or a system-wide service manager:
+
+```bash
+cockroach-browser service status
+cockroach-browser service install --confirm-local-owner
+cockroach-browser service uninstall --confirm-local-owner
+```
+
+Windows installs a current-user Startup command that begins at the next login. macOS installs and loads a current-user LaunchAgent, and Linux installs and starts a systemd user unit. Add `--definition-only` to inspect the exact generated file without activation. The installer refuses to overwrite or remove a file it did not create. Uninstall removes the definition only; browser data, profiles, evidence, and receipts remain intact.
 
 ## Start with the embedded SDK
 
@@ -230,8 +249,13 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 
 | Command | What it does |
 | --- | --- |
-| `cockroach-browser setup` | Install Chromium and run the doctor |
-| `cockroach-browser doctor` | Check Node, Chromium, and basic readiness |
+| `cockroach-browser bootstrap [--check-only]` | Initialize the data root, install Chromium only when missing, and probe an authenticated loopback daemon |
+| `cockroach-browser setup` | Alias for `bootstrap` |
+| `cockroach-browser doctor [--root DIR]` | Check Node, Chromium, data-root, and per-user service readiness |
+| `cockroach-browser completion <bash\|zsh\|powershell>` | Print a completion script without modifying shell configuration |
+| `cockroach-browser service install --confirm-local-owner` | Install an owner-scoped loopback autostart definition; macOS and Linux activate immediately, while Windows starts at next login |
+| `cockroach-browser service status` | Show the exact per-user definition path and fixed daemon command |
+| `cockroach-browser service uninstall --confirm-local-owner` | Disable and remove only the generated per-user definition |
 | `cockroach-browser capabilities [--status available]` | Print the capability registry |
 | `cockroach-browser serve [options]` | Start the authenticated daemon |
 | `cockroach-browser mcp` | Start the stdio MCP server |
@@ -250,20 +274,20 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 63 source-registered capabilities
+## 73 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
 | Sessions | 10 | 0 | 0 | 10 |
-| Interaction | 15 | 0 | 0 | 15 |
+| Interaction | 21 | 0 | 0 | 21 |
 | Evidence | 9 | 0 | 0 | 9 |
 | Audit | 6 | 0 | 0 | 6 |
-| Security | 6 | 2 | 0 | 8 |
-| Deployment | 9 | 0 | 0 | 9 |
-| Integration | 0 | 4 | 2 | 6 |
-| **Total** | **55** | **6** | **2** | **63** |
+| Security | 7 | 2 | 0 | 9 |
+| Deployment | 12 | 0 | 0 | 12 |
+| Integration | 1 | 4 | 1 | 6 |
+| **Total** | **66** | **6** | **1** | **73** |
 
 ### Sessions
 
@@ -271,7 +295,7 @@ Authorized browser sessions; headless Chromium; headed Chromium; CDP attachment;
 
 ### Interaction
 
-Tabs and popups; navigation, back, forward, and reload; snapshot-scoped semantic page references; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; drag and drop; page-state waits; open Shadow DOM access; readable same-origin iframe access; policy-gated JavaScript; controlled upload; controlled download.
+Tabs and popups; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history; policy-gated JavaScript; controlled upload; controlled download.
 
 ### Evidence
 
@@ -283,7 +307,7 @@ Accessibility; page performance observations; broken assets; console errors and 
 
 ### Security
 
-Challenge detection; human challenge handoff; origin allowlists; private-network blocking; effect-level policy; finite resource budgets.
+Challenge detection; human challenge handoff; origin allowlists; private-network blocking; effect-level policy; finite resource budgets; exact-origin static network interception.
 
 Adapter-backed security surfaces:
 
@@ -292,7 +316,7 @@ Adapter-backed security surfaces:
 
 ### Deployment
 
-CLI; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local dashboard; authenticated remote workers; crash-resumable local jobs; doctor and health checks.
+CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local dashboard; authenticated remote workers; crash-resumable local jobs; doctor and health checks.
 
 ### Integrations
 
@@ -303,20 +327,174 @@ Adapter-backed:
 - Cockroach Crawler handoff
 - ProductLoop OS capability snapshot
 
+Available:
+
+- Signed browser lifecycle webhooks with a local durable outbox, HMAC-SHA256
+  signatures, bounded retries, dead letters, and hash-linked delivery receipts
+
 Planned:
 
-- Signed event webhooks
 - Team session control without raw profile sharing
 
 The complete searchable matrix, including capability IDs, implementation status, and exact API surfaces, is in [docs/capabilities.md](./docs/capabilities.md).
 
+## Signed lifecycle webhooks
+
+`SignedWebhookDispatcher` implements `BrowserEventPublisher` and can be attached
+to `BrowserRuntime`. Browser lifecycle events are sanitized and written to a
+local durable outbox before any network work occurs. `publish()` does not
+resolve DNS, read a signing key, or contact an endpoint. An operator-controlled
+`drain()` performs those privileged steps later.
+
+```ts
+import {
+  BrowserRuntime,
+  SignedWebhookDispatcher
+} from "cockroach-browser";
+
+const webhookUrl = process.env.COCKROACH_BROWSER_WEBHOOK_URL;
+if (!webhookUrl) throw new Error("COCKROACH_BROWSER_WEBHOOK_URL is required");
+
+const webhooks = new SignedWebhookDispatcher({
+  root: ".cockroach-browser/webhooks",
+  secretResolver: {
+    async resolve(reference) {
+      const prefix = "ref:env/";
+      if (!reference.startsWith(prefix)) {
+        throw new Error("Unsupported webhook secret reference");
+      }
+      const value = process.env[reference.slice(prefix.length)];
+      if (!value) throw new Error(`Missing secret for ${reference}`);
+      return value;
+    }
+  },
+  maxPayloadBytes: 64 * 1024,
+  maxQueueItems: 10_000,
+  maxStorageBytes: 256 * 1024 * 1024
+});
+
+await webhooks.initialize();
+await webhooks.upsertEndpoint({
+  id: "release-automation",
+  url: webhookUrl,
+  secretRef: "ref:env/COCKROACH_BROWSER_WEBHOOK_SECRET",
+  keyId: "release-2026-07",
+  events: [
+    "browser.action.completed",
+    "browser.challenge.detected",
+    "browser.evidence.recorded"
+  ],
+  maxAttempts: 3,
+  timeoutMs: 5_000
+});
+
+const runtime = new BrowserRuntime({
+  root: ".cockroach-browser/runtime",
+  eventPublisher: webhooks
+});
+await runtime.initialize();
+
+// Run this from an operator-owned worker or scheduler.
+const result = await webhooks.drain({
+  maxItems: 50,
+  deadlineMs: 30_000
+});
+console.log(result, await webhooks.health());
+```
+
+Endpoint configuration stores only an opaque `ref:` value. The host resolver
+returns the signing key during `drain()`, and the key is never written to the
+outbox or receipt ledger. Endpoints must be credential-free public HTTPS URLs
+without a query string or fragment. DNS is checked again and pinned for every
+attempt; private, loopback, translated, and mixed public/private results are
+rejected, and redirects are never followed.
+
+Each request carries:
+
+- `x-cockroach-browser-event`
+- `x-cockroach-browser-delivery`
+- `x-cockroach-browser-timestamp`
+- `x-cockroach-browser-nonce`
+- `x-cockroach-browser-key-id`
+- `x-cockroach-browser-signature: v1=<HMAC-SHA256>`
+
+Use `verifyWebhookSignature()` and `WebhookReplayGuard` at the receiver. A
+normal retry keeps the same stable delivery ID while using a fresh timestamp
+and nonce, so the receiver must also persist processed delivery IDs and return
+success for duplicates. This is a local durable at-least-once outbox, not a
+distributed exactly-once queue. A manual dead-letter retry intentionally
+creates a new delivery ID.
+
+Transient transport failures and HTTP `408`, `425`, `429`, and `5xx` responses
+retry within the configured attempt and deadline ceilings. Other non-`2xx`
+responses become dead letters. `Retry-After` is honored up to 30 seconds.
+`health()` reports queue, receipt, dead-letter, and storage counts;
+`retryDeadLetter()` and `purgeDeadLetter()` provide explicit recovery;
+`verify()` checks the hash-linked terminal receipt chain. See the
+[signed webhook manual](./docs/webhooks.md) for receiver verification, replay
+handling, quotas, and recovery procedures.
+
 ## Action surface
 
-The typed runtime implements 34 action kinds:
+The typed runtime implements 45 action kinds:
 
-`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `upload`, `download`, `evaluate`, `wait`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `trace.start`, and `trace.stop`.
+`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `wait`, `history.inspect`, `network.route.add`, `network.route.remove`, `network.routes.list`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `trace.start`, and `trace.stop`.
 
 Availability in the type system does not grant authority. The session policy, effect policy, approval provider, server surface, origin checks, and resource budget decide whether an action can run.
+
+### Exact targets and same-origin frames
+
+An element action accepts exactly one snapshot ref, CSS selector, or XPath expression. A CSS or XPath target may include an exact same-origin frame selector by index, name, or URL. Semantic refs already carry their frame identity and cannot be combined with a separate frame target.
+
+```js
+await runtime.act(session.id, {
+  kind: "fill",
+  xpath: "//*[@id='account-name']",
+  frame: { name: "account-panel" },
+  value: "Ajnas",
+  purpose: "Fill the reviewed same-origin account form"
+});
+```
+
+Cross-origin frame targeting is rejected. XPath and selector strings are length-bounded and do not grant new origin authority.
+
+### Dialogs and low-level input
+
+Unexpected dialogs are dismissed. Accepting a dialog requires `allowDialogAccept: true`, remains approval-bound even when the session has an empty `requireApprovalFor` list, and may resolve prompt text only from an opaque host secret reference. Low-level mouse coordinates must remain inside the current viewport. Keyboard text, key names, click counts, and movement steps have finite ceilings.
+
+```js
+await runtime.act(session.id, {
+  kind: "click",
+  ref: confirmButton.ref,
+  dialog: { action: "accept" },
+  purpose: "Accept the exact reviewed confirmation"
+});
+```
+
+### Bounded history and network routes
+
+`history.inspect` returns a sanitized, session-local list capped by `maxHistoryEntries`. It is not browser-profile discovery and does not expose a user's ambient history.
+
+Network routes are off until `allowNetworkInterception` is enabled. A route may match one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It may only abort the request or return a static response. It cannot redirect requests, inject credentials, discover cookies, or widen the origin policy. Static response bodies are constrained by `maxRouteFulfillBytes`, and cumulative fulfilled bytes are constrained by `maxInterceptedBytes`.
+
+```js
+await runtime.act(session.id, {
+  kind: "network.route.add",
+  route: {
+    id: "release-fixture",
+    origin: "https://docs.example.com",
+    pathPattern: "/api/releases/**",
+    methods: ["GET"],
+    resourceTypes: ["fetch"],
+    response: {
+      action: "fulfill",
+      contentType: "application/json",
+      body: "{\"releases\":[]}"
+    }
+  },
+  purpose: "Install a deterministic response for the reviewed test"
+});
+```
 
 ## Product stack integrations
 

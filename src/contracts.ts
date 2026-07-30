@@ -15,10 +15,21 @@ export const ACTION_KINDS = [
   "select",
   "scroll",
   "drag",
+  "mouse.move",
+  "mouse.down",
+  "mouse.up",
+  "mouse.click",
+  "keyboard.down",
+  "keyboard.up",
+  "keyboard.insertText",
   "upload",
   "download",
   "evaluate",
   "wait",
+  "history.inspect",
+  "network.route.add",
+  "network.route.remove",
+  "network.routes.list",
   "screenshot",
   "pdf",
   "snapshot",
@@ -48,6 +59,10 @@ export interface ResourceBudget {
   maxUploadBytes: number;
   maxSnapshotChars: number;
   maxEvidenceBytes: number;
+  maxHistoryEntries: number;
+  maxNetworkRules: number;
+  maxRouteFulfillBytes: number;
+  maxInterceptedBytes: number;
 }
 
 export const DEFAULT_BUDGET: Readonly<ResourceBudget> = Object.freeze({
@@ -57,7 +72,11 @@ export const DEFAULT_BUDGET: Readonly<ResourceBudget> = Object.freeze({
   maxDownloadBytes: 64 * 1024 * 1024,
   maxUploadBytes: 64 * 1024 * 1024,
   maxSnapshotChars: 120_000,
-  maxEvidenceBytes: 256 * 1024 * 1024
+  maxEvidenceBytes: 256 * 1024 * 1024,
+  maxHistoryEntries: 100,
+  maxNetworkRules: 32,
+  maxRouteFulfillBytes: 256 * 1024,
+  maxInterceptedBytes: 8 * 1024 * 1024
 });
 
 export interface BrowserPolicy {
@@ -71,6 +90,10 @@ export interface BrowserPolicy {
   allowCookieWrite?: boolean;
   allowDownloads?: boolean;
   allowUploads?: boolean;
+  /** Allow an exact action to accept a JavaScript dialog. Dismiss remains the safe default. */
+  allowDialogAccept?: boolean;
+  /** Allow host-reviewed request blocking or static response fulfillment rules. */
+  allowNetworkInterception?: boolean;
   /**
    * Opt-in for deployment-owned loopback and private-network targets.
    * Keep disabled for tools exposed to untrusted callers.
@@ -115,6 +138,9 @@ export interface BrowserAction {
   tabId?: string;
   ref?: string;
   selector?: string;
+  xpath?: string;
+  frame?: FrameTarget;
+  dialog?: DialogResponse;
   url?: string;
   value?: string;
   /** Opaque host-vault reference used by typed credential-bearing actions. */
@@ -135,10 +161,87 @@ export interface BrowserAction {
   y?: number;
   deltaX?: number;
   deltaY?: number;
+  button?: "left" | "right" | "middle";
+  clickCount?: number;
+  steps?: number;
   targetRef?: string;
+  route?: NetworkRouteInput;
+  routeId?: string;
+  limit?: number;
   waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
   purpose: string;
   approvalId?: string;
+}
+
+export interface FrameTarget {
+  /** Zero-based index within the current page's same-origin frame list. */
+  index?: number;
+  /** Exact frame name. */
+  name?: string;
+  /** Exact same-origin frame URL. */
+  url?: string;
+}
+
+export interface DialogResponse {
+  action: "accept" | "dismiss";
+  /** Optional opaque host-vault reference for a prompt response. */
+  promptTextRef?: string;
+}
+
+export type NetworkResourceType =
+  | "document"
+  | "stylesheet"
+  | "image"
+  | "media"
+  | "font"
+  | "script"
+  | "texttrack"
+  | "xhr"
+  | "fetch"
+  | "eventsource"
+  | "websocket"
+  | "manifest"
+  | "other";
+
+export interface NetworkRouteInput {
+  id?: string;
+  /** Exact admitted origin. Wildcard origins are never accepted. */
+  origin: string;
+  /** Glob matched against pathname only. `*` stays within a path segment and `**` spans segments. */
+  pathPattern: string;
+  methods?: string[];
+  resourceTypes?: NetworkResourceType[];
+  response:
+    | { action: "abort" }
+    | {
+        action: "fulfill";
+        status?: number;
+        contentType?: string;
+        body?: string;
+      };
+}
+
+export interface NetworkRouteSummary {
+  id: string;
+  origin: string;
+  pathPattern: string;
+  methods: string[];
+  resourceTypes: NetworkResourceType[];
+  response: {
+    action: "abort" | "fulfill";
+    status?: number;
+    contentType?: string;
+    bodyBytes: number;
+    bodyDigest?: string;
+  };
+}
+
+export interface BrowserHistoryEntry {
+  tabId: string;
+  url: string;
+  title: string;
+  observedAt: string;
+  source: ActionKind | "session.start";
 }
 
 export interface PageRef {
@@ -283,6 +386,33 @@ export interface ContextRecorder {
     receiptHash?: string;
     metadata?: Record<string, unknown>;
   }): Promise<void>;
+}
+
+export const BROWSER_EVENT_TYPES = [
+  "browser.session.created",
+  "browser.session.closed",
+  "browser.action.completed",
+  "browser.challenge.detected",
+  "browser.challenge.resolved",
+  "browser.evidence.recorded"
+] as const;
+
+export type BrowserEventType = (typeof BROWSER_EVENT_TYPES)[number];
+
+export interface BrowserLifecycleEvent {
+  id: string;
+  type: BrowserEventType;
+  occurredAt: string;
+  sessionId: string;
+  actor?: string;
+  purpose: string;
+  receiptHash?: string;
+  evidenceIds?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface BrowserEventPublisher {
+  publish(event: BrowserLifecycleEvent): Promise<void>;
 }
 
 export interface CrawlerHandoff {

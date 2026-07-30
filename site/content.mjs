@@ -13,6 +13,7 @@ export const navGroups = [
     title: "Start",
     items: [
       ["Getting started", "getting-started"],
+      ["Operator install", "operator-install"],
       ["Sessions and profiles", "sessions"]
     ]
   },
@@ -31,6 +32,7 @@ export const navGroups = [
     title: "Connect",
     items: [
       ["MCP", "mcp"],
+      ["Signed webhooks", "webhooks"],
       ["Maqam", "maqam"],
       ["Qarinah", "qarinah"],
       ["Cockroach Crawler", "crawler"],
@@ -49,8 +51,23 @@ export const navGroups = [
 
 const snippets = {
   install: `npm install --save-dev cockroach-browser
-npx cockroach-browser setup
-npx cockroach-browser doctor`,
+npx cockroach-browser bootstrap`,
+  completions: `# Bash
+cockroach-browser completion bash > ~/.local/share/bash-completion/completions/cockroach-browser
+
+# Zsh
+cockroach-browser completion zsh > ~/.zfunc/_cockroach-browser
+
+# PowerShell (inspect before adding it to your profile)
+cockroach-browser completion powershell`,
+  service: `# Preview the exact per-user definition path and command
+cockroach-browser service status
+
+# Install a loopback-only daemon for the current OS account
+cockroach-browser service install --confirm-local-owner
+
+# Remove only the definition created by Cockroach Browser
+cockroach-browser service uninstall --confirm-local-owner`,
   serve: `npx cockroach-browser serve --host 127.0.0.1 --port 43110
 
 # The daemon writes a 32-byte bearer token to its local data directory.
@@ -105,6 +122,29 @@ const result = await browser.act(session.id, {
 });
 
 console.log(result.receipt.receiptHash);`,
+  exactTarget: `await browser.act(session.id, {
+  kind: "fill",
+  xpath: "//*[@id='account-name']",
+  frame: { name: "account-panel" },
+  value: "Ajnas",
+  purpose: "Fill the reviewed same-origin account form"
+});`,
+  networkRoute: `await browser.act(session.id, {
+  kind: "network.route.add",
+  route: {
+    id: "release-fixture",
+    origin: "https://docs.example.com",
+    pathPattern: "/api/releases/**",
+    methods: ["GET"],
+    resourceTypes: ["fetch"],
+    response: {
+      action: "fulfill",
+      contentType: "application/json",
+      body: "{\\"releases\\":[]}"
+    }
+  },
+  purpose: "Install a deterministic response for the reviewed test"
+});`,
   mcp: `{
   "mcpServers": {
     "cockroach-browser": {
@@ -116,6 +156,96 @@ console.log(result.receipt.receiptHash);`,
       }
     }
   }
+}`,
+  webhookSetup: `import {
+  BrowserRuntime,
+  SignedWebhookDispatcher
+} from "cockroach-browser";
+
+const webhookUrl = process.env.COCKROACH_BROWSER_WEBHOOK_URL;
+if (!webhookUrl) throw new Error("COCKROACH_BROWSER_WEBHOOK_URL is required");
+
+const webhooks = new SignedWebhookDispatcher({
+  root: ".cockroach-browser/webhooks",
+  secretResolver: {
+    async resolve(reference) {
+      const prefix = "ref:env/";
+      if (!reference.startsWith(prefix)) {
+        throw new Error("Unsupported webhook secret reference");
+      }
+      const value = process.env[reference.slice(prefix.length)];
+      if (!value) throw new Error(\`Missing secret for \${reference}\`);
+      return value;
+    }
+  },
+  maxPayloadBytes: 64 * 1024,
+  maxQueueItems: 10_000,
+  maxStorageBytes: 256 * 1024 * 1024
+});
+
+await webhooks.initialize();
+await webhooks.upsertEndpoint({
+  id: "release-automation",
+  url: webhookUrl,
+  secretRef: "ref:env/COCKROACH_BROWSER_WEBHOOK_SECRET",
+  keyId: "release-2026-07",
+  events: [
+    "browser.action.completed",
+    "browser.challenge.detected",
+    "browser.evidence.recorded"
+  ],
+  maxAttempts: 3,
+  timeoutMs: 5_000
+});
+
+const browser = new BrowserRuntime({
+  root: ".cockroach-browser/runtime",
+  eventPublisher: webhooks
+});
+await browser.initialize();`,
+  webhookDrain: `// Publishing is local-only. Draining owns DNS, key resolution, and HTTPS.
+const result = await webhooks.drain({
+  maxItems: 50,
+  deadlineMs: 30_000
+});
+
+const health = await webhooks.health();
+const integrity = await webhooks.verify();
+if (!integrity.ok) {
+  throw new Error(integrity.failures.join("\\n"));
+}
+
+console.log({ result, health, receiptHead: integrity.receiptHead });`,
+  webhookVerify: `import {
+  WebhookReplayGuard,
+  verifyWebhookSignature
+} from "cockroach-browser";
+
+const replayGuard = new WebhookReplayGuard(10_000);
+
+function required(headers: Headers, name: string): string {
+  const value = headers.get(name);
+  if (!value) throw new Error(\`Missing \${name}\`);
+  return value;
+}
+
+export function verifyIncomingWebhook(
+  body: string,
+  headers: Headers,
+  secret: string
+): { accepted: boolean; deliveryId: string } {
+  const deliveryId = required(headers, "x-cockroach-browser-delivery");
+  const accepted = verifyWebhookSignature({
+    secret,
+    body,
+    deliveryId,
+    timestamp: required(headers, "x-cockroach-browser-timestamp"),
+    nonce: required(headers, "x-cockroach-browser-nonce"),
+    keyId: required(headers, "x-cockroach-browser-key-id"),
+    signature: required(headers, "x-cockroach-browser-signature"),
+    replayGuard
+  });
+  return { accepted, deliveryId };
 }`,
   docker: `docker build -t cockroach-browser:0.1.1 .
 docker run --rm \\
@@ -151,7 +281,7 @@ export const pages = [
       {
         title: "Install the package and Chromium",
         body:
-          "<p>The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.</p>",
+          "<p>The package supports maintained Node.js 22, 24, and 26 releases. <code>bootstrap</code> installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.</p>",
         code: snippets.install,
         label: "terminal"
       },
@@ -179,6 +309,54 @@ export const pages = [
     ]
   },
   {
+    slug: "operator-install",
+    title: "Operator install",
+    kicker: "One command to bootstrap. One explicit confirmation to start at login.",
+    lede:
+      "Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.",
+    sections: [
+      {
+        title: "Bootstrap and probe the local runtime",
+        body:
+          "<p><code>cockroach-browser bootstrap</code> checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify <code>/v1/health</code>. Use <code>--check-only</code> to prohibit a browser download.</p>",
+        code: `cockroach-browser bootstrap
+cockroach-browser bootstrap --check-only
+cockroach-browser doctor`,
+        label: "terminal"
+      },
+      {
+        title: "Generate completion scripts",
+        body:
+          "<p>The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.</p>",
+        code: snippets.completions,
+        label: "terminal"
+      },
+      {
+        title: "Install a per-user loopback daemon",
+        body:
+          "<p>The installer requires <code>--confirm-local-owner</code>. Windows receives a current-user Startup command that begins at the next login. macOS receives and loads a current-user LaunchAgent, and Linux receives and starts a systemd user unit. Every generated definition binds <code>127.0.0.1</code>, uses the package's authenticated daemon, writes only beneath the current user's directories, and never invokes <code>sudo</code> or an administrative service manager.</p>",
+        code: snippets.service,
+        label: "terminal"
+      },
+      {
+        title: "Inspect before activation",
+        body:
+          "<p>Add <code>--definition-only</code> to write the exact generated definition without activating it. The installer refuses to overwrite or remove a file that does not carry its generated-owner marker. Uninstall targets only that exact per-user definition; it does not remove browser data, profiles, receipts, or evidence.</p>",
+        code: `cockroach-browser service install \\
+  --confirm-local-owner \\
+  --definition-only
+
+cockroach-browser service status`,
+        label: "terminal"
+      },
+      {
+        title: "Keep service authority narrow",
+        body:
+          "<p>The generated service cannot add remote binding, raw-action routes, session host configuration, profile discovery, or privilege escalation. Those remain separate trusted-host decisions. Use Maqam for consequential browser actions and retain the bearer token in the owner-scoped data directory rather than shell history.</p>"
+      }
+    ]
+  },
+  {
     slug: "sessions",
     title: "Sessions and profiles",
     kicker: "A browser session is borrowed authority, not a reusable credential bucket.",
@@ -200,7 +378,7 @@ export const pages = [
       {
         title: "Budget every session",
         body:
-          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
+          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
       },
       {
         title: "Close deliberately",
@@ -231,7 +409,24 @@ export const pages = [
       {
         title: "Supported interactions",
         body:
-          "<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>"
+          "<p>Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.</p><p>Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.</p>"
+      },
+      {
+        title: "Target exact XPath and same-origin frames",
+        body:
+          "<p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>",
+        code: snippets.exactTarget,
+        label: "same-origin-frame.mjs"
+      },
+      {
+        title: "Handle dialogs explicitly",
+        body:
+          "<p>Undeclared JavaScript dialogs are dismissed. Accepting one requires <code>allowDialogAccept</code> and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.</p>"
+      },
+      {
+        title: "Inspect only this session's history",
+        body:
+          "<p><code>history.inspect</code> returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. <code>maxHistoryEntries</code> bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.</p>"
       },
       {
         title: "JavaScript is an explicit capability",
@@ -290,6 +485,18 @@ export const pages = [
         title: "Proxies are supplied, not discovered",
         body:
           "<p>A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.</p>"
+      },
+      {
+        title: "Intercept only exact-origin requests",
+        body:
+          "<p>Network interception is disabled unless <code>allowNetworkInterception</code> is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.</p>",
+        code: snippets.networkRoute,
+        label: "static-route.mjs"
+      },
+      {
+        title: "Put byte ceilings around fixtures",
+        body:
+          "<p><code>maxNetworkRules</code> limits active rules, <code>maxRouteFulfillBytes</code> limits one static body, and <code>maxInterceptedBytes</code> limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.</p>"
       },
       {
         title: "Remote workers require TLS",
@@ -386,7 +593,7 @@ export const pages = [
       {
         title: "Durability scope",
         body:
-          "<p>The built-in queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling, signed webhooks, and team session control remain planned capabilities.</p>"
+          "<p>The built-in job queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling and team session control remain planned capabilities. Signed lifecycle delivery is available through the separate local durable webhook outbox; it does not turn the job queue into a distributed scheduler.</p>"
       }
     ]
   },
@@ -418,6 +625,71 @@ export const pages = [
         title: "Route consequential work through Maqam",
         body:
           "<p>MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, dispatches through the driver, rejects replay, and records governance evidence.</p>"
+      }
+    ]
+  },
+  {
+    slug: "webhooks",
+    title: "Signed lifecycle webhooks",
+    kicker: "Queue locally. Resolve secrets at delivery. Give every terminal outcome a receipt.",
+    lede:
+      "Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.",
+    sections: [
+      {
+        title: "Configure one endpoint and an opaque key reference",
+        body:
+          "<p><code>SignedWebhookDispatcher</code> implements <code>BrowserEventPublisher</code>. Attach it to <code>BrowserRuntime</code> to queue session, action, challenge, and evidence events. Endpoint configuration stores only an opaque <code>ref:</code> value. The host-owned resolver returns the actual key during delivery, and the key is never persisted in configuration, queue entries, dead letters, or receipts.</p> <p>Endpoint URLs must use HTTPS and cannot contain credentials, a query string, or a fragment. Configuration resolves the hostname once to reject an invalid destination early; every delivery resolves and validates it again.</p>",
+        code: snippets.webhookSetup,
+        label: "webhooks.ts"
+      },
+      {
+        title: "Keep publish and drain as separate authorities",
+        body:
+          "<p><code>publish()</code> validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. <code>drain()</code> is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch.</p> <p>Run the drain from a deployment-owned scheduler or worker. An endpoint failure never changes the result of the browser action that produced the lifecycle event.</p>",
+        code: snippets.webhookDrain,
+        label: "drain.ts"
+      },
+      {
+        title: "Know exactly which events leave the process",
+        body:
+          "<p>Endpoint filters can select <code>browser.session.created</code>, <code>browser.session.closed</code>, <code>browser.action.completed</code>, <code>browser.challenge.detected</code>, <code>browser.challenge.resolved</code>, and <code>browser.evidence.recorded</code>. Event metadata is allowlisted by type. Control characters, credential-bearing URLs, bearer values, tokens, passwords, API keys, cookies, and secret-shaped text are removed or redacted before canonicalization. Payload size is checked after sanitation.</p>"
+      },
+      {
+        title: "Verify the signature before parsing or dispatching",
+        body:
+          "<p>Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and <code>v1=&lt;hex&gt;</code> signature. The signature is HMAC-SHA256 over the domain string <code>cockroach-browser.webhook.v1</code>, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. <code>verifyWebhookSignature()</code> checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison.</p> <p>The built-in <code>WebhookReplayGuard</code> is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.</p>",
+        code: snippets.webhookVerify,
+        label: "receiver.ts"
+      },
+      {
+        title: "Deduplicate stable delivery IDs",
+        body:
+          "<p>The normal retry path keeps one deterministic delivery ID for an event and endpoint while creating a fresh timestamp and nonce on each request. Verify the request, begin a receiver transaction, return success immediately when that delivery ID was already committed, otherwise apply the event and commit the ID with the result. This makes at-least-once attempts safe at the receiver.</p> <p>A manual <code>retryDeadLetter()</code> intentionally creates a new delivery ID. Keep the original event ID in application-level reconciliation when an operator needs to connect both attempts.</p>"
+      },
+      {
+        title: "Retry transient failures and inspect terminal outcomes",
+        body:
+          "<p>HTTP <code>408</code>, <code>425</code>, <code>429</code>, and <code>5xx</code> responses, plus bounded timeout, DNS, secret-timeout, and transport failures, retry with exponential jitter while attempts and the drain deadline remain. <code>Retry-After</code> is honored up to 30 seconds. Other non-<code>2xx</code> responses become dead letters. Terminal delivered and dead-letter receipts include the attempt log, response status or normalized error, body digest, prior receipt hash, and current receipt hash.</p> <p>Use <code>retryDeadLetter(id)</code> only after fixing the endpoint or key reference. Use <code>purgeDeadLetter(id)</code> for an explicit retention decision, not as an automatic cleanup path.</p>"
+      },
+      {
+        title: "Recover interrupted local writes and verify integrity",
+        body:
+          "<p>Initialization recovers interrupted fan-out, dead-letter retry, and terminal receipt transactions from deployment-owned files. An interrupted network attempt is recorded as failed and is retried only when its configured budget remains. Conflicting recovery state fails closed for operator review.</p> <p><code>verify()</code> recomputes every terminal delivery digest and the single linked receipt chain, detecting altered records, duplicate hashes, forks, cycles, unlinked receipts, and a mismatched persisted head. Initialization refuses to continue when this integrity check fails.</p>"
+      },
+      {
+        title: "Keep every queue finite",
+        body:
+          "<p>Defaults are a 64 KiB payload, 10,000 queued deliveries, 256 MiB of webhook storage, three attempts, a five-second endpoint timeout, 25 items per drain, a 60-second drain deadline, and a 4 KiB response ceiling. Configurable limits remain bounded: payloads from 1 KiB to 1 MiB, queues from 1 to 100,000 entries, storage from 1 MiB to 10 GiB, attempts from one to five, endpoint timeouts from 250 ms to 30 seconds, drain batches from one to 1,000, and drain deadlines from one second to ten minutes.</p> <p><code>health()</code> reports queued records, terminal receipts, dead letters, used bytes, and configured queue and storage ceilings. Diagnostics can observe queued, delivered, dead-letter, capacity, and recovered states but cannot alter delivery.</p>"
+      },
+      {
+        title: "Preserve the network and challenge boundary",
+        body:
+          "<p>Every attempt admits only public HTTPS destinations, pins the connection to a validated public address, preserves TLS hostname verification, rejects private, loopback, translated, and mixed public/private DNS results, and never follows redirects. Response bodies are discarded after a 4 KiB ceiling. The dispatcher does not attach browser cookies, profile state, ambient credentials, or URL tokens.</p> <p>A webhook is an outbound integration, not a browser challenge solver. Redirects and access-control responses are rejected or dead-lettered according to the retry rules. The dispatcher does not bypass login, consent, CAPTCHA, rate limits, or endpoint authorization.</p>"
+      },
+      {
+        title: "Understand the durability promise",
+        body:
+          "<p>This is a local durable at-least-once outbox for one deployment-owned filesystem. It persists selected events before delivery, recovers interrupted local transactions, retries within finite policy, and records terminal outcomes. It is not a distributed queue, a cross-host consensus system, or an exactly-once transport. Receiver-side deduplication by stable delivery ID is required.</p>"
       }
     ]
   },
@@ -605,10 +877,5 @@ export const homepage = {
   title: "The browser runtime your AI agents can use without inheriting your whole machine.",
   lede:
     "Authorized Chromium sessions, snapshot-scoped page references, bounded actions, browser evidence, MCP, and Maqam policy hooks in one local-first TypeScript package.",
-  proof: [
-    ["63", "mapped capabilities"],
-    ["55", "available runtime surfaces"],
-    ["6", "adapter-backed surfaces"],
-    ["2", "planned surfaces"]
-  ]
+  proof: []
 };

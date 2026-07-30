@@ -20,7 +20,7 @@ Maqam and application services should carry stable operation IDs through policy,
 
 ## Durability scope
 
-The built-in queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling, signed webhooks, and team session control remain planned capabilities.
+The built-in job queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling and team session control remain planned capabilities. Signed lifecycle delivery is available through the separate local durable webhook outbox; it does not turn the job queue into a distributed scheduler.
 
 
 ## Release status

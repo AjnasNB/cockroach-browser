@@ -6,6 +6,13 @@ import { chromium } from "playwright-core";
 import { BrowserClient } from "./client.js";
 import { CAPABILITIES } from "./capabilities.js";
 import type { BrowserAction, SessionCreateInput } from "./contracts.js";
+import {
+  installOperatorService,
+  operatorServiceStatus,
+  shellCompletion,
+  uninstallOperatorService,
+  type CompletionShell
+} from "./operator-install.js";
 import { BrowserRuntime } from "./runtime.js";
 import { startBrowserServer } from "./server.js";
 import { startMcpServer } from "./mcp.js";
@@ -18,11 +25,10 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     const status = flag(rest, "--status");
     return print(CAPABILITIES.filter((entry) => !status || entry.status === status));
   }
-  if (command === "setup") {
-    await installChromium();
-    return doctor();
-  }
-  if (command === "doctor") return doctor();
+  if (command === "completion") return printText(shellCompletion(requiredShell(subcommand)));
+  if (command === "service") return serviceCommand(subcommand, rest);
+  if (command === "setup" || command === "bootstrap") return bootstrap(argv.slice(1));
+  if (command === "doctor") return doctor(argv.slice(1));
   if (command === "serve") return serve(argv.slice(1));
   if (command === "mcp") return startMcpServer();
   if (command === "profile") return profileCommand(subcommand, rest);
@@ -112,26 +118,142 @@ async function profileCommand(subcommand: string | undefined, args: string[]): P
   throw new Error("Use profile list, profile import, or profile export.");
 }
 
-async function doctor(): Promise<void> {
+async function doctor(args: string[]): Promise<void> {
+  const report = await doctorReport(args);
+  print(report);
+  if (!report.ok) process.exitCode = 1;
+}
+
+async function doctorReport(args: string[]): Promise<{
+  ok: boolean;
+  node: string;
+  supportedNode: boolean;
+  chromium: string;
+  chromiumReady: boolean;
+  runtimeRoot: string;
+  runtimeRootReady: boolean;
+  service: Awaited<ReturnType<typeof operatorServiceStatus>>;
+  next: string;
+}> {
   const major = Number(process.versions.node.split(".")[0]);
-  let browser = chromium.executablePath();
-  let browserReady = false;
+  const root = flag(args, "--root");
+  const runtime = new BrowserRuntime({ ...(root ? { root } : {}) });
+  const readiness = await chromiumReadiness();
+  let runtimeRootReady = false;
   try {
-    await access(browser);
-    browserReady = true;
+    await access(runtime.root);
+    runtimeRootReady = true;
   } catch {
-    browser = "not installed";
+    runtimeRootReady = false;
   }
   const supportedNode = [22, 24, 26].includes(major);
-  print({
-    ok: supportedNode && browserReady,
+  const service = await operatorServiceStatus({
+    ...(root ? { root } : {})
+  });
+  return {
+    ok: supportedNode && readiness.ready,
     node: process.version,
     supportedNode,
-    chromium: browser,
-    chromiumReady: browserReady,
-    next: browserReady ? "ready" : "run: cockroach-browser setup"
+    chromium: readiness.path,
+    chromiumReady: readiness.ready,
+    runtimeRoot: runtime.root,
+    runtimeRootReady,
+    service,
+    next: readiness.ready ? "ready" : "run: cockroach-browser bootstrap"
+  };
+}
+
+async function bootstrap(args: string[]): Promise<void> {
+  const major = Number(process.versions.node.split(".")[0]);
+  const supportedNode = [22, 24, 26].includes(major);
+  if (!supportedNode) {
+    print({
+      ok: false,
+      node: process.version,
+      supportedNode,
+      next: "Install a maintained Node.js 22, 24, or 26 release."
+    });
+    process.exitCode = 1;
+    return;
+  }
+
+  let readiness = await chromiumReadiness();
+  if (!readiness.ready && !args.includes("--check-only")) {
+    await installChromium();
+    readiness = await chromiumReadiness();
+  }
+
+  const root = flag(args, "--root");
+  const runtime = new BrowserRuntime({ ...(root ? { root } : {}) });
+  await runtime.initialize();
+  const initializedRoot = runtime.root;
+  await runtime.close();
+  let probe: { ok: boolean; status: number; url: string } = {
+    ok: false,
+    status: 0,
+    url: ""
+  };
+  if (readiness.ready) {
+    const server = await startBrowserServer({
+      root: initializedRoot,
+      host: "127.0.0.1",
+      port: 0
+    });
+    try {
+      const url = `${server.url}/v1/health`;
+      const response = await fetch(url, {
+        headers: { authorization: `Bearer ${server.token}` }
+      });
+      probe = { ok: response.ok, status: response.status, url };
+    } finally {
+      await server.close();
+    }
+  }
+
+  const report = await doctorReport([
+    ...(root ? ["--root", root] : [])
+  ]);
+  const ok = report.ok && report.runtimeRootReady && probe.ok;
+  print({
+    ...report,
+    ok,
+    bootstrap: {
+      rootInitialized: report.runtimeRootReady,
+      chromiumInstalled: readiness.ready,
+      loopbackHealthProbe: probe
+    },
+    next: ok
+      ? "ready; run cockroach-browser serve or install the per-user service explicitly"
+      : report.next
   });
-  if (!supportedNode || !browserReady) process.exitCode = 1;
+  if (!ok) process.exitCode = 1;
+}
+
+async function serviceCommand(subcommand: string | undefined, args: string[]): Promise<void> {
+  const root = flag(args, "--root");
+  const port = numberFlag(args, "--port");
+  const definitionOnly = args.includes("--definition-only");
+  const confirmLocalOwner = args.includes("--confirm-local-owner");
+  const options = {
+    ...(root ? { root } : {}),
+    ...(port !== undefined ? { port } : {}),
+    definitionOnly,
+    confirmLocalOwner
+  };
+  if (subcommand === "install") return print(await installOperatorService(options));
+  if (subcommand === "uninstall") return print(await uninstallOperatorService(options));
+  if (subcommand === "status") return print(await operatorServiceStatus(options));
+  throw new Error("Use service install, service uninstall, or service status.");
+}
+
+async function chromiumReadiness(): Promise<{ path: string; ready: boolean }> {
+  const path = chromium.executablePath();
+  try {
+    await access(path);
+    return { path, ready: true };
+  } catch {
+    return { path: "not installed", ready: false };
+  }
 }
 
 async function installChromium(): Promise<void> {
@@ -161,16 +283,38 @@ function requiredFlag(args: string[], name: string): string {
   return value;
 }
 
+function numberFlag(args: string[], name: string): number | undefined {
+  const value = flag(args, name);
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) throw new Error(`${name} must be an integer.`);
+  return parsed;
+}
+
+function requiredShell(value: string | undefined): CompletionShell {
+  if (value === "bash" || value === "zsh" || value === "powershell") return value;
+  throw new Error("Choose a completion shell: bash, zsh, or powershell.");
+}
+
 function print(value: unknown): void {
   process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
+}
+
+function printText(value: string): void {
+  process.stdout.write(value.endsWith("\n") ? value : `${value}\n`);
 }
 
 function printHelp(): void {
   process.stdout.write(`Cockroach Browser 0.1.1
 
 Usage:
-  cockroach-browser setup
-  cockroach-browser doctor
+  cockroach-browser bootstrap [--root PATH] [--check-only]
+  cockroach-browser setup [--root PATH]
+  cockroach-browser doctor [--root PATH]
+  cockroach-browser completion <bash|zsh|powershell>
+  cockroach-browser service install --confirm-local-owner [--root PATH] [--port 43110]
+  cockroach-browser service status [--root PATH] [--port 43110]
+  cockroach-browser service uninstall --confirm-local-owner [--root PATH] [--port 43110]
   cockroach-browser serve [--host 127.0.0.1] [--port 43110]
     [--allow-raw-actions] [--allow-session-host-config]
   cockroach-browser mcp
@@ -183,6 +327,10 @@ Usage:
   cockroach-browser profile list
   cockroach-browser profile import --name NAME --file storage.json
   cockroach-browser profile export --name NAME --file storage.json
+
+Bootstrap installs Chromium only when it is missing, initializes the local data root,
+and probes an authenticated ephemeral loopback daemon. Per-user service changes never
+use sudo or administrative service managers and require --confirm-local-owner.
 
 High-risk browser actions must be dispatched through Maqam. MCP exposes observations
 and canonical proposals, not raw profile, lifecycle, or unrestricted action authority.

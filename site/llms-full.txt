@@ -5,7 +5,7 @@
 Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.
 
 ### Install the package and Chromium
-The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.
+The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
 
 ### Start the authenticated localhost daemon
 The daemon binds to loopback by default, generates a strong bearer token, and rejects requests without it. A non-loopback bind requires an explicit remote setting and TLS.
@@ -15,6 +15,25 @@ A session must state its purpose, allowed origins, effects, actions, and resourc
 
 ### Embed the runtime
 Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.
+
+## Operator install
+
+Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.
+
+### Bootstrap and probe the local runtime
+cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit a browser download.
+
+### Generate completion scripts
+The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.
+
+### Install a per-user loopback daemon
+The installer requires --confirm-local-owner. Windows receives a current-user Startup command that begins at the next login. macOS receives and loads a current-user LaunchAgent, and Linux receives and starts a systemd user unit. Every generated definition binds 127.0.0.1, uses the package's authenticated daemon, writes only beneath the current user's directories, and never invokes sudo or an administrative service manager.
+
+### Inspect before activation
+Add --definition-only to write the exact generated definition without activating it. The installer refuses to overwrite or remove a file that does not carry its generated-owner marker. Uninstall targets only that exact per-user definition; it does not remove browser data, profiles, receipts, or evidence.
+
+### Keep service authority narrow
+The generated service cannot add remote binding, raw-action routes, session host configuration, profile discovery, or privilege escalation. Those remain separate trusted-host decisions. Use Maqam for consequential browser actions and retain the bearer token in the owner-scoped data directory rather than shell history.
 
 ## Sessions and profiles
 
@@ -30,7 +49,7 @@ Launch bundled Chromium in headless or headed mode, supply a compatible executab
 Profiles isolate cookies and storage. Import and export require an explicit name, file path, and passphrase supplied through an environment variable. Passphrases are not accepted as command arguments and are not written to manifests.
 
 ### Budget every session
-The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
+The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
 
 ### Close deliberately
 Closing a session releases tabs, browser context, traces, and runtime state. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.
@@ -46,7 +65,16 @@ A snapshot includes the current URL, title, bounded readable text, semantic refe
 Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.
 
 ### Supported interactions
-Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+
+### Target exact XPath and same-origin frames
+Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.
+
+### Handle dialogs explicitly
+Undeclared JavaScript dialogs are dismissed. Accepting one requires allowDialogAccept and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.
+
+### Inspect only this session's history
+history.inspect returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. maxHistoryEntries bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.
 
 ### JavaScript is an explicit capability
 Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.
@@ -79,6 +107,12 @@ The public browser adapter rejects loopback, link-local, and private-network des
 
 ### Proxies are supplied, not discovered
 A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.
+
+### Intercept only exact-origin requests
+Network interception is disabled unless allowNetworkInterception is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.
+
+### Put byte ceilings around fixtures
+maxNetworkRules limits active rules, maxRouteFulfillBytes limits one static body, and maxInterceptedBytes limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.
 
 ### Remote workers require TLS
 The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.
@@ -129,7 +163,7 @@ Automatic retry is limited to read-like operations such as snapshots, waits, and
 Maqam and application services should carry stable operation IDs through policy, browser execution, downstream writes, and receipts. Cross-ledger writes are not one transaction, so use an explicit outbox and reconcile by ID.
 
 ### Durability scope
-The built-in queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling, signed webhooks, and team session control remain planned capabilities.
+The built-in job queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling and team session control remain planned capabilities. Signed lifecycle delivery is available through the separate local durable webhook outbox; it does not turn the job queue into a distributed scheduler.
 
 ## MCP
 
@@ -146,6 +180,40 @@ Session creation, profile import, login, secret resolution, remote binding, and 
 
 ### Route consequential work through Maqam
 MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, dispatches through the driver, rejects replay, and records governance evidence.
+
+## Signed lifecycle webhooks
+
+Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.
+
+### Configure one endpoint and an opaque key reference
+SignedWebhookDispatcher implements BrowserEventPublisher. Attach it to BrowserRuntime to queue session, action, challenge, and evidence events. Endpoint configuration stores only an opaque ref: value. The host-owned resolver returns the actual key during delivery, and the key is never persisted in configuration, queue entries, dead letters, or receipts. Endpoint URLs must use HTTPS and cannot contain credentials, a query string, or a fragment. Configuration resolves the hostname once to reject an invalid destination early; every delivery resolves and validates it again.
+
+### Keep publish and drain as separate authorities
+publish() validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. drain() is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch. Run the drain from a deployment-owned scheduler or worker. An endpoint failure never changes the result of the browser action that produced the lifecycle event.
+
+### Know exactly which events leave the process
+Endpoint filters can select browser.session.created, browser.session.closed, browser.action.completed, browser.challenge.detected, browser.challenge.resolved, and browser.evidence.recorded. Event metadata is allowlisted by type. Control characters, credential-bearing URLs, bearer values, tokens, passwords, API keys, cookies, and secret-shaped text are removed or redacted before canonicalization. Payload size is checked after sanitation.
+
+### Verify the signature before parsing or dispatching
+Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and v1=<hex> signature. The signature is HMAC-SHA256 over the domain string cockroach-browser.webhook.v1, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. verifyWebhookSignature() checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison. The built-in WebhookReplayGuard is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.
+
+### Deduplicate stable delivery IDs
+The normal retry path keeps one deterministic delivery ID for an event and endpoint while creating a fresh timestamp and nonce on each request. Verify the request, begin a receiver transaction, return success immediately when that delivery ID was already committed, otherwise apply the event and commit the ID with the result. This makes at-least-once attempts safe at the receiver. A manual retryDeadLetter() intentionally creates a new delivery ID. Keep the original event ID in application-level reconciliation when an operator needs to connect both attempts.
+
+### Retry transient failures and inspect terminal outcomes
+HTTP 408, 425, 429, and 5xx responses, plus bounded timeout, DNS, secret-timeout, and transport failures, retry with exponential jitter while attempts and the drain deadline remain. Retry-After is honored up to 30 seconds. Other non-2xx responses become dead letters. Terminal delivered and dead-letter receipts include the attempt log, response status or normalized error, body digest, prior receipt hash, and current receipt hash. Use retryDeadLetter(id) only after fixing the endpoint or key reference. Use purgeDeadLetter(id) for an explicit retention decision, not as an automatic cleanup path.
+
+### Recover interrupted local writes and verify integrity
+Initialization recovers interrupted fan-out, dead-letter retry, and terminal receipt transactions from deployment-owned files. An interrupted network attempt is recorded as failed and is retried only when its configured budget remains. Conflicting recovery state fails closed for operator review. verify() recomputes every terminal delivery digest and the single linked receipt chain, detecting altered records, duplicate hashes, forks, cycles, unlinked receipts, and a mismatched persisted head. Initialization refuses to continue when this integrity check fails.
+
+### Keep every queue finite
+Defaults are a 64 KiB payload, 10,000 queued deliveries, 256 MiB of webhook storage, three attempts, a five-second endpoint timeout, 25 items per drain, a 60-second drain deadline, and a 4 KiB response ceiling. Configurable limits remain bounded: payloads from 1 KiB to 1 MiB, queues from 1 to 100,000 entries, storage from 1 MiB to 10 GiB, attempts from one to five, endpoint timeouts from 250 ms to 30 seconds, drain batches from one to 1,000, and drain deadlines from one second to ten minutes. health() reports queued records, terminal receipts, dead letters, used bytes, and configured queue and storage ceilings. Diagnostics can observe queued, delivered, dead-letter, capacity, and recovered states but cannot alter delivery.
+
+### Preserve the network and challenge boundary
+Every attempt admits only public HTTPS destinations, pins the connection to a validated public address, preserves TLS hostname verification, rejects private, loopback, translated, and mixed public/private DNS results, and never follows redirects. Response bodies are discarded after a 4 KiB ceiling. The dispatcher does not attach browser cookies, profile state, ambient credentials, or URL tokens. A webhook is an outbound integration, not a browser challenge solver. Redirects and access-control responses are rejected or dead-lettered according to the retry rules. The dispatcher does not bypass login, consent, CAPTCHA, rate limits, or endpoint authorization.
+
+### Understand the durability promise
+This is a local durable at-least-once outbox for one deployment-owned filesystem. It persists selected events before delivery, recovers interrupted local transactions, retries within finite policy, and records terminal outcomes. It is not a distributed queue, a cross-host consensus system, or an exactly-once transport. Receiver-side deduplication by stable delivery ID is required.
 
 ## Maqam integration
 
@@ -265,15 +333,21 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Tabs and popups [available]: Open, list, switch, and close bounded tabs. Surface: tab.*.
 - Navigation [available]: Navigate, reload, go back, and go forward within allowed origins. Surface: navigate/back/forward/reload.
 - Snapshot-scoped page references [available]: Act on compact semantic references bound to the current observed page revision. Surface: snapshot refs.
+- Explicit XPath targets [available]: Resolve a bounded XPath only when the exact action supplies it. Surface: action.xpath.
 - Semantic snapshots [available]: Return visible text and interactive elements with roles and names. Surface: snapshot.
 - Click and double-click [available]: Activate referenced or selected elements after policy evaluation. Surface: click/doubleClick.
 - Form interaction [available]: Fill, type, press, select, check, and uncheck. Surface: fill/type/press/select/check.
 - Hover and focus [available]: Move focus without relying on viewport coordinates. Surface: hover/focus.
 - Bounded scrolling [available]: Scroll by explicit deltas under action ceilings. Surface: scroll.
+- Low-level mouse actions [available]: Move, press, release, or click only at explicit in-viewport coordinates. Surface: mouse.*.
+- Low-level keyboard actions [available]: Press, release, or insert bounded text through explicit actions. Surface: keyboard.*.
 - Drag and drop [available]: Drag between two authorized semantic references. Surface: drag.
 - Page-state waits [available]: Wait for selectors, text, or bounded timeouts. Surface: wait.
 - Open Shadow DOM access [available]: Resolve selectors and references through open shadow roots. Surface: snapshot.
 - Same-origin iframe access [available]: Include readable same-origin frames in snapshots. Surface: snapshot.
+- Same-origin frame targeting [available]: Target an exact index, name, or URL without entering cross-origin frames. Surface: action.frame.
+- Explicit dialog handling [available]: Dismiss dialogs by default and require policy plus approval before accepting one. Surface: action.dialog.
+- Bounded browser history [available]: Inspect a sanitized, session-local record of observed page states under a finite retention ceiling. Surface: history.inspect.
 - Policy-gated JavaScript [available]: Evaluate JavaScript only when the session policy and approval allow it. Surface: evaluate.
 - File upload [available]: Upload explicit paths under byte and policy limits. Surface: upload.
 - Controlled downloads [available]: Capture downloads into the evidence directory under byte limits. Surface: download.
@@ -298,9 +372,13 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
 - Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.
 - Finite budgets [available]: Clamp actions, tabs, time, upload, download, snapshot, and evidence size. Surface: budget.
+- Policy-bounded network routes [available]: Abort or statically fulfill exact-origin requests under per-rule and session byte ceilings. Surface: network.route.*.
 - Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
 - Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
 - Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.
+- Shell completions [available]: Generate auditable bash, zsh, or PowerShell completion scripts without modifying shell profiles. Surface: completion bash|zsh|powershell.
+- Per-user daemon autostart [available]: Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation. Surface: service install|status|uninstall.
+- One-command bootstrap [available]: Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon. Surface: bootstrap.
 - TypeScript SDK [available]: Embed the runtime or call an authenticated daemon. Surface: BrowserRuntime/BrowserClient.
 - Authenticated HTTP API [available]: Expose the runtime through a bearer-token localhost server. Surface: serve.
 - Observation-first MCP server [available]: Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio. Surface: mcp.
@@ -313,5 +391,5 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Qarinah memory [adapter]: Record cited browser outcomes without persisting hidden reasoning or secrets. Surface: cockroach-browser/qarinah.
 - Cockroach Crawler handoff [adapter]: Hand breadth-first collection to the crawler while retaining browser evidence. Surface: cockroach-browser/crawler.
 - ProductLoop capability snapshot [adapter]: Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority. Surface: docs/productloop.md.
-- Signed event webhooks [planned]: Send receipt and job events to configured HTTPS endpoints. Surface: roadmap.
+- Signed lifecycle webhooks [available]: Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery. Surface: SignedWebhookDispatcher.
 - Team session control [planned]: Share policy and receipts without sharing raw browser profiles. Surface: roadmap.

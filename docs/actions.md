@@ -33,7 +33,29 @@ console.log(result.receipt.receiptHash);
 
 ## Supported interactions
 
-Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, drag, wait, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+
+## Target exact XPath and same-origin frames
+
+Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.
+
+```
+await browser.act(session.id, {
+  kind: "fill",
+  xpath: "//*[@id='account-name']",
+  frame: { name: "account-panel" },
+  value: "Ajnas",
+  purpose: "Fill the reviewed same-origin account form"
+});
+```
+
+## Handle dialogs explicitly
+
+Undeclared JavaScript dialogs are dismissed. Accepting one requires allowDialogAccept and an exact approval even if the session otherwise removed default approval actions. Prompt text can come only from a bounded opaque host reference. Receipts report the dialog type, a bounded message, and whether the response was explicit.
+
+## Inspect only this session's history
+
+history.inspect returns sanitized URLs, titles, tab IDs, timestamps, and action sources observed in this session. maxHistoryEntries bounds retention. The action never discovers an ambient browser profile or the user's general browsing history.
 
 ## JavaScript is an explicit capability
 

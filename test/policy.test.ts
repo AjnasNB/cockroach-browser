@@ -114,6 +114,14 @@ test("classifies effects and risk before dispatch", () => {
   assert.equal(riskForAction("navigate"), "medium");
   assert.equal(riskForAction("click"), "high");
   assert.equal(riskForAction("evaluate"), "critical");
+  assert.equal(
+    effectForAction({ kind: "click", ref: "r1", purpose: "Confirm", dialog: { action: "accept" } }),
+    "write"
+  );
+  assert.equal(
+    riskForAction({ kind: "click", ref: "r1", purpose: "Confirm", dialog: { action: "accept" } }),
+    "high"
+  );
 });
 
 test("denies optional high-authority surfaces until each is enabled", () => {
@@ -128,6 +136,30 @@ test("denies optional high-authority surfaces until each is enabled", () => {
   const download = decide(PUBLIC_POLICY, { kind: "download", ref: "r1" });
   assert.equal(download.allowed, false);
   assert.match(download.reason, /Downloads are disabled/);
+
+  const dialog = decide(
+    { ...PUBLIC_POLICY, allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "fill"] },
+    { kind: "fill", selector: "#name", value: "Ajnas", dialog: { action: "accept" } }
+  );
+  assert.equal(dialog.allowed, false);
+  assert.match(dialog.reason, /Dialog acceptance is disabled/);
+
+  const networkRoute = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "network.route.add"]
+    },
+    {
+      kind: "network.route.add",
+      route: {
+        origin: "https://example.com",
+        pathPattern: "/api/**",
+        response: { action: "abort" }
+      }
+    }
+  );
+  assert.equal(networkRoute.allowed, false);
+  assert.match(networkRoute.reason, /Network interception is disabled/);
 });
 
 test("marks configured mutations for exact approval", () => {
@@ -140,6 +172,41 @@ test("marks configured mutations for exact approval", () => {
   assert.equal(decision.risk, "high");
   assert.equal(decision.requiresApproval, true);
   assert.match(decision.digest, /^sha256:[a-f0-9]{64}$/);
+});
+
+test("dialog acceptance and route mutations remain approval-bound after explicit opt-in", () => {
+  const dialog = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowDialogAccept: true,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "fill"],
+      requireApprovalFor: []
+    },
+    { kind: "fill", selector: "#name", value: "Ajnas", dialog: { action: "accept" } }
+  );
+  assert.equal(dialog.allowed, true);
+  assert.equal(dialog.requiresApproval, true);
+
+  const networkRoute = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowNetworkInterception: true,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "network.route.add"],
+      requireApprovalFor: ["network.route.add"]
+    },
+    {
+      kind: "network.route.add",
+      route: {
+        origin: "https://example.com",
+        pathPattern: "/api/**",
+        response: { action: "abort" }
+      }
+    }
+  );
+  assert.equal(networkRoute.allowed, true);
+  assert.equal(networkRoute.effect, "write");
+  assert.equal(networkRoute.risk, "critical");
+  assert.equal(networkRoute.requiresApproval, true);
 });
 
 function decide(policy: BrowserPolicy, action: Omit<BrowserAction, "purpose">) {

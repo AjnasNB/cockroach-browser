@@ -1,5 +1,5 @@
 import type { Frame, Locator, Page } from "playwright-core";
-import type { PageRef, PageSnapshot } from "./contracts.js";
+import type { FrameTarget, PageRef, PageSnapshot } from "./contracts.js";
 import { nowIso, sha256 } from "./canonical.js";
 import { detectChallenge } from "./challenge.js";
 import { CockroachBrowserError } from "./errors.js";
@@ -198,10 +198,103 @@ export async function locatorForRef(page: Page, ref: string): Promise<Locator> {
   return locator.first();
 }
 
-export async function locatorFor(page: Page, ref?: string, selector?: string): Promise<Locator> {
-  if (ref) return locatorForRef(page, ref);
-  if (selector) return page.locator(selector).first();
-  throw new CockroachBrowserError("TARGET_REQUIRED", "This action requires a semantic ref or selector.");
+export async function frameFor(page: Page, target?: FrameTarget): Promise<Frame> {
+  if (!target) return page.mainFrame();
+  const populated = [
+    target.index !== undefined,
+    Boolean(target.name),
+    Boolean(target.url)
+  ].filter(Boolean).length;
+  if (populated === 0) {
+    throw new CockroachBrowserError("FRAME_TARGET_INVALID", "A frame target requires index, name, or exact URL.");
+  }
+  if (
+    target.index !== undefined
+    && (!Number.isSafeInteger(target.index) || target.index < 0 || target.index > 255)
+  ) {
+    throw new CockroachBrowserError("FRAME_TARGET_INVALID", "Frame index must be an integer between 0 and 255.");
+  }
+  if (target.name !== undefined && (!target.name.trim() || target.name.length > 256)) {
+    throw new CockroachBrowserError("FRAME_TARGET_INVALID", "Frame name must contain 1 to 256 characters.");
+  }
+  if (target.url !== undefined && target.url.length > 2_048) {
+    throw new CockroachBrowserError("FRAME_TARGET_INVALID", "Frame URL exceeds 2048 characters.");
+  }
+
+  const pageOrigin = safeOrigin(page.url());
+  if (!pageOrigin) {
+    throw new CockroachBrowserError("FRAME_ORIGIN_UNAVAILABLE", "The current page has no admitted HTTP(S) origin.");
+  }
+  const sameOriginFrames = page.frames().filter((frame) => safeOrigin(frame.url()) === pageOrigin);
+  let matches = sameOriginFrames;
+  if (target.index !== undefined) {
+    const indexed = sameOriginFrames[target.index];
+    matches = indexed ? [indexed] : [];
+  }
+  if (target.name !== undefined) {
+    matches = matches.filter((frame) => frame.name() === target.name);
+  }
+  if (target.url !== undefined) {
+    let expected: URL;
+    try {
+      expected = new URL(target.url);
+    } catch {
+      throw new CockroachBrowserError("FRAME_TARGET_INVALID", "Frame URL must be an absolute URL.");
+    }
+    if (expected.origin !== pageOrigin || expected.username || expected.password) {
+      throw new CockroachBrowserError(
+        "CROSS_ORIGIN_FRAME_DENIED",
+        "Explicit frame targeting is limited to credential-free same-origin frames."
+      );
+    }
+    matches = matches.filter((frame) => frame.url() === expected.toString());
+  }
+  if (matches.length === 0) {
+    throw new CockroachBrowserError("FRAME_NOT_FOUND", "No current same-origin frame matches the explicit target.");
+  }
+  if (matches.length > 1) {
+    throw new CockroachBrowserError(
+      "FRAME_TARGET_AMBIGUOUS",
+      "The frame target matched more than one same-origin frame; add an exact index or URL."
+    );
+  }
+  return matches[0]!;
+}
+
+export async function locatorFor(
+  page: Page,
+  ref?: string,
+  selector?: string,
+  xpath?: string,
+  frameTarget?: FrameTarget
+): Promise<Locator> {
+  const supplied = [Boolean(ref), Boolean(selector), Boolean(xpath)].filter(Boolean).length;
+  if (supplied !== 1) {
+    throw new CockroachBrowserError(
+      "TARGET_REQUIRED",
+      "This action requires exactly one semantic ref, CSS selector, or XPath target."
+    );
+  }
+  if (ref) {
+    if (frameTarget) {
+      throw new CockroachBrowserError(
+        "FRAME_REF_CONFLICT",
+        "Semantic references already identify their frame and cannot be combined with a frame target."
+      );
+    }
+    return locatorForRef(page, ref);
+  }
+  const frame = await frameFor(page, frameTarget);
+  if (selector) {
+    if (selector.length > 2_048 || selector.includes("\0")) {
+      throw new CockroachBrowserError("SELECTOR_INVALID", "CSS selectors must be at most 2048 characters.");
+    }
+    return frame.locator(selector).first();
+  }
+  if (!xpath || xpath.length > 2_048 || xpath.includes("\0")) {
+    throw new CockroachBrowserError("XPATH_INVALID", "XPath targets must contain 1 to 2048 characters.");
+  }
+  return frame.locator(`xpath=${xpath}`).first();
 }
 
 function safeOrigin(url: string): string | undefined {

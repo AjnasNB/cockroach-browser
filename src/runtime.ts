@@ -22,9 +22,12 @@ import type {
   ApprovalDecision,
   ApprovalProvider,
   BrowserAction,
+  BrowserEventPublisher,
+  BrowserHistoryEntry,
   ChallengeReport,
   ContextRecorder,
   EvidenceRecord,
+  NetworkRouteSummary,
   PageSnapshot,
   ResourceBudget,
   SessionCreateInput,
@@ -36,6 +39,11 @@ import { detectChallenge } from "./challenge.js";
 import { CockroachBrowserError, errorMessage } from "./errors.js";
 import { EvidenceStore } from "./evidence.js";
 import { GOVERNANCE_DISPATCH, type GovernanceDispatch } from "./internal-authority.js";
+import {
+  compileNetworkRoute,
+  networkRouteMatches,
+  type CompiledNetworkRoute
+} from "./network-routes.js";
 import {
   assertUrlResolvedAllowed,
   effectForAction,
@@ -57,6 +65,7 @@ export interface BrowserRuntimeOptions {
   root?: string;
   approvalProvider?: ApprovalProvider;
   contextRecorder?: ContextRecorder;
+  eventPublisher?: BrowserEventPublisher;
   secretResolver?: SecretResolver;
   dnsResolver?: DnsResolver;
   uploadRoots?: string[];
@@ -96,6 +105,9 @@ interface ManagedSession {
   activeTabId: string;
   console: ConsoleRecord[];
   network: NetworkRecord[];
+  history: BrowserHistoryEntry[];
+  networkRules: Map<string, CompiledNetworkRoute>;
+  interceptedBytes: number;
   challenge?: ChallengeReport;
   traceActive: boolean;
   evidenceBytes: number;
@@ -106,7 +118,17 @@ interface ManagedSession {
   pageHandler?: (page: Page) => void;
 }
 
-const CHALLENGE_SAFE_ACTIONS = new Set(["snapshot", "screenshot", "pdf", "extract", "wait", "tab.switch", "tab.close"]);
+const CHALLENGE_SAFE_ACTIONS = new Set([
+  "snapshot",
+  "screenshot",
+  "pdf",
+  "extract",
+  "wait",
+  "tab.switch",
+  "tab.close",
+  "history.inspect",
+  "network.routes.list"
+]);
 
 export class BrowserRuntime {
   readonly root: string;
@@ -114,6 +136,7 @@ export class BrowserRuntime {
   readonly evidence: EvidenceStore;
   readonly approvalProvider?: ApprovalProvider;
   readonly contextRecorder?: ContextRecorder;
+  readonly eventPublisher?: BrowserEventPublisher;
   readonly secretResolver?: SecretResolver;
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
@@ -126,6 +149,7 @@ export class BrowserRuntime {
     this.evidence = new EvidenceStore({ root: join(this.root, "evidence"), maxBytes: 10 * 1024 ** 3 });
     if (options.approvalProvider) this.approvalProvider = options.approvalProvider;
     if (options.contextRecorder) this.contextRecorder = options.contextRecorder;
+    if (options.eventPublisher) this.eventPublisher = options.eventPublisher;
     if (options.secretResolver) this.secretResolver = options.secretResolver;
     if (options.dnsResolver) this.dnsResolver = options.dnsResolver;
     this.uploadRoots = Object.freeze(
@@ -270,6 +294,9 @@ export class BrowserRuntime {
         activeTabId: "",
         console: [],
         network: [],
+        history: [],
+        networkRules: new Map(),
+        interceptedBytes: 0,
         traceActive: false,
         evidenceBytes: 0,
         actionTail: Promise.resolve(),
@@ -282,9 +309,15 @@ export class BrowserRuntime {
       const page = attached && context.pages()[0] ? context.pages()[0]! : await context.newPage();
       this.#registerPage(session, page);
       if (startUrl) await page.goto(startUrl.toString(), { waitUntil: "domcontentloaded" });
+      await this.#recordHistory(session, page, "session.start");
       session.state = "ready";
       session.updatedAt = nowIso();
       await this.#recordContext(session, "browser.session.created", {
+        policyDigest: policyDigest(policy),
+        mode: input.mode ?? "headless",
+        profile: input.profile ?? null
+      });
+      await this.#publishEvent(session, "browser.session.created", {
         policyDigest: policyDigest(policy),
         mode: input.mode ?? "headless",
         profile: input.profile ?? null
@@ -391,6 +424,10 @@ export class BrowserRuntime {
     session.state = "closed";
     session.updatedAt = nowIso();
     await this.#recordContext(session, "browser.session.closed", {});
+    await this.#publishEvent(session, "browser.session.closed", {
+      actionsUsed: session.actionsUsed,
+      evidenceBytes: session.evidenceBytes
+    });
     this.#sessions.delete(id);
   }
 
@@ -435,8 +472,8 @@ export class BrowserRuntime {
     const startedAt = nowIso();
     const startedMs = Date.now();
     const inputDigest = sha256(action);
-    const effect = effectForAction(action.kind);
-    const risk = riskForAction(action.kind);
+    const effect = effectForAction(action);
+    const risk = riskForAction(action);
     const policyHash = policyDigest(session.input.policy);
     let page: Page | undefined;
     let urlBefore: string | undefined;
@@ -445,6 +482,7 @@ export class BrowserRuntime {
     let output: unknown;
     let status: ActionReceipt["status"] = "succeeded";
     let failure: { code: string; message: string } | undefined;
+    let challengeTransition: "detected" | undefined;
     const evidenceIds: string[] = [];
 
     try {
@@ -503,15 +541,21 @@ export class BrowserRuntime {
       }
       output = governance
         ? await this.#executeGoverned(session, page, action, evidenceIds, governance)
-        : await this.#execute(session, page, action, evidenceIds);
+        : await this.#executeWithDialogs(session, page, action, evidenceIds);
+      page = session.tabs.get(session.activeTabId) ?? page;
       if (page.url() !== "about:blank") {
         await assertUrlResolvedAllowed(session.input.policy, page.url(), session.dnsPins, this.dnsResolver);
       }
+      if (action.kind !== "history.inspect") {
+        await this.#recordHistory(session, page, action.kind);
+      }
       if (["navigate", "reload", "click", "doubleClick", "press", "wait"].includes(action.kind)) {
+        const wasChallenge = Boolean(session.challenge?.detected);
         session.challenge = await detectChallenge(page);
         if (session.challenge.detected) {
           session.state = "challenge";
           status = "challenge";
+          if (!wasChallenge) challengeTransition = "detected";
         } else {
           session.state = "ready";
         }
@@ -557,6 +601,35 @@ export class BrowserRuntime {
       receiptHash: receipt.receiptHash,
       evidenceIds
     });
+    await this.#publishEvent(
+      session,
+      "browser.action.completed",
+      {
+        action: action.kind,
+        effect,
+        risk,
+        status,
+        inputDigest,
+        outputDigest,
+        policyDigest: policyHash,
+        ...(failure ? { errorCode: failure.code } : {})
+      },
+      {
+        receiptHash: receipt.receiptHash,
+        evidenceIds
+      }
+    );
+    if (challengeTransition === "detected") {
+      await this.#publishEvent(
+        session,
+        "browser.challenge.detected",
+        {
+          kind: session.challenge?.kind ?? "unknown",
+          evidence: session.challenge?.evidence ?? []
+        },
+        { receiptHash: receipt.receiptHash }
+      );
+    }
     if (failure) throw new CockroachBrowserError(failure.code, failure.message, { receipt });
     return { output, receipt };
   }
@@ -650,20 +723,21 @@ export class BrowserRuntime {
       observed.add("download");
       void download.cancel().catch(() => undefined);
     };
-    const onDialog = (dialog: Dialog): void => {
-      observed.add(dialog.type() === "beforeunload" ? "modal-dialog" : "modal-dialog");
-      void dialog.dismiss().catch(() => undefined);
-    };
     const onFileChooser = (_chooser: FileChooser): void => {
       observed.add("file-picker");
     };
     session.context.on("page", onPage);
     page.on("download", onDownload);
-    page.on("dialog", onDialog);
     page.on("filechooser", onFileChooser);
     await session.context.clearPermissions();
     try {
-      const output = await this.#execute(session, page, action, evidenceIds);
+      const output = await this.#executeWithDialogs(
+        session,
+        page,
+        action,
+        evidenceIds,
+        () => observed.add("modal-dialog")
+      );
       await Promise.all(openedPages.map((opened) => opened.close().catch(() => undefined)));
       const triggered = [...observed].filter((effect) => effect === "new-page" || prohibited.has(effect));
       if (triggered.length > 0) {
@@ -677,8 +751,75 @@ export class BrowserRuntime {
     } finally {
       session.context.off("page", onPage);
       page.off("download", onDownload);
-      page.off("dialog", onDialog);
       page.off("filechooser", onFileChooser);
+    }
+  }
+
+  async #executeWithDialogs(
+    session: ManagedSession,
+    page: Page,
+    action: BrowserAction,
+    evidenceIds: string[],
+    onDialogObserved?: () => void
+  ): Promise<unknown> {
+    const outcomes: Array<{
+      type: string;
+      message: string;
+      response: "accepted" | "dismissed";
+      explicit: boolean;
+    }> = [];
+    const pending: Promise<void>[] = [];
+    let observedCount = 0;
+    const onDialog = (dialog: Dialog): void => {
+      onDialogObserved?.();
+      observedCount += 1;
+      if (observedCount > 8) {
+        void dialog.dismiss().catch(() => undefined);
+        return;
+      }
+      pending.push((async () => {
+        const type = dialog.type();
+        const message = dialog.message().slice(0, 500);
+        const response = action.dialog;
+        if (response?.action === "accept") {
+          let promptText: string | undefined;
+          if (response.promptTextRef) {
+            promptText = await this.#resolveSecret(response.promptTextRef);
+            if (Buffer.byteLength(promptText) > 4_096) {
+              throw new CockroachBrowserError(
+                "DIALOG_PROMPT_EXCEEDED",
+                "A dialog prompt response may be at most 4096 bytes."
+              );
+            }
+          }
+          await dialog.accept(promptText);
+          outcomes.push({
+            type,
+            message,
+            response: "accepted",
+            explicit: true
+          });
+          return;
+        }
+        await dialog.dismiss();
+        outcomes.push({
+          type,
+          message,
+          response: "dismissed",
+          explicit: response?.action === "dismiss"
+        });
+      })());
+    };
+    page.on("dialog", onDialog);
+    try {
+      const output = await this.#execute(session, page, action, evidenceIds);
+      await Promise.all(pending);
+      if (outcomes.length === 0) return output;
+      if (isPlainObject(output)) return { ...output, dialogs: outcomes };
+      return { value: output, dialogs: outcomes };
+    } finally {
+      page.off("dialog", onDialog);
+      await Promise.allSettled(pending);
     }
   }
 
@@ -832,10 +973,16 @@ export class BrowserRuntime {
 
   async resumeAfterHuman(sessionId: string): Promise<ChallengeReport> {
     const session = this.#requireSession(sessionId);
+    const wasChallenge = Boolean(session.challenge?.detected);
     const report = await detectChallenge(this.#page(session));
     session.challenge = report;
     session.state = report.detected ? "challenge" : "ready";
     session.updatedAt = nowIso();
+    if (wasChallenge && !report.detected) {
+      await this.#publishEvent(session, "browser.challenge.resolved", {
+        resolution: "human-handoff"
+      });
+    }
     return report;
   }
 
@@ -847,6 +994,7 @@ export class BrowserRuntime {
 
   async #execute(session: ManagedSession, page: Page, action: BrowserAction, evidenceIds: string[]): Promise<unknown> {
     const timeout = Math.min(action.timeoutMs ?? 30_000, 120_000);
+    const target = () => locatorFor(page, action.ref, action.selector, action.xpath, action.frame);
     switch (action.kind) {
       case "navigate": {
         if (!action.url) throw new CockroachBrowserError("URL_REQUIRED", "Navigation requires a URL.");
@@ -866,45 +1014,90 @@ export class BrowserRuntime {
         await page.reload({ waitUntil: action.waitUntil ?? "domcontentloaded", timeout });
         return { url: page.url(), title: await page.title() };
       case "click":
-        await (await locatorFor(page, action.ref, action.selector)).click({ timeout });
-        return { clicked: action.ref ?? action.selector };
+        await (await target()).click({ timeout });
+        return { clicked: targetDescription(action) };
       case "doubleClick":
-        await (await locatorFor(page, action.ref, action.selector)).dblclick({ timeout });
-        return { doubleClicked: action.ref ?? action.selector };
+        await (await target()).dblclick({ timeout });
+        return { doubleClicked: targetDescription(action) };
       case "fill":
-        await (await locatorFor(page, action.ref, action.selector)).fill(action.value ?? "", { timeout });
-        return { filled: action.ref ?? action.selector, length: (action.value ?? "").length };
+        await (await target()).fill(action.value ?? "", { timeout });
+        return { filled: targetDescription(action), length: (action.value ?? "").length };
       case "type":
-        await (await locatorFor(page, action.ref, action.selector)).pressSequentially(action.value ?? "", { timeout });
-        return { typed: action.ref ?? action.selector, length: (action.value ?? "").length };
+        await (await target()).pressSequentially(action.value ?? "", { timeout });
+        return { typed: targetDescription(action), length: (action.value ?? "").length };
       case "press":
         if (!action.key) throw new CockroachBrowserError("KEY_REQUIRED", "Press requires a key.");
-        await (await locatorFor(page, action.ref, action.selector)).press(action.key, { timeout });
+        await (await target()).press(action.key, { timeout });
         return { pressed: action.key };
       case "hover":
-        await (await locatorFor(page, action.ref, action.selector)).hover({ timeout });
-        return { hovered: action.ref ?? action.selector };
+        await (await target()).hover({ timeout });
+        return { hovered: targetDescription(action) };
       case "focus":
-        await (await locatorFor(page, action.ref, action.selector)).focus();
-        return { focused: action.ref ?? action.selector };
+        await (await target()).focus();
+        return { focused: targetDescription(action) };
       case "check":
-        await (await locatorFor(page, action.ref, action.selector)).check({ timeout });
-        return { checked: action.ref ?? action.selector };
+        await (await target()).check({ timeout });
+        return { checked: targetDescription(action) };
       case "uncheck":
-        await (await locatorFor(page, action.ref, action.selector)).uncheck({ timeout });
-        return { unchecked: action.ref ?? action.selector };
+        await (await target()).uncheck({ timeout });
+        return { unchecked: targetDescription(action) };
       case "select": {
         const values = action.values ?? (action.value ? [action.value] : []);
-        return { selected: await (await locatorFor(page, action.ref, action.selector)).selectOption(values, { timeout }) };
+        return { selected: await (await target()).selectOption(values, { timeout }) };
       }
       case "scroll":
         await page.mouse.wheel(action.deltaX ?? 0, action.deltaY ?? 700);
         return { deltaX: action.deltaX ?? 0, deltaY: action.deltaY ?? 700 };
       case "drag": {
-        const source = await locatorFor(page, action.ref, action.selector);
-        const target = await locatorFor(page, action.targetRef);
-        await source.dragTo(target, { timeout });
-        return { source: action.ref ?? action.selector, target: action.targetRef };
+        const source = await target();
+        const targetLocator = await locatorFor(page, action.targetRef);
+        await source.dragTo(targetLocator, { timeout });
+        return { source: targetDescription(action), target: action.targetRef };
+      }
+      case "mouse.move": {
+        const point = await boundedPoint(page, action);
+        const steps = boundedInteger(action.steps ?? 1, 1, 100, "MOUSE_STEPS_INVALID");
+        await page.mouse.move(point.x, point.y, { steps });
+        return { ...point, steps };
+      }
+      case "mouse.down": {
+        const button = action.button ?? "left";
+        const clickCount = boundedInteger(action.clickCount ?? 1, 1, 3, "MOUSE_CLICK_COUNT_INVALID");
+        await page.mouse.down({ button, clickCount });
+        return { button, clickCount };
+      }
+      case "mouse.up": {
+        const button = action.button ?? "left";
+        const clickCount = boundedInteger(action.clickCount ?? 1, 1, 3, "MOUSE_CLICK_COUNT_INVALID");
+        await page.mouse.up({ button, clickCount });
+        return { button, clickCount };
+      }
+      case "mouse.click": {
+        const point = await boundedPoint(page, action);
+        const button = action.button ?? "left";
+        const clickCount = boundedInteger(action.clickCount ?? 1, 1, 3, "MOUSE_CLICK_COUNT_INVALID");
+        await page.mouse.click(point.x, point.y, { button, clickCount, delay: 0 });
+        return { ...point, button, clickCount };
+      }
+      case "keyboard.down":
+        if (!action.key || action.key.length > 100) {
+          throw new CockroachBrowserError("KEY_REQUIRED", "Keyboard down requires a key of at most 100 characters.");
+        }
+        await page.keyboard.down(action.key);
+        return { key: action.key, state: "down" };
+      case "keyboard.up":
+        if (!action.key || action.key.length > 100) {
+          throw new CockroachBrowserError("KEY_REQUIRED", "Keyboard up requires a key of at most 100 characters.");
+        }
+        await page.keyboard.up(action.key);
+        return { key: action.key, state: "up" };
+      case "keyboard.insertText": {
+        const value = action.value ?? "";
+        if (Buffer.byteLength(value) > 16_384) {
+          throw new CockroachBrowserError("KEYBOARD_TEXT_EXCEEDED", "Inserted keyboard text may be at most 16384 bytes.");
+        }
+        await page.keyboard.insertText(value);
+        return { insertedBytes: Buffer.byteLength(value) };
       }
       case "upload": {
         const paths = action.paths ?? (action.path ? [action.path] : []);
@@ -914,13 +1107,13 @@ export class BrowserRuntime {
         if (total > session.budget.maxUploadBytes) {
           throw new CockroachBrowserError("UPLOAD_BUDGET_EXCEEDED", "Upload files exceed the session byte limit.");
         }
-        await (await locatorFor(page, action.ref, action.selector)).setInputFiles(admitted.map((entry) => entry.path));
+        await (await target()).setInputFiles(admitted.map((entry) => entry.path));
         return { files: admitted.map((entry) => basename(entry.path)), bytes: total };
       }
       case "download": {
         const [download] = await Promise.all([
           page.waitForEvent("download", { timeout }),
-          (await locatorFor(page, action.ref, action.selector)).click({ timeout })
+          (await target()).click({ timeout })
         ]);
         const record = await this.#captureDownload(session, download);
         evidenceIds.push(record.id);
@@ -932,9 +1125,9 @@ export class BrowserRuntime {
         return structuredClone(value);
       }
       case "wait":
-        if (action.selector) {
-          await page.locator(action.selector).first().waitFor({ state: "visible", timeout });
-          return { selector: action.selector, state: "visible" };
+        if (action.ref || action.selector || action.xpath) {
+          await (await target()).waitFor({ state: "visible", timeout });
+          return { target: targetDescription(action), state: "visible" };
         }
         if (action.text) {
           await page.getByText(action.text, { exact: false }).first().waitFor({ state: "visible", timeout });
@@ -942,6 +1135,67 @@ export class BrowserRuntime {
         }
         await page.waitForTimeout(Math.min(timeout, 10_000));
         return { waitedMs: Math.min(timeout, 10_000) };
+      case "history.inspect": {
+        const limit = boundedInteger(
+          action.limit ?? Math.min(25, session.budget.maxHistoryEntries),
+          1,
+          session.budget.maxHistoryEntries,
+          "HISTORY_LIMIT_INVALID"
+        );
+        const entries = session.history
+          .filter((entry) => !action.tabId || entry.tabId === action.tabId)
+          .slice(-limit)
+          .map((entry) => ({ ...entry }));
+        return {
+          entries,
+          returned: entries.length,
+          retained: session.history.length,
+          ceiling: session.budget.maxHistoryEntries
+        };
+      }
+      case "network.route.add": {
+        if (!action.route) {
+          throw new CockroachBrowserError("NETWORK_ROUTE_REQUIRED", "Adding a network route requires a route definition.");
+        }
+        if (session.networkRules.size >= session.budget.maxNetworkRules) {
+          throw new CockroachBrowserError("NETWORK_ROUTE_LIMIT_EXCEEDED", "The session network-rule limit has been reached.");
+        }
+        const id = action.route.id ?? newId("route");
+        if (session.networkRules.has(id)) {
+          throw new CockroachBrowserError("NETWORK_ROUTE_EXISTS", `Network route ${id} already exists.`);
+        }
+        const compiled = compileNetworkRoute(action.route, id, session.budget.maxRouteFulfillBytes);
+        await assertUrlResolvedAllowed(
+          session.input.policy,
+          `${compiled.summary.origin}/`,
+          session.dnsPins,
+          this.dnsResolver
+        );
+        session.networkRules.set(id, compiled);
+        return { route: structuredClone(compiled.summary), count: session.networkRules.size };
+      }
+      case "network.route.remove": {
+        if (!action.routeId) {
+          throw new CockroachBrowserError("NETWORK_ROUTE_ID_REQUIRED", "Removing a network route requires routeId.");
+        }
+        const removed = session.networkRules.delete(action.routeId);
+        if (!removed) {
+          throw new CockroachBrowserError("NETWORK_ROUTE_NOT_FOUND", `Network route ${action.routeId} was not found.`);
+        }
+        return { removed: action.routeId, count: session.networkRules.size };
+      }
+      case "network.routes.list": {
+        const routes: NetworkRouteSummary[] = [...session.networkRules.values()].map((entry) =>
+          structuredClone(entry.summary)
+        );
+        return {
+          routes,
+          count: routes.length,
+          ceiling: session.budget.maxNetworkRules,
+          interceptedBytes: session.interceptedBytes,
+          interceptedByteCeiling: session.budget.maxInterceptedBytes
+        };
+      }
       case "screenshot": {
         await this.#assertCaptureGeometry(page, session, action.fullPage ?? true);
         const buffer = await page.screenshot({
@@ -979,7 +1233,7 @@ export class BrowserRuntime {
         return snapshot;
       }
       case "extract": {
-        const locator = action.ref || action.selector ? await locatorFor(page, action.ref, action.selector) : page.locator("body");
+        const locator = action.ref || action.selector || action.xpath ? await target() : page.locator("body");
         const result = {
           text: (await locator.innerText({ timeout })).slice(0, session.budget.maxSnapshotChars),
           html: (await locator.innerHTML({ timeout })).slice(0, session.budget.maxSnapshotChars)
@@ -1148,6 +1402,7 @@ export class BrowserRuntime {
       sessionId: session.id
     });
     session.evidenceBytes += record.size;
+    await this.#publishEvidenceEvent(session, record);
     return record;
   }
 
@@ -1203,6 +1458,7 @@ export class BrowserRuntime {
       sessionId: session.id
     });
     session.evidenceBytes += record.size;
+    await this.#publishEvidenceEvent(session, record);
     return record;
   }
 
@@ -1216,9 +1472,33 @@ export class BrowserRuntime {
       }
       try {
         await assertUrlResolvedAllowed(session.input.policy, url, session.dnsPins, this.dnsResolver);
+        const rule = [...session.networkRules.values()].find((candidate) =>
+          networkRouteMatches(candidate, {
+            url,
+            method: request.method(),
+            resourceType: request.resourceType()
+          })
+        );
+        if (rule) {
+          if (rule.summary.response.action === "abort") {
+            await route.abort("blockedbyclient");
+            return;
+          }
+          if (session.interceptedBytes + rule.body.byteLength > session.budget.maxInterceptedBytes) {
+            await route.abort("blockedbyclient");
+            return;
+          }
+          session.interceptedBytes += rule.body.byteLength;
+          await route.fulfill({
+            status: rule.summary.response.status ?? 200,
+            contentType: rule.summary.response.contentType ?? "text/plain; charset=utf-8",
+            body: rule.body
+          });
+          return;
+        }
         await route.continue();
       } catch {
-        await route.abort("blockedbyclient");
+        await route.abort("blockedbyclient").catch(() => undefined);
       }
     };
     session.routeHandler = routeHandler;
@@ -1287,6 +1567,30 @@ export class BrowserRuntime {
       resourceType: response.request().resourceType()
     });
     if (session.network.length > 2_000) session.network.shift();
+  }
+
+  async #recordHistory(
+    session: ManagedSession,
+    page: Page,
+    source: BrowserHistoryEntry["source"]
+  ): Promise<void> {
+    const url = page.url();
+    if (!url || url === "about:blank" || /^(?:data|blob):/i.test(url)) return;
+    await assertUrlResolvedAllowed(session.input.policy, url, session.dnsPins, this.dnsResolver);
+    const tabId = session.pageIds.get(page) ?? this.#registerPage(session, page);
+    const entry: BrowserHistoryEntry = {
+      tabId,
+      url: sanitizeUrl(url),
+      title: (await page.title().catch(() => "")).slice(0, 500),
+      observedAt: nowIso(),
+      source
+    };
+    const previous = session.history.at(-1);
+    if (previous?.tabId === entry.tabId && previous.url === entry.url && previous.title === entry.title) {
+      return;
+    }
+    session.history.push(entry);
+    while (session.history.length > session.budget.maxHistoryEntries) session.history.shift();
   }
 
   #requireSession(id: string): ManagedSession {
@@ -1380,6 +1684,49 @@ export class BrowserRuntime {
       metadata
     });
   }
+
+  async #publishEvidenceEvent(session: ManagedSession, record: EvidenceRecord): Promise<void> {
+    await this.#publishEvent(
+      session,
+      "browser.evidence.recorded",
+      {
+        evidenceId: record.id,
+        kind: record.kind,
+        contentType: record.contentType,
+        size: record.size,
+        digest: record.digest
+      },
+      { evidenceIds: [record.id] }
+    );
+  }
+
+  async #publishEvent(
+    session: ManagedSession,
+    type: Parameters<BrowserEventPublisher["publish"]>[0]["type"],
+    metadata: Record<string, unknown>,
+    links: {
+      receiptHash?: string;
+      evidenceIds?: string[];
+    } = {}
+  ): Promise<void> {
+    if (!this.eventPublisher) return;
+    try {
+      await this.eventPublisher.publish({
+        id: newId("event"),
+        type,
+        occurredAt: nowIso(),
+        sessionId: session.id,
+        ...(session.input.actor ? { actor: session.input.actor } : {}),
+        purpose: session.input.purpose,
+        ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+        ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
+        metadata
+      });
+    } catch {
+      // Lifecycle delivery is operational telemetry. A failed endpoint must
+      // never change the result of a browser action or evidence capture.
+    }
+  }
 }
 
 function sanitizeUrl(input: string): string {
@@ -1429,6 +1776,56 @@ function stringRecord(value: unknown, label: string): Record<string, string> {
     result[key] = entry;
   }
   return result;
+}
+
+function targetDescription(action: BrowserAction): string {
+  if (action.ref) return action.ref;
+  if (action.selector) return action.selector.slice(0, 256);
+  if (action.xpath) return "explicit XPath target";
+  return "unspecified target";
+}
+
+function boundedInteger(
+  value: number,
+  minimum: number,
+  maximum: number,
+  code: string
+): number {
+  if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+    throw new CockroachBrowserError(code, `Expected an integer between ${minimum} and ${maximum}.`);
+  }
+  return value;
+}
+
+async function boundedPoint(
+  page: Page,
+  action: Pick<BrowserAction, "x" | "y">
+): Promise<{ x: number; y: number }> {
+  if (
+    typeof action.x !== "number"
+    || typeof action.y !== "number"
+    || !Number.isFinite(action.x)
+    || !Number.isFinite(action.y)
+    || action.x < 0
+    || action.y < 0
+  ) {
+    throw new CockroachBrowserError(
+      "MOUSE_COORDINATES_INVALID",
+      "Mouse actions require finite, non-negative x and y coordinates."
+    );
+  }
+  const viewport = page.viewportSize() ?? await page.evaluate(() => ({
+    width: Math.max(globalThis.innerWidth, 1),
+    height: Math.max(globalThis.innerHeight, 1)
+  }));
+  if (action.x > viewport.width || action.y > viewport.height) {
+    throw new CockroachBrowserError(
+      "MOUSE_COORDINATES_OUTSIDE_VIEWPORT",
+      "Mouse coordinates must remain inside the current viewport.",
+      { x: action.x, y: action.y, viewport }
+    );
+  }
+  return { x: action.x, y: action.y };
 }
 
 async function assertCdpEndpoint(

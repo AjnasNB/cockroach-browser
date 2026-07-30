@@ -41,7 +41,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" aria-current="page">Getting started</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" aria-current="page">Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -53,12 +53,11 @@
     <section class="manual-section" id="install-the-package-and-chromium">
     <span class="section-number">01</span>
     <h2>Install the package and Chromium</h2>
-<p>The package supports maintained Node.js 22, 24, and 26 releases. Chromium is explicit so package installation stays predictable and browser downloads never happen in a lifecycle script.</p>
+<p>The package supports maintained Node.js 22, 24, and 26 releases. <code>bootstrap</code> installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.</p>
 <div class="code-block">
   <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-1">Copy</button></div>
   <pre><code id="code-1">npm install --save-dev cockroach-browser
-npx cockroach-browser setup
-npx cockroach-browser doctor</code></pre>
+npx cockroach-browser bootstrap</code></pre>
 </div>
   </section><section class="manual-section" id="start-the-authenticated-localhost-daemon">
     <span class="section-number">02</span>

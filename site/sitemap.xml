@@ -3,6 +3,7 @@
   <url><loc>https://cockroachbrowser.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/getting-started/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://cockroachbrowser.com/docs/operator-install/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/sessions/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/actions/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/capture/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -11,6 +12,7 @@
   <url><loc>https://cockroachbrowser.com/docs/audits/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/jobs/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/mcp/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://cockroachbrowser.com/docs/webhooks/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/maqam/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/qarinah/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/crawler/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

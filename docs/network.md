@@ -18,6 +18,33 @@ The public browser adapter rejects loopback, link-local, and private-network des
 
 A session can use an operator-provided proxy. Usernames and passwords are secret references resolved by the host. The runtime does not scan local browser settings, discover credentials, rotate identities, or present proxy use as access-control bypass.
 
+## Intercept only exact-origin requests
+
+Network interception is disabled unless allowNetworkInterception is explicit. A rule matches one already admitted origin, a bounded pathname glob, an explicit method set, and optional resource types. It can abort a request or return a static response. It cannot redirect, inject credentials, discover cookies, or widen the session origin list.
+
+```
+await browser.act(session.id, {
+  kind: "network.route.add",
+  route: {
+    id: "release-fixture",
+    origin: "https://docs.example.com",
+    pathPattern: "/api/releases/**",
+    methods: ["GET"],
+    resourceTypes: ["fetch"],
+    response: {
+      action: "fulfill",
+      contentType: "application/json",
+      body: "{\"releases\":[]}"
+    }
+  },
+  purpose: "Install a deterministic response for the reviewed test"
+});
+```
+
+## Put byte ceilings around fixtures
+
+maxNetworkRules limits active rules, maxRouteFulfillBytes limits one static body, and maxInterceptedBytes limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.
+
 ## Remote workers require TLS
 
 The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.

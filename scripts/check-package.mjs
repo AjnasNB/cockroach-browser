@@ -46,6 +46,8 @@ const requiredSourceFiles = [
   "dist/index.d.ts",
   "dist/cli.js",
   "dist/client.js",
+  "dist/operator-install.js",
+  "dist/operator-install.d.ts",
   "dist/integrations/maqam.js",
   "dist/integrations/qarinah.js",
   "dist/integrations/crawler.js",

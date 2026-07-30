@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signed lifecycle webhooks | Cockroach Browser</title>
+  <meta name="description" content="Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/webhooks/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Signed lifecycle webhooks | Cockroach Browser">
+  <meta property="og:description" content="Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/webhooks/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Signed lifecycle webhooks | Cockroach Browser">
+  <meta name="twitter:description" content="Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.1.1</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" aria-current="page">Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Signed lifecycle webhooks</p>
+      <h1>Signed lifecycle webhooks</h1>
+      <p class="kicker">Queue locally. Resolve secrets at delivery. Give every terminal outcome a receipt.</p>
+      <p class="lede">Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.</p>
+    </header>
+    <section class="manual-section" id="configure-one-endpoint-and-an-opaque-key-reference">
+    <span class="section-number">01</span>
+    <h2>Configure one endpoint and an opaque key reference</h2>
+<p><code>SignedWebhookDispatcher</code> implements <code>BrowserEventPublisher</code>. Attach it to <code>BrowserRuntime</code> to queue session, action, challenge, and evidence events. Endpoint configuration stores only an opaque <code>ref:</code> value. The host-owned resolver returns the actual key during delivery, and the key is never persisted in configuration, queue entries, dead letters, or receipts.</p> <p>Endpoint URLs must use HTTPS and cannot contain credentials, a query string, or a fragment. Configuration resolves the hostname once to reject an invalid destination early; every delivery resolves and validates it again.</p>
+<div class="code-block">
+  <div class="code-head"><span>webhooks.ts</span><button class="copy-code" type="button" data-copy="#code-15">Copy</button></div>
+  <pre><code id="code-15">import {
+  BrowserRuntime,
+  SignedWebhookDispatcher
+} from &quot;cockroach-browser&quot;;
+
+const webhookUrl = process.env.COCKROACH_BROWSER_WEBHOOK_URL;
+if (!webhookUrl) throw new Error(&quot;COCKROACH_BROWSER_WEBHOOK_URL is required&quot;);
+
+const webhooks = new SignedWebhookDispatcher({
+  root: &quot;.cockroach-browser/webhooks&quot;,
+  secretResolver: {
+    async resolve(reference) {
+      const prefix = &quot;ref:env/&quot;;
+      if (!reference.startsWith(prefix)) {
+        throw new Error(&quot;Unsupported webhook secret reference&quot;);
+      }
+      const value = process.env[reference.slice(prefix.length)];
+      if (!value) throw new Error(`Missing secret for ${reference}`);
+      return value;
+    }
+  },
+  maxPayloadBytes: 64 * 1024,
+  maxQueueItems: 10_000,
+  maxStorageBytes: 256 * 1024 * 1024
+});
+
+await webhooks.initialize();
+await webhooks.upsertEndpoint({
+  id: &quot;release-automation&quot;,
+  url: webhookUrl,
+  secretRef: &quot;ref:env/COCKROACH_BROWSER_WEBHOOK_SECRET&quot;,
+  keyId: &quot;release-2026-07&quot;,
+  events: [
+    &quot;browser.action.completed&quot;,
+    &quot;browser.challenge.detected&quot;,
+    &quot;browser.evidence.recorded&quot;
+  ],
+  maxAttempts: 3,
+  timeoutMs: 5_000
+});
+
+const browser = new BrowserRuntime({
+  root: &quot;.cockroach-browser/runtime&quot;,
+  eventPublisher: webhooks
+});
+await browser.initialize();</code></pre>
+</div>
+  </section><section class="manual-section" id="keep-publish-and-drain-as-separate-authorities">
+    <span class="section-number">02</span>
+    <h2>Keep publish and drain as separate authorities</h2>
+<p><code>publish()</code> validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. <code>drain()</code> is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch.</p> <p>Run the drain from a deployment-owned scheduler or worker. An endpoint failure never changes the result of the browser action that produced the lifecycle event.</p>
+<div class="code-block">
+  <div class="code-head"><span>drain.ts</span><button class="copy-code" type="button" data-copy="#code-16">Copy</button></div>
+  <pre><code id="code-16">// Publishing is local-only. Draining owns DNS, key resolution, and HTTPS.
+const result = await webhooks.drain({
+  maxItems: 50,
+  deadlineMs: 30_000
+});
+
+const health = await webhooks.health();
+const integrity = await webhooks.verify();
+if (!integrity.ok) {
+  throw new Error(integrity.failures.join(&quot;\n&quot;));
+}
+
+console.log({ result, health, receiptHead: integrity.receiptHead });</code></pre>
+</div>
+  </section><section class="manual-section" id="know-exactly-which-events-leave-the-process">
+    <span class="section-number">03</span>
+    <h2>Know exactly which events leave the process</h2>
+<p>Endpoint filters can select <code>browser.session.created</code>, <code>browser.session.closed</code>, <code>browser.action.completed</code>, <code>browser.challenge.detected</code>, <code>browser.challenge.resolved</code>, and <code>browser.evidence.recorded</code>. Event metadata is allowlisted by type. Control characters, credential-bearing URLs, bearer values, tokens, passwords, API keys, cookies, and secret-shaped text are removed or redacted before canonicalization. Payload size is checked after sanitation.</p>
+  </section><section class="manual-section" id="verify-the-signature-before-parsing-or-dispatching">
+    <span class="section-number">04</span>
+    <h2>Verify the signature before parsing or dispatching</h2>
+<p>Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and <code>v1=&lt;hex&gt;</code> signature. The signature is HMAC-SHA256 over the domain string <code>cockroach-browser.webhook.v1</code>, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. <code>verifyWebhookSignature()</code> checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison.</p> <p>The built-in <code>WebhookReplayGuard</code> is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.</p>
+<div class="code-block">
+  <div class="code-head"><span>receiver.ts</span><button class="copy-code" type="button" data-copy="#code-17">Copy</button></div>
+  <pre><code id="code-17">import {
+  WebhookReplayGuard,
+  verifyWebhookSignature
+} from &quot;cockroach-browser&quot;;
+
+const replayGuard = new WebhookReplayGuard(10_000);
+
+function required(headers: Headers, name: string): string {
+  const value = headers.get(name);
+  if (!value) throw new Error(`Missing ${name}`);
+  return value;
+}
+
+export function verifyIncomingWebhook(
+  body: string,
+  headers: Headers,
+  secret: string
+): { accepted: boolean; deliveryId: string } {
+  const deliveryId = required(headers, &quot;x-cockroach-browser-delivery&quot;);
+  const accepted = verifyWebhookSignature({
+    secret,
+    body,
+    deliveryId,
+    timestamp: required(headers, &quot;x-cockroach-browser-timestamp&quot;),
+    nonce: required(headers, &quot;x-cockroach-browser-nonce&quot;),
+    keyId: required(headers, &quot;x-cockroach-browser-key-id&quot;),
+    signature: required(headers, &quot;x-cockroach-browser-signature&quot;),
+    replayGuard
+  });
+  return { accepted, deliveryId };
+}</code></pre>
+</div>
+  </section><section class="manual-section" id="deduplicate-stable-delivery-ids">
+    <span class="section-number">05</span>
+    <h2>Deduplicate stable delivery IDs</h2>
+<p>The normal retry path keeps one deterministic delivery ID for an event and endpoint while creating a fresh timestamp and nonce on each request. Verify the request, begin a receiver transaction, return success immediately when that delivery ID was already committed, otherwise apply the event and commit the ID with the result. This makes at-least-once attempts safe at the receiver.</p> <p>A manual <code>retryDeadLetter()</code> intentionally creates a new delivery ID. Keep the original event ID in application-level reconciliation when an operator needs to connect both attempts.</p>
+  </section><section class="manual-section" id="retry-transient-failures-and-inspect-terminal-outcomes">
+    <span class="section-number">06</span>
+    <h2>Retry transient failures and inspect terminal outcomes</h2>
+<p>HTTP <code>408</code>, <code>425</code>, <code>429</code>, and <code>5xx</code> responses, plus bounded timeout, DNS, secret-timeout, and transport failures, retry with exponential jitter while attempts and the drain deadline remain. <code>Retry-After</code> is honored up to 30 seconds. Other non-<code>2xx</code> responses become dead letters. Terminal delivered and dead-letter receipts include the attempt log, response status or normalized error, body digest, prior receipt hash, and current receipt hash.</p> <p>Use <code>retryDeadLetter(id)</code> only after fixing the endpoint or key reference. Use <code>purgeDeadLetter(id)</code> for an explicit retention decision, not as an automatic cleanup path.</p>
+  </section><section class="manual-section" id="recover-interrupted-local-writes-and-verify-integrity">
+    <span class="section-number">07</span>
+    <h2>Recover interrupted local writes and verify integrity</h2>
+<p>Initialization recovers interrupted fan-out, dead-letter retry, and terminal receipt transactions from deployment-owned files. An interrupted network attempt is recorded as failed and is retried only when its configured budget remains. Conflicting recovery state fails closed for operator review.</p> <p><code>verify()</code> recomputes every terminal delivery digest and the single linked receipt chain, detecting altered records, duplicate hashes, forks, cycles, unlinked receipts, and a mismatched persisted head. Initialization refuses to continue when this integrity check fails.</p>
+  </section><section class="manual-section" id="keep-every-queue-finite">
+    <span class="section-number">08</span>
+    <h2>Keep every queue finite</h2>
+<p>Defaults are a 64 KiB payload, 10,000 queued deliveries, 256 MiB of webhook storage, three attempts, a five-second endpoint timeout, 25 items per drain, a 60-second drain deadline, and a 4 KiB response ceiling. Configurable limits remain bounded: payloads from 1 KiB to 1 MiB, queues from 1 to 100,000 entries, storage from 1 MiB to 10 GiB, attempts from one to five, endpoint timeouts from 250 ms to 30 seconds, drain batches from one to 1,000, and drain deadlines from one second to ten minutes.</p> <p><code>health()</code> reports queued records, terminal receipts, dead letters, used bytes, and configured queue and storage ceilings. Diagnostics can observe queued, delivered, dead-letter, capacity, and recovered states but cannot alter delivery.</p>
+  </section><section class="manual-section" id="preserve-the-network-and-challenge-boundary">
+    <span class="section-number">09</span>
+    <h2>Preserve the network and challenge boundary</h2>
+<p>Every attempt admits only public HTTPS destinations, pins the connection to a validated public address, preserves TLS hostname verification, rejects private, loopback, translated, and mixed public/private DNS results, and never follows redirects. Response bodies are discarded after a 4 KiB ceiling. The dispatcher does not attach browser cookies, profile state, ambient credentials, or URL tokens.</p> <p>A webhook is an outbound integration, not a browser challenge solver. Redirects and access-control responses are rejected or dead-lettered according to the retry rules. The dispatcher does not bypass login, consent, CAPTCHA, rate limits, or endpoint authorization.</p>
+  </section><section class="manual-section" id="understand-the-durability-promise">
+    <span class="section-number">10</span>
+    <h2>Understand the durability promise</h2>
+<p>This is a local durable at-least-once outbox for one deployment-owned filesystem. It persists selected events before delivery, recovers interrupted local transactions, retries within finite policy, and records terminal outcomes. It is not a distributed queue, a cross-host consensus system, or an exactly-once transport. Receiver-side deduplication by stable delivery ID is required.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#configure-one-endpoint-and-an-opaque-key-reference">Configure one endpoint and an opaque key reference</a><a href="#keep-publish-and-drain-as-separate-authorities">Keep publish and drain as separate authorities</a><a href="#know-exactly-which-events-leave-the-process">Know exactly which events leave the process</a><a href="#verify-the-signature-before-parsing-or-dispatching">Verify the signature before parsing or dispatching</a><a href="#deduplicate-stable-delivery-ids">Deduplicate stable delivery IDs</a><a href="#retry-transient-failures-and-inspect-terminal-outcomes">Retry transient failures and inspect terminal outcomes</a><a href="#recover-interrupted-local-writes-and-verify-integrity">Recover interrupted local writes and verify integrity</a><a href="#keep-every-queue-finite">Keep every queue finite</a><a href="#preserve-the-network-and-challenge-boundary">Preserve the network and challenge boundary</a><a href="#understand-the-durability-promise">Understand the durability promise</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

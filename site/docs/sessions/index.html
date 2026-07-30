@@ -41,7 +41,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/sessions/" aria-current="page">Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" aria-current="page">Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -59,8 +59,8 @@
     <h2>Keep profiles explicit and encrypted</h2>
 <p>Profiles isolate cookies and storage. Import and export require an explicit name, file path, and passphrase supplied through an environment variable. Passphrases are not accepted as command arguments and are not written to manifests.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-5">Copy</button></div>
-  <pre><code id="code-5">export COCKROACH_BROWSER_PROFILE_PASSPHRASE=&quot;read-from-your-secret-store&quot;
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-9">Copy</button></div>
+  <pre><code id="code-9">export COCKROACH_BROWSER_PROFILE_PASSPHRASE=&quot;read-from-your-secret-store&quot;
 npx cockroach-browser profile import \
   --name reviewed-support-session \
   --file ./storage-state.json
@@ -70,7 +70,7 @@ npx cockroach-browser profile list</code></pre>
   </section><section class="manual-section" id="budget-every-session">
     <span class="section-number">03</span>
     <h2>Budget every session</h2>
-<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>
+<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>
   </section><section class="manual-section" id="close-deliberately">
     <span class="section-number">04</span>
     <h2>Close deliberately</h2>

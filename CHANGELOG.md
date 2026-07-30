@@ -6,6 +6,32 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- one-command bootstrap that initializes the local data root, installs Chromium
+  only when missing, and probes an authenticated ephemeral loopback daemon
+- generated bash, zsh, and PowerShell completion scripts that never edit shell
+  configuration
+- owner-confirmed Windows Startup, macOS LaunchAgent, and Linux systemd user
+  daemon definitions with definition-only inspection and exact-file uninstall
+- local durable browser-lifecycle webhook outbox with event filtering,
+  stable delivery IDs, bounded drain batches, retries, dead letters, health
+  diagnostics, startup recovery, and hash-linked terminal delivery receipts
+- HMAC-SHA256 webhook signing with key identifiers, timestamps, nonces,
+  receiver verification, a bounded replay guard, and explicit key rotation
+
+### Security
+
+- generated daemon definitions are fixed to loopback, refuse files they do not
+  own, and never invoke sudo or an administrative service manager
+- webhook publishing performs no DNS, secret resolution, or network I/O;
+  draining resolves opaque host-owned key references and admits only
+  credential-free public HTTPS endpoints
+- webhook delivery revalidates and pins public DNS on every attempt, rejects
+  private, loopback, translated, and mixed-address results, never follows
+  redirects, and enforces finite payload, queue, storage, attempt, response,
+  timeout, and drain ceilings
+
 ### Planned
 
 - community validation across supported operating systems

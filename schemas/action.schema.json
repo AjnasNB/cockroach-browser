@@ -24,7 +24,20 @@
       "type": "string"
     },
     "selector": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "xpath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "frame": {
+      "$ref": "#/$defs/frameTarget"
+    },
+    "dialog": {
+      "$ref": "#/$defs/dialogResponse"
     },
     "url": {
       "type": "string",
@@ -33,6 +46,14 @@
     },
     "value": {
       "type": "string"
+    },
+    "valueRef": {
+      "type": "string",
+      "pattern": "^ref:"
+    },
+    "dataRef": {
+      "type": "string",
+      "pattern": "^ref:"
     },
     "values": {
       "type": "array",
@@ -89,8 +110,37 @@
     "deltaY": {
       "type": "number"
     },
+    "button": {
+      "enum": [
+        "left",
+        "right",
+        "middle"
+      ]
+    },
+    "clickCount": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "steps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
     "targetRef": {
       "type": "string"
+    },
+    "route": {
+      "$ref": "#/$defs/networkRoute"
+    },
+    "routeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
     },
     "waitUntil": {
       "enum": [
@@ -123,10 +173,21 @@
         "select",
         "scroll",
         "drag",
+        "mouse.move",
+        "mouse.down",
+        "mouse.up",
+        "mouse.click",
+        "keyboard.down",
+        "keyboard.up",
+        "keyboard.insertText",
         "upload",
         "download",
         "evaluate",
         "wait",
+        "history.inspect",
+        "network.route.add",
+        "network.route.remove",
+        "network.routes.list",
         "screenshot",
         "pdf",
         "snapshot",
@@ -141,6 +202,152 @@
         "trace.start",
         "trace.stop"
       ]
+    },
+    "frameTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://",
+          "maxLength": 2048
+        }
+      }
+    },
+    "dialogResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action"
+      ],
+      "properties": {
+        "action": {
+          "enum": [
+            "accept",
+            "dismiss"
+          ]
+        },
+        "promptTextRef": {
+          "type": "string",
+          "pattern": "^ref:"
+        }
+      }
+    },
+    "networkRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin",
+        "pathPattern",
+        "response"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "origin": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https?://[^/?#]+/?$"
+        },
+        "pathPattern": {
+          "type": "string",
+          "pattern": "^/",
+          "maxLength": 512
+        },
+        "methods": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "GET",
+              "HEAD",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE",
+              "OPTIONS"
+            ]
+          }
+        },
+        "resourceTypes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "document",
+              "stylesheet",
+              "image",
+              "media",
+              "font",
+              "script",
+              "texttrack",
+              "xhr",
+              "fetch",
+              "eventsource",
+              "websocket",
+              "manifest",
+              "other"
+            ]
+          }
+        },
+        "response": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "action"
+              ],
+              "properties": {
+                "action": {
+                  "const": "abort"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "action"
+              ],
+              "properties": {
+                "action": {
+                  "const": "fulfill"
+                },
+                "status": {
+                  "type": "integer",
+                  "minimum": 200,
+                  "maximum": 599
+                },
+                "contentType": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "body": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        }
+      }
     }
   }
 }
