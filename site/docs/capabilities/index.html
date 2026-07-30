@@ -4,19 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Capability matrix | Cockroach Browser</title>
-  <meta name="description" content="73 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="description" content="80 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta name="theme-color" content="#050a0d">
   <link rel="canonical" href="https://cockroachbrowser.com/docs/capabilities/">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Capability matrix | Cockroach Browser">
-  <meta property="og:description" content="73 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta property="og:description" content="80 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta property="og:url" content="https://cockroachbrowser.com/docs/capabilities/">
   <meta property="og:image" content="https://cockroachbrowser.com/assets/og-card.svg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Capability matrix | Cockroach Browser">
-  <meta name="twitter:description" content="73 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="twitter:description" content="80 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/og-card.svg">
 </head>
 <body>
@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -47,18 +47,18 @@
     <header class="page-hero">
       <p class="eyebrow">Machine-derived from src/capabilities.ts</p>
       <h1>Capability matrix</h1>
-      <p class="kicker">73 named surfaces. No hidden universal-access claim.</p>
-      <p class="lede"><strong>66</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>1</strong> remain planned.</p>
+      <p class="kicker">80 named surfaces. No hidden universal-access claim.</p>
+      <p class="lede"><strong>73</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>1</strong> remain planned.</p>
     </header>
-    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.1.1. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
+    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.2.0. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
-      <button type="button" data-cap-filter="available" aria-pressed="false">Available 66</button>
+      <button type="button" data-cap-filter="available" aria-pressed="false">Available 73</button>
       <button type="button" data-cap-filter="adapter" aria-pressed="false">Adapter 6</button>
       <button type="button" data-cap-filter="planned" aria-pressed="false">Planned 1</button>
       <input class="cap-search" data-cap-search type="search" aria-label="Search capabilities" placeholder="Search screenshots, MCP, profiles, Maqam...">
     </div>
-    <p class="cap-count" data-cap-count>73 capabilities shown</p>
+    <p class="cap-count" data-cap-count>80 capabilities shown</p>
     <div class="cap-grid"><article class="cap-card" data-capability data-status="available">
     <div class="cap-meta"><span>01 / sessions</span><span class="status status--available">available</span></div>
     <h2>Authorized browser sessions</h2>
@@ -101,326 +101,361 @@
     <code>profile export</code>
   </article><article class="cap-card" data-capability data-status="available">
     <div class="cap-meta"><span>09 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Encrypted state checkpoints</h2>
+    <p>Save, list, restore, and delete named encrypted cookie and same-origin storage checkpoints through host-owned passphrase references.</p>
+    <code>state.*</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>10 / sessions</span><span class="status status--available">available</span></div>
+    <h2>Policy-gated clipboard</h2>
+    <p>Read or write bounded clipboard text only when the host grants clipboard authority and resolves the exact secret reference.</p>
+    <code>clipboard.*</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>11 / sessions</span><span class="status status--available">available</span></div>
     <h2>User-supplied proxy</h2>
     <p>Route one session through an explicitly configured proxy.</p>
     <code>proxy</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>10 / sessions</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>12 / sessions</span><span class="status status--available">available</span></div>
     <h2>Locale and timezone</h2>
     <p>Create deterministic locale and timezone contexts.</p>
     <code>locale/timezoneId</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>11 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>13 / interaction</span><span class="status status--available">available</span></div>
     <h2>Tabs and popups</h2>
     <p>Open, list, switch, and close bounded tabs.</p>
     <code>tab.*</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>12 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>14 / interaction</span><span class="status status--available">available</span></div>
+    <h2>Exclusive tab locks</h2>
+    <p>Bind a tab to one owner and opaque lock-token reference for a finite lease before executing protected actions.</p>
+    <code>tab.lock/unlock/status</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>15 / interaction</span><span class="status status--available">available</span></div>
     <h2>Navigation</h2>
     <p>Navigate, reload, go back, and go forward within allowed origins.</p>
     <code>navigate/back/forward/reload</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>13 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>16 / interaction</span><span class="status status--available">available</span></div>
     <h2>Snapshot-scoped page references</h2>
     <p>Act on compact semantic references bound to the current observed page revision.</p>
     <code>snapshot refs</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>14 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>17 / interaction</span><span class="status status--available">available</span></div>
     <h2>Explicit XPath targets</h2>
     <p>Resolve a bounded XPath only when the exact action supplies it.</p>
     <code>action.xpath</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>15 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>18 / interaction</span><span class="status status--available">available</span></div>
     <h2>Semantic snapshots</h2>
     <p>Return visible text and interactive elements with roles and names.</p>
     <code>snapshot</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>16 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>19 / interaction</span><span class="status status--available">available</span></div>
     <h2>Click and double-click</h2>
     <p>Activate referenced or selected elements after policy evaluation.</p>
     <code>click/doubleClick</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>17 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>20 / interaction</span><span class="status status--available">available</span></div>
     <h2>Form interaction</h2>
     <p>Fill, type, press, select, check, and uncheck.</p>
     <code>fill/type/press/select/check</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>18 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>21 / interaction</span><span class="status status--available">available</span></div>
     <h2>Hover and focus</h2>
     <p>Move focus without relying on viewport coordinates.</p>
     <code>hover/focus</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>19 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>22 / interaction</span><span class="status status--available">available</span></div>
     <h2>Bounded scrolling</h2>
     <p>Scroll by explicit deltas under action ceilings.</p>
     <code>scroll</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>20 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>23 / interaction</span><span class="status status--available">available</span></div>
     <h2>Low-level mouse actions</h2>
     <p>Move, press, release, or click only at explicit in-viewport coordinates.</p>
     <code>mouse.*</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>21 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>24 / interaction</span><span class="status status--available">available</span></div>
     <h2>Low-level keyboard actions</h2>
     <p>Press, release, or insert bounded text through explicit actions.</p>
     <code>keyboard.*</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>22 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>25 / interaction</span><span class="status status--available">available</span></div>
     <h2>Drag and drop</h2>
     <p>Drag between two authorized semantic references.</p>
     <code>drag</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>23 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>26 / interaction</span><span class="status status--available">available</span></div>
     <h2>Page-state waits</h2>
     <p>Wait for selectors, text, or bounded timeouts.</p>
     <code>wait</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>24 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>27 / interaction</span><span class="status status--available">available</span></div>
     <h2>Open Shadow DOM access</h2>
     <p>Resolve selectors and references through open shadow roots.</p>
     <code>snapshot</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>25 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>28 / interaction</span><span class="status status--available">available</span></div>
     <h2>Same-origin iframe access</h2>
     <p>Include readable same-origin frames in snapshots.</p>
     <code>snapshot</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>26 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>29 / interaction</span><span class="status status--available">available</span></div>
     <h2>Same-origin frame targeting</h2>
     <p>Target an exact index, name, or URL without entering cross-origin frames.</p>
     <code>action.frame</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>27 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>30 / interaction</span><span class="status status--available">available</span></div>
     <h2>Explicit dialog handling</h2>
     <p>Dismiss dialogs by default and require policy plus approval before accepting one.</p>
     <code>action.dialog</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>28 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>31 / interaction</span><span class="status status--available">available</span></div>
     <h2>Bounded browser history</h2>
     <p>Inspect a sanitized, session-local record of observed page states under a finite retention ceiling.</p>
     <code>history.inspect</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>29 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>32 / interaction</span><span class="status status--available">available</span></div>
     <h2>Policy-gated JavaScript</h2>
     <p>Evaluate JavaScript only when the session policy and approval allow it.</p>
     <code>evaluate</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>30 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>33 / interaction</span><span class="status status--available">available</span></div>
     <h2>File upload</h2>
     <p>Upload explicit paths under byte and policy limits.</p>
     <code>upload</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>31 / interaction</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>34 / interaction</span><span class="status status--available">available</span></div>
     <h2>Controlled downloads</h2>
     <p>Capture downloads into the evidence directory under byte limits.</p>
     <code>download</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>32 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>35 / evidence</span><span class="status status--available">available</span></div>
     <h2>Screenshots</h2>
     <p>Capture PNG or JPEG evidence with source metadata.</p>
     <code>screenshot</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>33 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>36 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Paired visual and semantic capture</h2>
+    <p>Capture a screenshot and semantic snapshot as one evidence set, optionally rejecting page drift and including reference bounds.</p>
+    <code>capture.paired and browser_capture</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>37 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Temporary page annotations</h2>
+    <p>Overlay bounded semantic-reference labels for review, then remove them without changing application state.</p>
+    <code>annotate.show/clear</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>38 / evidence</span><span class="status status--available">available</span></div>
     <h2>PDF capture</h2>
     <p>Generate page PDFs in Chromium sessions.</p>
     <code>pdf</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>34 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>39 / evidence</span><span class="status status--available">available</span></div>
     <h2>Playwright traces</h2>
     <p>Start and stop trace archives for authorized sessions.</p>
     <code>trace.*</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>35 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>40 / evidence</span><span class="status status--available">available</span></div>
     <h2>HAR capture</h2>
     <p>Record network archives when enabled at session creation.</p>
     <code>recordHar</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>36 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>41 / evidence</span><span class="status status--available">available</span></div>
     <h2>Session video</h2>
     <p>Record browser video when enabled at session creation.</p>
     <code>recordVideo</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>37 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>42 / evidence</span><span class="status status--available">available</span></div>
     <h2>Console records</h2>
     <p>Capture bounded console messages with timestamps.</p>
     <code>session evidence</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>38 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>43 / evidence</span><span class="status status--available">available</span></div>
     <h2>Network records</h2>
     <p>Capture bounded request and response metadata.</p>
     <code>session evidence</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>39 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>44 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Network inspection</h2>
+    <p>Filter redacted request and response observations by method, status, and resource type under a finite record ceiling.</p>
+    <code>network.inspect and browser_network</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>45 / evidence</span><span class="status status--available">available</span></div>
+    <h2>Network export</h2>
+    <p>Export the bounded redacted observation set as JSON, NDJSON, or HAR-compatible evidence.</p>
+    <code>network.export</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>46 / evidence</span><span class="status status--available">available</span></div>
     <h2>Hash-chained receipts</h2>
     <p>Link action inputs, outputs, policy decisions, and evidence.</p>
     <code>ActionReceipt</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>40 / evidence</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>47 / evidence</span><span class="status status--available">available</span></div>
     <h2>Text and HTML extraction</h2>
     <p>Return bounded readable text or HTML fragments.</p>
     <code>extract</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>41 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>48 / audit</span><span class="status status--available">available</span></div>
     <h2>Accessibility audit</h2>
     <p>Inspect semantic names, labels, heading order, and obvious failures.</p>
     <code>audit accessibility</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>42 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>49 / audit</span><span class="status status--available">available</span></div>
     <h2>Page performance observations</h2>
     <p>Collect navigation timing, paint entries, transfer sizes, and resource summaries.</p>
     <code>audit performance</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>43 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>50 / audit</span><span class="status status--available">available</span></div>
     <h2>Broken asset audit</h2>
     <p>Report failed scripts, styles, images, and requests.</p>
     <code>audit assets</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>44 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>51 / audit</span><span class="status status--available">available</span></div>
     <h2>Console error audit</h2>
     <p>Summarize browser errors and warnings.</p>
     <code>audit console</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>45 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>52 / audit</span><span class="status status--available">available</span></div>
     <h2>Page security observations</h2>
     <p>Report mixed content and insecure form targets visible to the page runtime.</p>
     <code>audit security</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>46 / audit</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>53 / audit</span><span class="status status--available">available</span></div>
     <h2>Visual comparison</h2>
     <p>Compare screenshots and emit a diff plus mismatch percentage.</p>
     <code>compare</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>47 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>54 / security</span><span class="status status--available">available</span></div>
     <h2>Challenge detection</h2>
     <p>Detect login, consent, CAPTCHA, and access challenges.</p>
     <code>challenge</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>48 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>55 / security</span><span class="status status--available">available</span></div>
     <h2>Human challenge handoff</h2>
     <p>Pause for a user or authorized resolver instead of bypassing controls.</p>
     <code>challenge wait</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>49 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>56 / security</span><span class="status status--available">available</span></div>
     <h2>Origin allowlists</h2>
     <p>Fail closed when navigation leaves explicitly allowed origins.</p>
     <code>allowedOrigins</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>50 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>57 / security</span><span class="status status--available">available</span></div>
     <h2>Private-network blocking</h2>
     <p>Reject private and loopback destinations in the public browser adapter.</p>
     <code>policy</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>51 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>58 / security</span><span class="status status--available">available</span></div>
     <h2>Effect-level policy</h2>
     <p>Separate read, write, execute, upload, download, and credential authority.</p>
     <code>allowedEffects</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>52 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>59 / security</span><span class="status status--available">available</span></div>
     <h2>Finite budgets</h2>
     <p>Clamp actions, tabs, time, upload, download, snapshot, and evidence size.</p>
     <code>budget</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>53 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>60 / security</span><span class="status status--available">available</span></div>
     <h2>Policy-bounded network routes</h2>
     <p>Abort or statically fulfill exact-origin requests under per-rule and session byte ceilings.</p>
     <code>network.route.*</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>54 / security</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>61 / security</span><span class="status status--adapter">adapter</span></div>
     <h2>Exact action approvals</h2>
     <p>Bind high-risk approval to the canonical action input.</p>
     <code>MaqamApprovalProvider</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>55 / security</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>62 / security</span><span class="status status--adapter">adapter</span></div>
     <h2>Secret references</h2>
     <p>Resolve proxy and integration secrets through the host, never manifests.</p>
     <code>SecretResolver</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>56 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>63 / deployment</span><span class="status status--available">available</span></div>
     <h2>Command-line interface</h2>
     <p>Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in.</p>
     <code>cockroach-browser</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>57 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>64 / deployment</span><span class="status status--available">available</span></div>
     <h2>Shell completions</h2>
     <p>Generate auditable bash, zsh, or PowerShell completion scripts without modifying shell profiles.</p>
     <code>completion bash|zsh|powershell</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>58 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>65 / deployment</span><span class="status status--available">available</span></div>
     <h2>Per-user daemon autostart</h2>
     <p>Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation.</p>
     <code>service install|status|uninstall</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>59 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>66 / deployment</span><span class="status status--available">available</span></div>
     <h2>One-command bootstrap</h2>
     <p>Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon.</p>
     <code>bootstrap</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>60 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>67 / deployment</span><span class="status status--available">available</span></div>
     <h2>TypeScript SDK</h2>
     <p>Embed the runtime or call an authenticated daemon.</p>
     <code>BrowserRuntime/BrowserClient</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>61 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>68 / deployment</span><span class="status status--available">available</span></div>
     <h2>Authenticated HTTP API</h2>
     <p>Expose the runtime through a bearer-token localhost server.</p>
     <code>serve</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>62 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>69 / deployment</span><span class="status status--available">available</span></div>
     <h2>Observation-first MCP server</h2>
-    <p>Expose health, capabilities, sessions, snapshots, audits, and canonical Maqam action proposals over stdio.</p>
+    <p>Expose health, capabilities, sessions, snapshots, paired capture, network observations, audits, and canonical Maqam action proposals over stdio.</p>
     <code>mcp</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>63 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>70 / deployment</span><span class="status status--available">available</span></div>
     <h2>Docker runtime</h2>
     <p>Run Chromium and the authenticated daemon in a container.</p>
     <code>Dockerfile</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>64 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>71 / deployment</span><span class="status status--available">available</span></div>
     <h2>Local dashboard</h2>
     <p>Inspect sessions, evidence, challenges, and receipts.</p>
     <code>dashboard</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>65 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>72 / deployment</span><span class="status status--available">available</span></div>
     <h2>Authenticated remote workers</h2>
     <p>Connect SDK clients to explicitly configured remote daemons.</p>
     <code>BrowserClient</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>66 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>73 / deployment</span><span class="status status--available">available</span></div>
     <h2>Durable local jobs</h2>
     <p>Queue bounded action plans with checkpoints and retries.</p>
     <code>JobQueue</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>67 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>74 / deployment</span><span class="status status--available">available</span></div>
     <h2>Doctor and daemon health checks</h2>
     <p>Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count.</p>
     <code>doctor and /v1/health</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>68 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>75 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Maqam governance</h2>
     <p>Route high-risk browser actions through exact approval and receipts.</p>
     <code>cockroach-browser/maqam</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>69 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>76 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Qarinah memory</h2>
     <p>Record cited browser outcomes without persisting hidden reasoning or secrets.</p>
     <code>cockroach-browser/qarinah</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>70 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>77 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Cockroach Crawler handoff</h2>
     <p>Hand breadth-first collection to the crawler while retaining browser evidence.</p>
     <code>cockroach-browser/crawler</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>71 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>78 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>ProductLoop capability snapshot</h2>
     <p>Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority.</p>
     <code>docs/productloop.md</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>72 / integration</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>79 / integration</span><span class="status status--available">available</span></div>
     <h2>Signed lifecycle webhooks</h2>
     <p>Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery.</p>
     <code>SignedWebhookDispatcher</code>
   </article><article class="cap-card" data-capability data-status="planned">
-    <div class="cap-meta"><span>73 / integration</span><span class="status status--planned">planned</span></div>
+    <div class="cap-meta"><span>80 / integration</span><span class="status status--planned">planned</span></div>
     <h2>Team session control</h2>
     <p>Share policy and receipts without sharing raw browser profiles.</p>
     <code>roadmap</code>

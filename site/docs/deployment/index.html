@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -55,8 +55,8 @@
     <h2>Local daemon</h2>
 <p>Use the CLI for a single-user workstation or development environment. The daemon creates its own token file and serves only on loopback unless you explicitly configure a remote deployment.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-18">Copy</button></div>
-  <pre><code id="code-18">npx cockroach-browser serve --host 127.0.0.1 --port 43110
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-21">Copy</button></div>
+  <pre><code id="code-21">npx cockroach-browser serve --host 127.0.0.1 --port 43110
 
 # The daemon writes a 32-byte bearer token to its local data directory.
 # Pass its path to every CLI call instead of putting a token in shell history.
@@ -67,14 +67,14 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token</c
     <h2>Container</h2>
 <p>Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-19">Copy</button></div>
-  <pre><code id="code-19">docker build -t cockroach-browser:0.1.1 .
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-22">Copy</button></div>
+  <pre><code id="code-22">docker build -t cockroach-browser:0.2.0 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp \
   --tmpfs /data \
   -p 127.0.0.1:43110:43110 \
-  cockroach-browser:0.1.1</code></pre>
+  cockroach-browser:0.2.0</code></pre>
 </div>
   </section><section class="manual-section" id="remote-worker">
     <span class="section-number">03</span>

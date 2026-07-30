@@ -26,7 +26,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.svg" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.1.1</span>
+      <span class="version">0.2.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -59,8 +59,8 @@
     <h2>Use a ref from the current snapshot</h2>
 <p>Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.</p>
 <div class="code-block">
-  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-10">Copy</button></div>
-  <pre><code id="code-10">const snapshot = await browser.snapshot(session.id);
+  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-11">Copy</button></div>
+  <pre><code id="code-11">const snapshot = await browser.snapshot(session.id);
 const releaseLink = snapshot.refs.find(
   (ref) =&gt; ref.role === &quot;link&quot; &amp;&amp; ref.name.includes(&quot;Release notes&quot;)
 );
@@ -84,8 +84,8 @@ console.log(result.receipt.receiptHash);</code></pre>
     <h2>Target exact XPath and same-origin frames</h2>
 <p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>
 <div class="code-block">
-  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-11">Copy</button></div>
-  <pre><code id="code-11">await browser.act(session.id, {
+  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-12">Copy</button></div>
+  <pre><code id="code-12">await browser.act(session.id, {
   kind: &quot;fill&quot;,
   xpath: &quot;//*[@id='account-name']&quot;,
   frame: { name: &quot;account-panel&quot; },
