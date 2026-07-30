@@ -187,18 +187,23 @@ function homePage() {
 ${header("home")}
 <main id="main">
   <section class="shell hero">
-    <div>
-      <p class="eyebrow">Local-first browser runtime for AI agents</p>
+    <div class="hero-copy-column">
+      <p class="eyebrow">Lightweight browser runtime for AI agents</p>
       <h1>${homepage.title}</h1>
       <p class="hero-copy">${homepage.lede}</p>
       <div class="hero-actions">
-        <a class="button button--primary" href="/docs/getting-started/">Start in two minutes</a>
+        <a class="button button--primary" href="/docs/operator-install/">Install once. Use everywhere.</a>
         <a class="button" href="/docs/capabilities/">Inspect every capability</a>
       </div>
     </div>
-    <div class="terminal" aria-label="Cockroach Browser terminal example">
-      <pre data-terminal-output><span class="prompt">$</span> npx cockroach-browser doctor</pre>
-      <div class="terminal-status"><span>Loopback</span><span>Token auth</span><span>Evidence on</span></div>
+    <div class="hero-runtime">
+      <img class="hero-mark" src="/assets/logo.svg" alt="Cockroach Browser cockroach and globe mark" width="260" height="260">
+      <div class="terminal" aria-label="Cockroach Browser terminal example">
+        <pre data-terminal-output><span class="prompt">$</span> npm i -g cockroach-browser
+<span class="prompt">$</span> cockroach-browser bootstrap
+<span class="prompt">$</span> cockroach-browser doctor</pre>
+        <div class="terminal-status"><span>Loopback</span><span>Token auth</span><span>Evidence on</span></div>
+      </div>
     </div>
   </section>
   <section class="shell proof-strip" aria-label="Product surface">${proof}</section>

@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title desc">
   <title id="title">Cockroach Browser</title>
-  <desc id="desc">A geometric cockroach inside a globe</desc>
-  <circle cx="48" cy="48" r="42" fill="#050a0d" stroke="#35f3cf" stroke-width="4"/>
-  <path d="M8 48h20m40 0h20M48 6c-9 10-14 24-14 42s5 32 14 42M48 6c9 10 14 24 14 42s-5 32-14 42" fill="none" stroke="#35f3cf" stroke-width="2" opacity=".62"/>
-  <path d="M17 26h18m26 0h18M17 70h18m26 0h18" fill="none" stroke="#35f3cf" stroke-width="2" opacity=".42"/>
-  <path d="M42 27c0-7 2-12 6-12s6 5 6 12" fill="none" stroke="#35f3cf" stroke-width="4" stroke-linecap="square"/>
-  <path d="M48 28c-11 0-17 8-17 20s6 24 17 24 17-12 17-24-6-20-17-20Z" fill="#35f3cf"/>
-  <path d="M48 32v36M32 40l-10-7M31 51l-13 2M34 62l-10 9M64 40l10-7M65 51l13 2M62 62l10 9" fill="none" stroke="#35f3cf" stroke-width="4" stroke-linecap="square"/>
-  <path d="M40 38h16M38 48h20M40 58h16" fill="none" stroke="#050a0d" stroke-width="3"/>
+  <desc id="desc">A white cockroach centered on a mint globe with an orbital ring</desc>
+  <rect width="120" height="120" rx="24" fill="#050a0d"/>
+  <circle cx="60" cy="60" r="41" fill="none" stroke="#35f3cf" stroke-width="4"/>
+  <path d="M20 60h80M60 19c-10 12-16 26-16 41s6 29 16 41M60 19c10 12 16 26 16 41s-6 29-16 41M28 39c18 8 46 8 64 0M28 81c18-8 46-8 64 0" fill="none" stroke="#35f3cf" stroke-width="2.4" opacity=".9"/>
+  <ellipse cx="60" cy="61" rx="54" ry="15" fill="none" stroke="#35f3cf" stroke-width="4" transform="rotate(-10 60 61)"/>
+  <path d="M53 42c0-7-5-16-13-22M67 42c0-7 5-16 13-22" fill="none" stroke="#f3f7f6" stroke-width="4" stroke-linecap="round"/>
+  <path d="M60 38c-10 0-16 9-16 23v18c0 10 7 18 16 22 9-4 16-12 16-22V61c0-14-6-23-16-23Z" fill="#f3f7f6" stroke="#050a0d" stroke-width="3"/>
+  <path d="M60 55 45 46M60 55l15-9M60 55v43" fill="none" stroke="#050a0d" stroke-width="3.4" stroke-linejoin="round"/>
 </svg>

@@ -1,6 +1,6 @@
 # Cockroach Browser
 
-> A local-first Chromium runtime for AI agents with authorized sessions, semantic refs, paired evidence, MCP, and Maqam-governed actions.
+> The browser runtime AI agents can use without inheriting your whole machine.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser

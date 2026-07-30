@@ -8,7 +8,8 @@ Security fixes are provided for the current stable release. Pre-release versions
 
 | Version | Supported |
 | --- | --- |
-| 0.1.x | Yes |
+| 0.2.x | Yes |
+| 0.1.x | No |
 | Earlier | No |
 
 ## Report a vulnerability

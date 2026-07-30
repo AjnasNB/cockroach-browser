@@ -5,7 +5,7 @@ export const site = {
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "A local-first Chromium runtime for AI agents with authorized sessions, semantic refs, paired evidence, MCP, and Maqam-governed actions."
+    "The browser runtime AI agents can use without inheriting your whole machine."
 };
 
 export const navGroups = [
@@ -50,7 +50,13 @@ export const navGroups = [
 ];
 
 const snippets = {
-  install: `npm install --save-dev cockroach-browser
+  install: `# Install once for the current computer account
+npm install --global cockroach-browser
+cockroach-browser bootstrap
+cockroach-browser doctor
+
+# Or keep it inside one project
+npm install --save-dev cockroach-browser
 npx cockroach-browser bootstrap`,
   completions: `# Bash
 cockroach-browser completion bash > ~/.local/share/bash-completion/completions/cockroach-browser
@@ -936,8 +942,8 @@ cockroach-browser service status`,
 ];
 
 export const homepage = {
-  title: "Give AI agents a real browser. Keep the keys.",
+  title: "The browser runtime your AI agents can use without inheriting your whole machine.",
   lede:
-    "Authorized Chromium sessions, semantic page references, paired visual evidence, network inspection, MCP, and Maqam-governed actions in one local-first TypeScript package.",
+    "One lightweight TypeScript package for authorized Chromium sessions, semantic page references, real interaction, paired evidence, network inspection, MCP, and Maqam-governed actions.",
   proof: []
 };
