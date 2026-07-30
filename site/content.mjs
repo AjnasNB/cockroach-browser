@@ -1,6 +1,6 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.2.0",
+  version: "0.2.1",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
@@ -155,7 +155,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.2.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.2.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -253,13 +253,13 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.2.0 .
+  docker: `docker build -t cockroach-browser:0.2.1 .
 docker run --rm \\
   --read-only \\
   --tmpfs /tmp \\
   --tmpfs /data \\
   -p 127.0.0.1:43110:43110 \\
-  cockroach-browser:0.2.0`,
+  cockroach-browser:0.2.1`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\
@@ -873,7 +873,7 @@ cockroach-browser service status`,
       {
         title: "Current status",
         body:
-          "<p>The ProductLoop integration in 0.2.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
+          "<p>The ProductLoop integration in 0.2.1 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
       }
     ]
   },

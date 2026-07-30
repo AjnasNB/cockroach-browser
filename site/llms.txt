@@ -31,6 +31,6 @@ Technical paper: https://cockroachbrowser.com/paper/
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
 
 ## Capability states
-- Available: implemented in the 0.2.0 runtime or shipped deployment surface.
+- Available: implemented in the 0.2.1 runtime or shipped deployment surface.
 - Adapter: integration contract shipped, external authority or package required.
 - Planned: documented direction, not part of the current release.

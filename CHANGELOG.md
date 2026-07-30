@@ -6,6 +6,18 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-30
+
+### Changed
+
+- aligned the npm package, website, documentation, social metadata, and hosted
+  globe-and-cockroach identity on the launch promise: "The browser runtime your
+  AI agents can use without inheriting your whole machine."
+- tightened the homepage hero so the product promise and first runnable command
+  remain readable without overwhelming the initial viewport
+- published the implementation-backed technical paper and its downloadable PDF
+  alongside the complete 80-capability documentation
+
 ## [0.2.0] - 2026-07-30
 
 ### Added

@@ -87,6 +87,6 @@ This file is generated from `src/capabilities.ts`.
 
 ## Status model
 
-- **available**: implemented in Cockroach Browser 0.2.0
+- **available**: implemented in Cockroach Browser 0.2.1
 - **adapter**: integration contract is present, but another package or host authority is required
 - **planned**: documented direction, not part of the current release

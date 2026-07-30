@@ -52,7 +52,7 @@ ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}]
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
 
 ## Capability states
-- Available: implemented in the 0.2.0 runtime or shipped deployment surface.
+- Available: implemented in the 0.2.1 runtime or shipped deployment surface.
 - Adapter: integration contract shipped, external authority or package required.
 - Planned: documented direction, not part of the current release.
 `
@@ -345,7 +345,7 @@ ${header("docs")}
       <p class="kicker">${capabilities.length} named surfaces. No hidden universal-access claim.</p>
       <p class="lede"><strong>${counts.available}</strong> runtime surfaces are available, <strong>${counts.adapter}</strong> require an external integration authority, and <strong>${counts.planned}</strong> remain planned.</p>
     </header>
-    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.2.0. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
+    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.2.1. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
       <button type="button" data-cap-filter="available" aria-pressed="false">Available ${counts.available}</button>
