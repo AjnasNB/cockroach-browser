@@ -1,11 +1,11 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.1.1",
+  version: "0.2.0",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "A local-first browser runtime for AI agents with authorized sessions, snapshot-scoped page references, evidence capture, MCP, and Maqam policy hooks."
+    "A local-first Chromium runtime for AI agents with authorized sessions, semantic refs, paired evidence, MCP, and Maqam-governed actions."
 };
 
 export const navGroups = [
@@ -149,7 +149,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.1.1", "mcp"],
+      "args": ["-y", "cockroach-browser@0.2.0", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -247,19 +247,45 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.1.1 .
+  docker: `docker build -t cockroach-browser:0.2.0 .
 docker run --rm \\
   --read-only \\
   --tmpfs /tmp \\
   --tmpfs /data \\
   -p 127.0.0.1:43110:43110 \\
-  cockroach-browser:0.1.1`,
+  cockroach-browser:0.2.0`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\
   --file ./storage-state.json
 
 npx cockroach-browser profile list`,
+  capture: `npx cockroach-browser capture \\
+  --session "$SESSION_ID" \\
+  --require-stable \\
+  --include-bounds \\
+  --token-file .cockroach-browser/auth-token`,
+  networkInspect: `npx cockroach-browser network \\
+  --session "$SESSION_ID" \\
+  --method GET \\
+  --limit 100 \\
+  --token-file .cockroach-browser/auth-token
+
+npx cockroach-browser network export \\
+  --session "$SESSION_ID" \\
+  --format json \\
+  --token-file .cockroach-browser/auth-token > ./artifacts/network.json`,
+  stateCheckpoint: `await browser.act(session.id, {
+  kind: "state.save",
+  name: "after-reviewed-login",
+  purpose: "Save the exact authorized session state"
+});
+
+await browser.act(session.id, {
+  kind: "state.load",
+  name: "after-reviewed-login",
+  purpose: "Restore the reviewed checkpoint"
+});`,
   cliAction: `npx cockroach-browser snapshot \\
   --session "$SESSION_ID" \\
   --token-file .cockroach-browser/auth-token
@@ -376,6 +402,18 @@ cockroach-browser service status`,
         label: "terminal"
       },
       {
+        title: "Checkpoint only the current authorized session",
+        body:
+          "<p>Named state checkpoints save and restore the current session's admitted storage state beneath the deployment-owned data root. They are encrypted, size-bounded, and never discover ambient browser profiles. A checkpoint name cannot contain a path, and restoring it does not widen the session origin or action policy.</p>",
+        code: snippets.stateCheckpoint,
+        label: "checkpoint.mjs"
+      },
+      {
+        title: "Keep clipboard and tabs under policy",
+        body:
+          "<p>Clipboard reads and writes are separate actions with bounded text output and secret-value references. Exclusive tab locks prevent two workers from silently controlling the same tab; lock, unlock, and status operations remain session-local and receipt-linked.</p>"
+      },
+      {
         title: "Budget every session",
         body:
           "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
@@ -445,7 +483,19 @@ cockroach-browser service status`,
       {
         title: "Evidence types",
         body:
-          "<p>Snapshots, screenshots, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.</p>"
+          "<p>Snapshots, screenshots, paired visual-plus-semantic captures, PDFs, Playwright traces, HAR files, console records, network metadata, downloads, audits, visual comparisons, annotations, and action records share one evidence index. Every record has a content type, byte size, digest, source URL when applicable, and structured metadata.</p>"
+      },
+      {
+        title: "Capture the pixels and the cited page state together",
+        body:
+          "<p><code>capture.paired</code> records a screenshot and semantic snapshot under one receipt. <code>requireStable</code> rejects a capture when the page revision changes during collection. Optional element bounds connect numbered semantic refs to visible regions without turning coordinates into long-lived selectors.</p>",
+        code: snippets.capture,
+        label: "terminal"
+      },
+      {
+        title: "Add temporary review annotations",
+        body:
+          "<p><code>annotate.show</code> overlays bounded numbered markers for reviewed refs, CSS selectors, or XPath targets. <code>annotate.clear</code> removes only Cockroach Browser's temporary overlay. Annotation actions are explicit, receipt-linked, and do not alter application data.</p>"
       },
       {
         title: "Receipts form a chain",
@@ -460,7 +510,7 @@ cockroach-browser service status`,
       {
         title: "Carry evidence into memory",
         body:
-          "<p>The Qarinah adapter records cited, metadata-only read outcomes and receipt metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.</p>"
+          "<p>The Qarinah adapter records canonical input and output digests, evidence IDs, the browser receipt hash, and bounded descriptive metadata after filtering cookies, storage values, form values, and secrets. It does not dispatch browser actions or store hidden reasoning. A host may link a mutation outcome to a complete causal receipt chain when one exists, but the recorder does not require or synthesize that chain.</p>"
       }
     ]
   },
@@ -497,6 +547,13 @@ cockroach-browser service status`,
         title: "Put byte ceilings around fixtures",
         body:
           "<p><code>maxNetworkRules</code> limits active rules, <code>maxRouteFulfillBytes</code> limits one static body, and <code>maxInterceptedBytes</code> limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.</p>"
+      },
+      {
+        title: "Inspect and export redacted observations",
+        body:
+          "<p><code>network.inspect</code> filters the current session's bounded request observations by method, status, resource type, tab, and limit. <code>network.export</code> emits JSON, NDJSON, or a bounded HAR-shaped document. Authorization headers, cookies, credentials, query secrets, and response bodies are not included.</p>",
+        code: snippets.networkInspect,
+        label: "terminal"
       },
       {
         title: "Remote workers require TLS",
@@ -602,7 +659,7 @@ cockroach-browser service status`,
     title: "MCP",
     kicker: "Give an MCP client observations and proposals, not browser ownership.",
     lede:
-      "The native stdio server exposes health, capabilities, sessions, snapshots, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
+      "The native stdio server exposes health, capabilities, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
     sections: [
       {
         title: "Configure the local server",
@@ -614,7 +671,7 @@ cockroach-browser service status`,
       {
         title: "Observation-first tools",
         body:
-          "<p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, and <code>browser_propose_action</code>. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>"
+          "<p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, <code>browser_capture</code>, <code>browser_network</code>, and <code>browser_propose_action</code>. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>"
       },
       {
         title: "Keep lifecycle authority outside the model",
@@ -716,6 +773,11 @@ cockroach-browser service status`,
           "<p><code>apply</code> covers structural browser operations. <code>submit</code> covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.</p>"
       },
       {
+        title: "Register every additional effect as an exact tool",
+        body:
+          "<p>Uploads, downloads, clipboard writes, JavaScript, state restore, network interception, PDF generation, and other high-risk actions are runtime capabilities, not implicit Maqam driver methods. A host that exposes one must register a typed Maqam tool with an exact input schema, effect class, policy, approval rule, and receipt mapping.</p>"
+      },
+      {
         title: "Do not expose the managed session directly",
         body:
           "<p>A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.</p>"
@@ -732,7 +794,7 @@ cockroach-browser service status`,
       {
         title: "Record metadata, not browser secrets",
         body:
-          "<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. For read outcomes, it records bounded metadata such as the selected source, result type, receipt hash, and evidence pointers needed to verify the memory. The host supplies the persistence callback supported by its installed Qarinah release.</p>"
+          "<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the canonical input digest, output digest, browser receipt hash, evidence IDs, source URL, and bounded descriptive metadata as cited context links. The host supplies the persistence callback supported by its installed Qarinah release.</p>"
       },
       {
         title: "Keep memory read-only with respect to the browser",
@@ -761,7 +823,7 @@ cockroach-browser service status`,
       {
         title: "Choose the right engine",
         body:
-          "<p>Start with the crawler for static HTTP, mapping, structured extraction, documents, feeds, and public-source breadth. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.</p>"
+          "<p>Start with the crawler for static HTTP, searched site maps, structured extraction, documents, feeds, public-source breadth, and bounded crawl jobs. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.</p>"
       },
       {
         title: "Handoff explicit URLs and finite budgets",
@@ -805,7 +867,7 @@ cockroach-browser service status`,
       {
         title: "Current status",
         body:
-          "<p>The ProductLoop integration in 0.1.1 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
+          "<p>The ProductLoop integration in 0.2.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
       }
     ]
   },
@@ -874,8 +936,8 @@ cockroach-browser service status`,
 ];
 
 export const homepage = {
-  title: "The browser runtime your AI agents can use without inheriting your whole machine.",
+  title: "Give AI agents a real browser. Keep the keys.",
   lede:
-    "Authorized Chromium sessions, snapshot-scoped page references, bounded actions, browser evidence, MCP, and Maqam policy hooks in one local-first TypeScript package.",
+    "Authorized Chromium sessions, semantic page references, paired visual evidence, network inspection, MCP, and Maqam-governed actions in one local-first TypeScript package.",
   proof: []
 };

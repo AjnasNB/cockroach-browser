@@ -18,6 +18,10 @@ observe returns current page state and a stable revision. preview resolves the r
 
 apply covers structural browser operations. submit covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.
 
+## Register every additional effect as an exact tool
+
+Uploads, downloads, clipboard writes, JavaScript, state restore, network interception, PDF generation, and other high-risk actions are runtime capabilities, not implicit Maqam driver methods. A host that exposes one must register a typed Maqam tool with an exact input schema, effect class, policy, approval rule, and receipt mapping.
+
 ## Do not expose the managed session directly
 
 A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.
@@ -25,4 +29,4 @@ A session placed behind the Maqam driver must remain host-owned. Do not expose i
 
 ## Release status
 
-This manual targets Cockroach Browser 0.1.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.2.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

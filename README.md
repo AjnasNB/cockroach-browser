@@ -4,26 +4,26 @@
 
 <h1 align="center">Cockroach Browser</h1>
 
-<p align="center"><strong>The browser runtime your AI agents can use without inheriting your whole machine.</strong></p>
+<p align="center"><strong>Give AI agents a real browser. Keep the keys.</strong></p>
 
 <p align="center">
-  Authorized sessions · Snapshot-scoped page references · Evidence and receipts · Local MCP · Maqam policy hooks
+  Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions
 </p>
 
-Cockroach Browser is a local-first TypeScript runtime for controlled browser work. It gives a trusted host explicit control over origins, actions, effects, profiles, secrets, and resource budgets while agents receive compact observations and semantic element references bound to the observed page revision.
+Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-capable AI agents. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
 
-The package supports headed or headless Chromium, typed SDK use, an authenticated loopback daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
+The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
 
 It detects login, consent, CAPTCHA, and access challenges and pauses for a human or an explicitly authorized resolver. It does not bypass CAPTCHAs, access controls, paywalls, rate limits, or site authorization.
 
 ## Release status
 
-Current release line: **0.1.1**
+Current release line: **0.2.0**
 
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 73 entries, with 66 available, 6 adapter-backed, and 1 planned
+- Capability registry: 80 entries, with 73 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
@@ -150,6 +150,22 @@ npx cockroach-browser audit \
   --session SESSION_ID \
   --kinds accessibility,security \
   --token-file .cockroach-browser/auth-token
+
+npx cockroach-browser capture \
+  --session SESSION_ID \
+  --token-file .cockroach-browser/auth-token \
+  --require-stable \
+  --include-bounds
+
+npx cockroach-browser network \
+  --session SESSION_ID \
+  --token-file .cockroach-browser/auth-token \
+  --limit 100
+
+npx cockroach-browser network export \
+  --session SESSION_ID \
+  --token-file .cockroach-browser/auth-token \
+  --format json > ./artifacts/network.json
 ```
 
 The HTTP action route is disabled by default. Production mutations should enter through the Maqam-bound driver. A trusted local host can explicitly enable the raw route with `--allow-raw-actions`. Host-controlled executable, CDP, proxy, header, and profile-secret fields remain disabled unless that host also passes `--allow-session-host-config`.
@@ -166,6 +182,9 @@ The authenticated daemon exposes:
 | POST | `/v1/sessions/:id/snapshot` | Semantic snapshot |
 | POST | `/v1/sessions/:id/audit` | Read-only audits |
 | POST | `/v1/sessions/:id/compare` | Visual comparison |
+| POST | `/v1/sessions/:id/capture` | Paired screenshot and semantic snapshot |
+| POST | `/v1/sessions/:id/network` | Bounded network observation |
+| POST | `/v1/sessions/:id/network/export` | Redacted network export evidence |
 | POST | `/v1/sessions/:id/challenge/resume` | Resume after human handling |
 | GET | `/v1/evidence` | Evidence records |
 | GET | `/v1/evidence/verify` | Hash-chain verification |
@@ -187,7 +206,7 @@ console.log(await browser.health());
 console.log(await browser.capabilities());
 ```
 
-`BrowserClient` supports health, capabilities, session creation and inspection, session close, actions, snapshots, audits, and human-handoff resume. The daemon still enforces its own route and session-authority settings.
+`BrowserClient` supports health, capabilities, session creation and inspection, session close, actions, snapshots, paired capture, bounded network observation and export, audits, and human-handoff resume. The daemon still enforces its own route and session-authority settings.
 
 ## Connect through MCP
 
@@ -198,7 +217,7 @@ Start the daemon, load its token into the client process through a secret store,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.1.1", "mcp"],
+      "args": ["-y", "cockroach-browser@0.2.0", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -217,6 +236,8 @@ The MCP surface is observation-first:
 - `browser_sessions`
 - `browser_snapshot`
 - `browser_audit`
+- `browser_capture`
+- `browser_network`
 - `browser_propose_action`
 
 `browser_propose_action` returns a canonical proposal and input digest. It does not execute the action. Dispatch consequential work through Maqam.
@@ -265,6 +286,9 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 | `cockroach-browser session close --id ID --token-file FILE` | Close one session |
 | `cockroach-browser snapshot --session ID --token-file FILE [--tab ID]` | Read a semantic snapshot |
 | `cockroach-browser audit --session ID --kinds accessibility,security --token-file FILE` | Run selected audits |
+| `cockroach-browser capture --session ID --token-file FILE [--require-stable] [--include-bounds]` | Capture one paired screenshot and semantic snapshot |
+| `cockroach-browser network --session ID --token-file FILE [--limit N]` | Inspect bounded, redacted network observations |
+| `cockroach-browser network export --session ID --token-file FILE [--format json\|ndjson\|har]` | Print a bounded network evidence export |
 | `cockroach-browser act --session ID --input FILE --token-file FILE` | Use the trusted-host action route when explicitly enabled |
 | `cockroach-browser profile list [--root DIR]` | List isolated local profiles |
 | `cockroach-browser profile import --name NAME --file FILE` | Import encrypted storage state |
@@ -274,32 +298,32 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 73 source-registered capabilities
+## 80 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Sessions | 10 | 0 | 0 | 10 |
-| Interaction | 21 | 0 | 0 | 21 |
-| Evidence | 9 | 0 | 0 | 9 |
+| Sessions | 12 | 0 | 0 | 12 |
+| Interaction | 22 | 0 | 0 | 22 |
+| Evidence | 13 | 0 | 0 | 13 |
 | Audit | 6 | 0 | 0 | 6 |
 | Security | 7 | 2 | 0 | 9 |
 | Deployment | 12 | 0 | 0 | 12 |
 | Integration | 1 | 4 | 1 | 6 |
-| **Total** | **66** | **6** | **1** | **73** |
+| **Total** | **73** | **6** | **1** | **80** |
 
 ### Sessions
 
-Authorized browser sessions; headless Chromium; headed Chromium; CDP attachment; a custom Chromium executable; named isolated profiles; explicit encrypted storage-state import and export; a user-supplied proxy; deterministic locale and timezone.
+Authorized browser sessions; headless Chromium; headed Chromium; CDP attachment; a custom Chromium executable; named isolated profiles; explicit encrypted storage-state import and export; named encrypted session checkpoints; policy-gated clipboard reads and writes; a user-supplied proxy; deterministic locale and timezone.
 
 ### Interaction
 
-Tabs and popups; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history; policy-gated JavaScript; controlled upload; controlled download.
+Tabs and popups; exclusive tab locks; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history; policy-gated JavaScript; controlled upload; controlled download.
 
 ### Evidence
 
-PNG and JPEG screenshots; PDF capture; Playwright traces; HAR capture; session video; bounded console records; bounded network records; hash-chained receipts; bounded readable text and HTML extraction.
+PNG and JPEG screenshots; paired visual-plus-semantic capture; temporary numbered page annotations; PDF capture; Playwright traces; HAR capture; session video; bounded console records; bounded redacted network inspection and export; hash-chained receipts; bounded readable text and HTML extraction.
 
 ### Audits
 
@@ -436,9 +460,9 @@ handling, quotas, and recovery procedures.
 
 ## Action surface
 
-The typed runtime implements 45 action kinds:
+The typed runtime implements 58 action kinds:
 
-`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `wait`, `history.inspect`, `network.route.add`, `network.route.remove`, `network.routes.list`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `trace.start`, and `trace.stop`.
+`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `wait`, `history.inspect`, `capture.paired`, `annotate.show`, `annotate.clear`, `clipboard.read`, `clipboard.write`, `network.inspect`, `network.export`, `network.route.add`, `network.route.remove`, `network.routes.list`, `state.save`, `state.load`, `state.list`, `state.delete`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `tab.lock`, `tab.unlock`, `tab.lock.status`, `trace.start`, and `trace.stop`.
 
 Availability in the type system does not grant authority. The session policy, effect policy, approval provider, server surface, origin checks, and resource budget decide whether an action can run.
 
@@ -535,7 +559,7 @@ const recorder = createQarinahContextRecorder({
 });
 ```
 
-The host supplies the persistence callback supported by its installed Qarinah release. Qarinah receives cited, metadata-only read outcomes. The recorder recursively removes authorization data, cookies, credentials, passwords, passphrases, secrets, tokens, storage values, form values, and API keys. It does not persist hidden reasoning or profile data. For consequential mutations, a host may link the sanitized outcome to a complete causal receipt chain when every stage exists; the recorder does not invent or require that chain.
+The host supplies the persistence callback supported by its installed Qarinah release. Qarinah receives cited, metadata-only outcomes with canonical input and output digests, the browser receipt hash, and evidence IDs as top-level context links. The recorder recursively removes authorization data, cookies, credentials, passwords, passphrases, secrets, tokens, storage values, form values, and API keys. It does not persist hidden reasoning or profile data. For consequential mutations, a host may link the sanitized outcome to a complete causal receipt chain when every stage exists; the recorder does not invent or require that chain.
 
 ### Cockroach Crawler
 

@@ -45,6 +45,23 @@ await browser.act(session.id, {
 
 maxNetworkRules limits active rules, maxRouteFulfillBytes limits one static body, and maxInterceptedBytes limits cumulative fulfilled bytes. Route listings expose body size and digest, not response content. Use this for deterministic tests and deployment-owned fixtures, never to bypass authorization or site controls.
 
+## Inspect and export redacted observations
+
+network.inspect filters the current session's bounded request observations by method, status, resource type, tab, and limit. network.export emits JSON, NDJSON, or a bounded HAR-shaped document. Authorization headers, cookies, credentials, query secrets, and response bodies are not included.
+
+```
+npx cockroach-browser network \
+  --session "$SESSION_ID" \
+  --method GET \
+  --limit 100 \
+  --token-file .cockroach-browser/auth-token
+
+npx cockroach-browser network export \
+  --session "$SESSION_ID" \
+  --format json \
+  --token-file .cockroach-browser/auth-token > ./artifacts/network.json
+```
+
 ## Remote workers require TLS
 
 The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.
@@ -52,4 +69,4 @@ The daemon binds to localhost by default. Remote binding requires an explicit se
 
 ## Release status
 
-This manual targets Cockroach Browser 0.1.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.2.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

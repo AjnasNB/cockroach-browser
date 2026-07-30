@@ -26,6 +26,28 @@ npx cockroach-browser profile import \
 npx cockroach-browser profile list
 ```
 
+## Checkpoint only the current authorized session
+
+Named state checkpoints save and restore the current session's admitted storage state beneath the deployment-owned data root. They are encrypted, size-bounded, and never discover ambient browser profiles. A checkpoint name cannot contain a path, and restoring it does not widen the session origin or action policy.
+
+```
+await browser.act(session.id, {
+  kind: "state.save",
+  name: "after-reviewed-login",
+  purpose: "Save the exact authorized session state"
+});
+
+await browser.act(session.id, {
+  kind: "state.load",
+  name: "after-reviewed-login",
+  purpose: "Restore the reviewed checkpoint"
+});
+```
+
+## Keep clipboard and tabs under policy
+
+Clipboard reads and writes are separate actions with bounded text output and secret-value references. Exclusive tab locks prevent two workers from silently controlling the same tab; lock, unlock, and status operations remain session-local and receipt-linked.
+
 ## Budget every session
 
 The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.
@@ -37,4 +59,4 @@ Closing a session releases tabs, browser context, traces, and runtime state. Per
 
 ## Release status
 
-This manual targets Cockroach Browser 0.1.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.2.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

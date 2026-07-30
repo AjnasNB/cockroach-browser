@@ -12,9 +12,12 @@ This file is generated from `src/capabilities.ts`.
 | `sessions.profiles` | sessions | Named isolated profiles | **available** | `profile` |
 | `sessions.storage_import` | sessions | Explicit storage-state import | **available** | `profile import` |
 | `sessions.storage_export` | sessions | Explicit storage-state export | **available** | `profile export` |
+| `sessions.state_checkpoints` | sessions | Encrypted state checkpoints | **available** | `state.*` |
+| `sessions.clipboard` | sessions | Policy-gated clipboard | **available** | `clipboard.*` |
 | `sessions.proxy` | sessions | User-supplied proxy | **available** | `proxy` |
 | `sessions.locale` | sessions | Locale and timezone | **available** | `locale/timezoneId` |
 | `tabs.multiple` | interaction | Tabs and popups | **available** | `tab.*` |
+| `tabs.lock` | interaction | Exclusive tab locks | **available** | `tab.lock/unlock/status` |
 | `page.navigate` | interaction | Navigation | **available** | `navigate/back/forward/reload` |
 | `page.refs` | interaction | Snapshot-scoped page references | **available** | `snapshot refs` |
 | `page.xpath` | interaction | Explicit XPath targets | **available** | `action.xpath` |
@@ -36,12 +39,16 @@ This file is generated from `src/capabilities.ts`.
 | `page.upload` | interaction | File upload | **available** | `upload` |
 | `page.download` | interaction | Controlled downloads | **available** | `download` |
 | `evidence.screenshot` | evidence | Screenshots | **available** | `screenshot` |
+| `evidence.paired` | evidence | Paired visual and semantic capture | **available** | `capture.paired and browser_capture` |
+| `evidence.annotations` | evidence | Temporary page annotations | **available** | `annotate.show/clear` |
 | `evidence.pdf` | evidence | PDF capture | **available** | `pdf` |
 | `evidence.trace` | evidence | Playwright traces | **available** | `trace.*` |
 | `evidence.har` | evidence | HAR capture | **available** | `recordHar` |
 | `evidence.video` | evidence | Session video | **available** | `recordVideo` |
 | `evidence.console` | evidence | Console records | **available** | `session evidence` |
 | `evidence.network` | evidence | Network records | **available** | `session evidence` |
+| `evidence.network_inspect` | evidence | Network inspection | **available** | `network.inspect and browser_network` |
+| `evidence.network_export` | evidence | Network export | **available** | `network.export` |
 | `evidence.receipts` | evidence | Hash-chained receipts | **available** | `ActionReceipt` |
 | `evidence.extract` | evidence | Text and HTML extraction | **available** | `extract` |
 | `audit.accessibility` | audit | Accessibility audit | **available** | `audit accessibility` |
@@ -80,6 +87,6 @@ This file is generated from `src/capabilities.ts`.
 
 ## Status model
 
-- **available**: implemented in Cockroach Browser 0.1.1
+- **available**: implemented in Cockroach Browser 0.2.0
 - **adapter**: integration contract is present, but another package or host authority is required
 - **planned**: documented direction, not part of the current release
