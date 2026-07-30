@@ -124,7 +124,7 @@ function baseHead({ title, description, canonical, type = "website" }) {
   <meta name="description" content="${escapeAttr(description)}">
   <meta name="theme-color" content="#050a0d">
   <link rel="canonical" href="${canonical}">
-  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="${type}">
   <meta property="og:title" content="${escapeAttr(pageTitle)}">
@@ -143,7 +143,7 @@ function header(active = "") {
 <header class="site-header">
   <div class="header-inner">
     <a class="brand" href="/">
-      <img src="/assets/logo.svg" alt="" width="34" height="34">
+      <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>${site.name}</span>
       <span class="version">${site.version}</span>
     </a>
@@ -165,7 +165,7 @@ function footer() {
   return `<footer class="footer">
   <div class="shell footer-inner">
     <div>
-      <a class="brand" href="/"><img src="/assets/logo.svg" alt="" width="34" height="34"><span>${site.name}</span></a>
+      <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34"><span>${site.name}</span></a>
       <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
     </div>
     <div class="footer-links">
@@ -399,7 +399,7 @@ ${header("dashboard")}
 function publicationPage() {
   return `${baseHead({
     title: "Technical paper",
-    description: "Implementation-backed technical white paper for Cockroach Browser 0.2.0.",
+    description: "Implementation-backed technical white paper for Cockroach Browser 0.2.1.",
     canonical: `${site.origin}/paper/`,
     type: "article"
   })}
@@ -412,7 +412,7 @@ ${header("paper")}
       <p class="eyebrow">Cockroach Browser / technical paper / version 1.0</p>
       <h1>A local-first browser runtime for AI agents.</h1>
       <p class="kicker">The browser runtime your AI agents can use without inheriting your whole machine.</p>
-      <p class="lede">Ajnas NB · July 2026 · Cockroach Browser 0.2.0</p>
+      <p class="lede">Ajnas NB · July 2026 · Cockroach Browser 0.2.1</p>
       <div class="hero-actions">
         <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.0.pdf">Download the PDF</a>
         <a class="button" href="https://doi.org/10.5281/zenodo.21701792">Cite on Zenodo</a>
@@ -428,13 +428,13 @@ ${header("paper")}
     <section class="manual-section" id="release-surface">
       <span class="section-number">Implementation</span>
       <h2>One package, several explicit control surfaces.</h2>
-      <p>Version 0.2.0 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
+      <p>Version 0.2.1 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
       <p>The source-derived capability registry contains 80 entries: 73 implemented runtime surfaces, 6 host-backed adapters, and 1 explicitly planned capability.</p>
     </section>
     <section class="manual-section" id="status">
       <span class="section-number">Status</span>
       <h2>Implementation-backed and open for technical review.</h2>
-      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.2.0. The paper has not undergone independent peer review.</p>
+      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.2.1. The paper has not undergone independent peer review.</p>
       <p>Permanent publication record: <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
@@ -454,7 +454,7 @@ function notFound() {
 ${header("")}
 <main id="main" class="shell hero">
   <div><p class="eyebrow">404 / outside the admitted route</p><h1>This page is not in the session.</h1><p class="hero-copy">Return to the product or open the documentation map.</p><div class="hero-actions"><a class="button button--primary" href="/">Product</a><a class="button" href="/docs/">Documentation</a></div></div>
-  <img src="/assets/logo.svg" alt="Cockroach Browser globe mark" width="360" height="360">
+  <img src="/assets/logo.png" alt="Cockroach Browser globe mark" width="360" height="360">
 </main>
 ${footer()}`;
 }

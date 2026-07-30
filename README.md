@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  <a href="https://cockroachbrowser.com/docs/">Documentation</a> ·
-  <a href="https://cockroachbrowser.com/docs/capabilities/">80-capability registry</a> ·
+  <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">80-capability registry</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
 </p>
 

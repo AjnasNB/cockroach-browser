@@ -60,7 +60,7 @@ test("serves the packaged dashboard without weakening API authentication", async
   assert.match(page.headers.get("content-security-policy") ?? "", /connect-src 'self'/);
   assert.match(await page.text(), /Cockroach Browser Control Room/);
 
-  for (const path of ["app.js", "styles.css", "assets/logo.svg"]) {
+  for (const path of ["app.js", "styles.css", "assets/logo.png"]) {
     const asset = await fetch(`${server.dashboardUrl}${path}`);
     assert.equal(asset.status, 200, path);
     assert.ok(Number(asset.headers.get("content-length")) > 0, path);

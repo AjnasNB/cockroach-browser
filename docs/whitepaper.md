@@ -2,11 +2,11 @@
 
 **Author:** Ajnas NB  
 **Paper version:** 1.0  
-**Implementation:** Cockroach Browser 0.2.0  
+**Implementation:** Cockroach Browser 0.2.1
 **Date:** July 2026  
 **Software license:** AGPL-3.0-or-later  
 **Document license:** Creative Commons Attribution 4.0 International  
-**Status:** Implementation-backed technical white paper for Cockroach Browser 0.2.0. The paper has not undergone independent peer review.
+**Status:** Implementation-backed technical white paper for Cockroach Browser 0.2.1. The paper has not undergone independent peer review.
 
 ## Abstract
 
@@ -14,7 +14,7 @@ AI agents can use a browser to inspect dynamic applications, fill forms, downloa
 
 Cockroach Browser is a local-first TypeScript and Chromium runtime that separates browser capability from ambient machine authority. A host creates an explicit session with a purpose, allowed origins, allowed actions, allowed effects, and finite budgets. The runtime then provides semantic page references, browser interactions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts within that session. Login, consent, CAPTCHA, and access challenges pause for human handling or a separately authorized resolver; they are not bypassed.
 
-Version 0.2.0 exposes an embedded SDK, an authenticated loopback daemon, a typed client, a command-line interface, an observation-first MCP server, Docker deployment, a local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS. Its source-derived capability registry contains 80 entries: 73 implemented surfaces, 6 host-backed adapters, and 1 explicitly planned capability.
+Version 0.2.1 exposes an embedded SDK, an authenticated loopback daemon, a typed client, a command-line interface, an observation-first MCP server, Docker deployment, a local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS. Its source-derived capability registry contains 80 entries: 73 implemented surfaces, 6 host-backed adapters, and 1 explicitly planned capability.
 
 ## 1. Problem
 
@@ -202,7 +202,7 @@ The supported security line is 0.2.x. Private vulnerability reporting is the req
 
 ## 16. Capability status
 
-The source-derived registry for 0.2.0 contains:
+The source-derived registry for 0.2.1 contains:
 
 - 80 total capability entries
 - 73 available in the package
@@ -213,7 +213,7 @@ The registry covers sessions, profiles, state checkpoints, tabs, interaction, fr
 
 ## 17. Verification
 
-The 0.2.0 release candidate is verified through:
+The 0.2.1 release candidate is verified through:
 
 - Node.js 22, 24, and 26 CI
 - real Chromium boundary tests
@@ -275,7 +275,7 @@ The author thanks Shahin Ahammed for contributions to product direction, use-cas
 
 ## References
 
-1. Cockroach Browser source and documentation, version 0.2.0.
+1. Cockroach Browser source and documentation, version 0.2.1.
 2. Model Context Protocol documentation.
 3. Playwright documentation.
 4. Maqam source and documentation.
