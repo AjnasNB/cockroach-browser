@@ -75,7 +75,7 @@ This file is generated from `src/capabilities.ts`.
 | `integration.qarinah` | integration | Qarinah memory | **adapter** | `cockroach-browser/qarinah` |
 | `integration.crawler` | integration | Cockroach Crawler handoff | **adapter** | `cockroach-browser/crawler` |
 | `integration.productloop` | integration | ProductLoop capability snapshot | **adapter** | `docs/productloop.md` |
-| `integration.webhooks` | integration | Signed event webhooks | **planned** | `roadmap` |
+| `integration.webhooks` | integration | Signed lifecycle webhooks | **available** | `SignedWebhookDispatcher` |
 | `integration.team_sync` | integration | Team session control | **planned** | `roadmap` |
 
 ## Status model

@@ -16,6 +16,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Audits and comparisons](./audits.md)
 - [Jobs and retries](./jobs.md)
 - [MCP](./mcp.md)
+- [Signed webhooks](./webhooks.md)
 - [Maqam](./maqam.md)
 - [Qarinah](./qarinah.md)
 - [Cockroach Crawler](./crawler.md)

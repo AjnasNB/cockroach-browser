@@ -41,21 +41,21 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" aria-current="page">Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" aria-current="page">Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
       <p class="eyebrow">Machine-derived from src/capabilities.ts</p>
       <h1>Capability matrix</h1>
       <p class="kicker">73 named surfaces. No hidden universal-access claim.</p>
-      <p class="lede"><strong>65</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>2</strong> remain planned.</p>
+      <p class="lede"><strong>66</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>1</strong> remain planned.</p>
     </header>
     <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.1.1. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
-      <button type="button" data-cap-filter="available" aria-pressed="false">Available 65</button>
+      <button type="button" data-cap-filter="available" aria-pressed="false">Available 66</button>
       <button type="button" data-cap-filter="adapter" aria-pressed="false">Adapter 6</button>
-      <button type="button" data-cap-filter="planned" aria-pressed="false">Planned 2</button>
+      <button type="button" data-cap-filter="planned" aria-pressed="false">Planned 1</button>
       <input class="cap-search" data-cap-search type="search" aria-label="Search capabilities" placeholder="Search screenshots, MCP, profiles, Maqam...">
     </div>
     <p class="cap-count" data-cap-count>73 capabilities shown</p>
@@ -414,11 +414,11 @@
     <h2>ProductLoop capability snapshot</h2>
     <p>Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority.</p>
     <code>docs/productloop.md</code>
-  </article><article class="cap-card" data-capability data-status="planned">
-    <div class="cap-meta"><span>72 / integration</span><span class="status status--planned">planned</span></div>
-    <h2>Signed event webhooks</h2>
-    <p>Send receipt and job events to configured HTTPS endpoints.</p>
-    <code>roadmap</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>72 / integration</span><span class="status status--available">available</span></div>
+    <h2>Signed lifecycle webhooks</h2>
+    <p>Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery.</p>
+    <code>SignedWebhookDispatcher</code>
   </article><article class="cap-card" data-capability data-status="planned">
     <div class="cap-meta"><span>73 / integration</span><span class="status status--planned">planned</span></div>
     <h2>Team session control</h2>

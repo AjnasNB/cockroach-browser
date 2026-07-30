@@ -17,6 +17,7 @@ npm: https://www.npmjs.com/package/cockroach-browser
 - [Audits and comparisons](https://cockroachbrowser.com/docs/audits/)
 - [Jobs and retries](https://cockroachbrowser.com/docs/jobs/)
 - [MCP](https://cockroachbrowser.com/docs/mcp/)
+- [Signed webhooks](https://cockroachbrowser.com/docs/webhooks/)
 - [Maqam](https://cockroachbrowser.com/docs/maqam/)
 - [Qarinah](https://cockroachbrowser.com/docs/qarinah/)
 - [Cockroach Crawler](https://cockroachbrowser.com/docs/crawler/)
