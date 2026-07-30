@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { homepage, navGroups, pages, site } from "./content.mjs";
 
@@ -25,6 +25,12 @@ await writePage("docs/capabilities/index.html", capabilityPage());
 await writeRootDoc("capabilities.md", capabilityMarkdown());
 await writeRootDoc("README.md", docsReadme());
 await writePage("dashboard/index.html", publicDashboard());
+await writePage("paper/index.html", publicationPage());
+await mkdir(resolve(root, "paper"), { recursive: true });
+await copyFile(
+  resolve(sourceRoot, "docs", "Cockroach-Browser-Technical-White-Paper-v1.0.pdf"),
+  resolve(root, "paper", "Cockroach-Browser-Technical-White-Paper-v1.0.pdf")
+);
 await writePage("404.html", notFound());
 await writePage("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${site.origin}/sitemap.xml\n`);
 await writePage("sitemap.xml", sitemap());
@@ -37,6 +43,7 @@ await writePage(
 Canonical website: ${site.origin}
 Repository: ${site.repository}
 npm: ${site.npm}
+Technical paper: ${site.origin}/paper/
 
 ## Documentation
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](${site.origin}/docs/${slug}/)`).join("\n")}
@@ -76,6 +83,7 @@ await writePage(
   "_redirects",
   `/docs /docs/ 301
 /dashboard /dashboard/ 301
+/paper /paper/ 301
 `
 );
 
@@ -144,6 +152,7 @@ function header(active = "") {
       <a href="/docs/" ${active === "docs" ? 'aria-current="page"' : ""}>Docs</a>
       <a href="/docs/capabilities/">Capabilities</a>
       <a href="/dashboard/" ${active === "dashboard" ? 'aria-current="page"' : ""}>Dashboard</a>
+      <a href="/paper/" ${active === "paper" ? 'aria-current="page"' : ""}>Paper</a>
       <a href="${site.repository}">GitHub</a>
       <a href="${site.npm}">npm</a>
     </nav>
@@ -161,6 +170,7 @@ function footer() {
     </div>
     <div class="footer-links">
       <a href="/docs/security/">Security</a>
+      <a href="/paper/">Technical paper</a>
       <a href="${site.repository}">Source</a>
       <a href="${site.npm}">npm</a>
     </div>
@@ -386,6 +396,52 @@ ${header("dashboard")}
 </html>`;
 }
 
+function publicationPage() {
+  return `${baseHead({
+    title: "Technical paper",
+    description: "Implementation-backed technical white paper for Cockroach Browser 0.2.0.",
+    canonical: `${site.origin}/paper/`,
+    type: "article"
+  })}
+<body>
+${header("paper")}
+<main id="main" class="docs-layout">
+  ${docsSidebar("")}
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser / technical paper / version 1.0</p>
+      <h1>A local-first browser runtime for AI agents.</h1>
+      <p class="kicker">The browser runtime your AI agents can use without inheriting your whole machine.</p>
+      <p class="lede">Ajnas NB · July 2026 · Cockroach Browser 0.2.0</p>
+      <div class="hero-actions">
+        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.0.pdf">Download the PDF</a>
+        <a class="button" href="${site.repository}/blob/main/docs/whitepaper.md">Read the source</a>
+      </div>
+    </header>
+    <section class="manual-section" id="abstract">
+      <span class="section-number">Abstract</span>
+      <h2>Useful browser capability without ambient machine authority.</h2>
+      <p>AI agents can inspect dynamic applications, fill forms, download files, capture evidence, and complete operational workflows. Conventional automation often inherits more authority than the task requires: ambient browser profiles, persistent cookies, arbitrary origins, unrestricted JavaScript, local files, broad network reach, or an unauthenticated remote control port.</p>
+      <p>Cockroach Browser separates browser capability from ambient machine authority. A host creates an explicit session with a purpose, admitted origins, allowed actions, allowed effects, and finite budgets. The runtime then provides semantic page references, browser interactions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts inside that session.</p>
+    </section>
+    <section class="manual-section" id="release-surface">
+      <span class="section-number">Implementation</span>
+      <h2>One package, several explicit control surfaces.</h2>
+      <p>Version 0.2.0 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
+      <p>The source-derived capability registry contains 80 entries: 73 implemented runtime surfaces, 6 host-backed adapters, and 1 explicitly planned capability.</p>
+    </section>
+    <section class="manual-section" id="status">
+      <span class="section-number">Status</span>
+      <h2>Implementation-backed and open for technical review.</h2>
+      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.2.0. The paper has not undergone independent peer review.</p>
+      <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
+    </section>
+  </article>
+  ${pageToc([["Abstract", "abstract"], ["Release surface", "release-surface"], ["Publication status", "status"]])}
+</main>
+${footer()}`;
+}
+
 function notFound() {
   return `${baseHead({
     title: "Page not found",
@@ -453,7 +509,7 @@ function stripHtml(value) {
 }
 
 function sitemap() {
-  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/dashboard/"];
+  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
@@ -508,6 +564,7 @@ The public documentation lives at ${site.origin}/docs/.
 ## Manuals
 
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](./${slug}.md)`).join("\n")}
+- [Technical white paper](./whitepaper.md)
 
 ## Product boundaries
 

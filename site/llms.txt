@@ -5,6 +5,7 @@
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
 npm: https://www.npmjs.com/package/cockroach-browser
+Technical paper: https://cockroachbrowser.com/paper/
 
 ## Documentation
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
