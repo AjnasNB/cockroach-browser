@@ -447,6 +447,9 @@ test("Qarinah receives cited outcome metadata without nested secrets or form val
     sessionId: "session-a",
     purpose: "Update an approved setting",
     timestamp: "2026-07-29T00:00:00.000Z",
+    inputDigest: "input-a",
+    outputDigest: "output-a",
+    receiptHash: "receipt-a",
     evidenceIds: ["ev-a"],
     metadata: {
       unreviewedRoute: "/settings",
@@ -463,6 +466,9 @@ test("Qarinah receives cited outcome metadata without nested secrets or form val
   assert.doesNotMatch(serialized, /top-level-secret|nested-secret|nested-api-key|must-not-leak/);
   assert.doesNotMatch(serialized, /unreviewedRoute|\/settings/);
   assert.match(serialized, /application\/json/);
+  assert.match(serialized, /"inputDigest":"input-a"/);
+  assert.match(serialized, /"outputDigest":"output-a"/);
+  assert.match(serialized, /"receiptHash":"receipt-a"/);
   assert.match(serialized, /"evidenceIds":\["ev-a"\]/);
 });
 

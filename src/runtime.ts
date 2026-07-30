@@ -600,14 +600,24 @@ export class BrowserRuntime {
       evidenceIds,
       ...(failure ? { error: failure } : {})
     });
-    await this.#recordContext(session, "browser.action.completed", {
-      action: action.kind,
-      status,
-      inputDigest,
-      outputDigest,
-      receiptHash: receipt.receiptHash,
-      evidenceIds
-    });
+    await this.#recordContext(
+      session,
+      "browser.action.completed",
+      {
+        action: action.kind,
+        status,
+        effect,
+        risk,
+        policyDigest: policyHash,
+        completedAt
+      },
+      {
+        inputDigest,
+        outputDigest,
+        receiptHash: receipt.receiptHash,
+        evidenceIds
+      }
+    );
     await this.#publishEvent(
       session,
       "browser.action.completed",
@@ -2123,7 +2133,17 @@ export class BrowserRuntime {
     return this.secretResolver.resolve(reference);
   }
 
-  async #recordContext(session: ManagedSession, type: string, metadata: Record<string, unknown>): Promise<void> {
+  async #recordContext(
+    session: ManagedSession,
+    type: string,
+    metadata: Record<string, unknown>,
+    links: {
+      inputDigest?: string;
+      outputDigest?: string;
+      receiptHash?: string;
+      evidenceIds?: string[];
+    } = {}
+  ): Promise<void> {
     if (!this.contextRecorder) return;
     await this.contextRecorder.record({
       type,
@@ -2131,6 +2151,10 @@ export class BrowserRuntime {
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       purpose: session.input.purpose,
       timestamp: nowIso(),
+      ...(links.inputDigest ? { inputDigest: links.inputDigest } : {}),
+      ...(links.outputDigest ? { outputDigest: links.outputDigest } : {}),
+      ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+      ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
       metadata
     });
   }
