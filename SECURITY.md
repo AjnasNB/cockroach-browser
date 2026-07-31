@@ -55,13 +55,13 @@ Qarinah receives redacted, cited browser outcomes and cannot dispatch browser
 work. Cockroach Crawler handles breadth-first collection and does not inherit
 interactive profiles.
 
-## Not security boundaries
+## Governed high-authority controls
 
 Headless mode is not a sandbox. Browser rendering, JavaScript execution, downloads, uploads, extensions, remote CDP, proxies, and imported profiles increase authority. Only enable them for a target you are authorized to operate.
 
-Cockroach Browser does not bypass CAPTCHAs, access controls, rate limits, paywalls, or site authorization. Challenge detection stops and requires a human or an explicitly authorized external workflow.
+Challenge detection stops the automated action path and requires a human or an explicitly configured external resolver operating with the target owner's authorization.
 
-The runtime deliberately excludes CAPTCHA or access-control bypass, covert stealth or cloaking, fingerprint evasion, automatic discovery of ambient browser cookies or profiles, and public unauthenticated server binding. Use explicit runtime-owned profiles, reviewed providers, authenticated transport, human challenge handoff, and exact approval instead. These exclusions are security invariants and must not be weakened by adapters, deployment wrappers, or future capability additions.
+The runtime does not bundle CAPTCHA or access-control bypass, covert stealth or cloaking, fingerprint evasion, automatic discovery of ambient browser cookies or profiles, or public unauthenticated server binding. Supported high-authority paths are explicit runtime-owned profiles, encrypted state import, reviewed providers, deterministic compatibility emulation, authenticated TLS transport, operator-authorized challenge handoff, and exact approval. Adapters and deployment wrappers must preserve those authority checks.
 
 XPath, low-level mouse and keyboard input, dialog handling, and request interception do not expand authority. They remain subject to the same origin, action, effect, approval, and resource policy as semantic-reference actions. Mouse coordinates are limited to the current viewport, prompt values come from opaque host references, and history inspection exposes only sanitized entries observed inside the current session.
 

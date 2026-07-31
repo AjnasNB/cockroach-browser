@@ -10,7 +10,7 @@ const boundaryPhrases = [
   "public unauthenticated server binding"
 ];
 
-test("public surfaces preserve the four deliberate browser security boundaries", async () => {
+test("public surfaces preserve governed paths for four high-authority browser controls", async () => {
   const root = process.cwd();
   const surfaces = await Promise.all([
     readFile(join(root, "README.md"), "utf8"),

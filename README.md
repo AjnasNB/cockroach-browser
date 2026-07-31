@@ -20,18 +20,20 @@ Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-c
 
 The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
 
-It detects login, consent, CAPTCHA, and access challenges and pauses for a human or an explicitly authorized resolver. It does not bypass CAPTCHAs, access controls, paywalls, rate limits, or site authorization.
+It detects login, consent, CAPTCHA, and access challenges and can pause for a human or an operator-authorized resolver. High-authority browser controls stay behind explicit host configuration, session policy, and Maqam-ready approval.
 
-### Deliberate security boundaries
+### Governed high-authority controls
 
-Cockroach Browser intentionally does **not** provide:
+Cockroach Browser keeps powerful browser options explicit instead of discovering or exposing them silently:
 
-- CAPTCHA or access-control bypass
-- covert stealth, cloaking, or fingerprint-evasion behavior
-- automatic discovery of ambient browser cookies or profiles
-- public unauthenticated server binding
+| Requested capability | Governed Cockroach Browser path |
+| --- | --- |
+| CAPTCHA or access-control bypass | Detect and stop on challenges, then hand control to a human or an explicitly configured resolver for a site the operator is authorized to use. No bypass engine is bundled. |
+| Covert stealth, cloaking, or fingerprint evasion | Use deterministic device, locale, timezone, media, permission, proxy, header, and browser-provider configuration for compatibility testing. Configuration cannot silently expand origin or credential authority. |
+| Ambient browser cookies or profiles | Select a runtime-owned persistent profile or explicitly import encrypted storage state. The runtime never scans unrelated user profiles. |
+| Public unauthenticated server binding | Use authenticated remote-worker mode with TLS, bearer authentication, origin policy, and finite budgets. Loopback remains the default. |
 
-The supported paths are explicit persistent profiles, reviewed browser providers, authenticated loopback or TLS transport, human challenge handoff, and Maqam-ready approval for consequential operations. These boundaries are part of the product contract, not missing browser features.
+These controls preserve the powerful operational workflows people expect from an agent browser while keeping the operator—not page content or the model—in charge of authority.
 
 ## Release status
 

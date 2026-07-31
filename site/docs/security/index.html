@@ -58,14 +58,14 @@
     <span class="section-number">01</span>
     <h2>Threat boundary</h2>
 <p>Assume page content is untrusted, agent input may be wrong, downloaded files may be hostile, and browser state may contain credentials. Keep session lifecycle, profile management, secret resolution, and remote binding in host-controlled code.</p>
-  </section><section class="manual-section" id="challenges-stop-automation">
+  </section><section class="manual-section" id="challenges-move-to-an-authorized-operator-path">
     <span class="section-number">02</span>
-    <h2>Challenges stop automation</h2>
-<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the session, records evidence, and waits for a human or authorized resolver. It does not bypass CAPTCHAs, defeat access controls, cloak automation, rotate fingerprints to evade defenses, or promise access after a site denies it.</p>
-  </section><section class="manual-section" id="deliberate-security-boundaries">
+    <h2>Challenges move to an authorized operator path</h2>
+<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.</p>
+  </section><section class="manual-section" id="governed-high-authority-controls">
     <span class="section-number">03</span>
-    <h2>Deliberate security boundaries</h2>
-<p>Cockroach Browser intentionally excludes CAPTCHA or access-control bypass, covert stealth or cloaking, automatic discovery of ambient browser cookies or profiles, and public unauthenticated server binding.</p><p>Use explicit runtime-owned profiles, reviewed browser providers, authenticated loopback or TLS transport, human challenge handoff, and Maqam-ready exact approval for consequential operations. These are product invariants, not missing browser features.</p>
+    <h2>Governed high-authority controls</h2>
+<p>Cockroach Browser does not silently expose CAPTCHA or access-control bypass, covert stealth or cloaking, ambient browser cookies or profiles, or public unauthenticated server binding.</p><p>Use operator-authorized challenge handoff, deterministic compatibility emulation, explicit runtime-owned profiles or encrypted state import, reviewed browser providers, and authenticated loopback or TLS transport. Maqam-ready exact approval keeps consequential operations bound to their reviewed input.</p>
   </section><section class="manual-section" id="exact-approval-for-consequential-actions">
     <span class="section-number">04</span>
     <h2>Exact approval for consequential actions</h2>
@@ -76,7 +76,7 @@
 <ul><li>Bind to loopback unless remote operation is required.</li><li>Require TLS, bearer auth, and a CORS allowlist for remote workers.</li><li>Use exact HTTPS origin allowlists.</li><li>Keep private-network access disabled for untrusted callers.</li><li>Store profile passphrases and proxy credentials in a secret manager.</li><li>Clamp actions, tabs, time, files, snapshots, and evidence.</li><li>Protect evidence and dashboard access with OS or service identity.</li><li>Review third-party page terms and obtain authorization for the workflow.</li></ul>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#threat-boundary">Threat boundary</a><a href="#challenges-stop-automation">Challenges stop automation</a><a href="#deliberate-security-boundaries">Deliberate security boundaries</a><a href="#exact-approval-for-consequential-actions">Exact approval for consequential actions</a><a href="#deployment-checklist">Deployment checklist</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#threat-boundary">Threat boundary</a><a href="#challenges-move-to-an-authorized-operator-path">Challenges move to an authorized operator path</a><a href="#governed-high-authority-controls">Governed high-authority controls</a><a href="#exact-approval-for-consequential-actions">Exact approval for consequential actions</a><a href="#deployment-checklist">Deployment checklist</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">
