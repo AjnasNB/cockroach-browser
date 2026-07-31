@@ -6,6 +6,7 @@ import test from "node:test";
 import type { BrowserRuntime } from "../src/runtime.js";
 import { BrowserClient } from "../src/client.js";
 import { startBrowserServer } from "../src/server.js";
+import { TeamSessionStore } from "../src/team-sessions.js";
 
 test("binds to loopback by default and rejects unauthenticated requests", async (t) => {
   const root = await temporaryDirectory(t);
@@ -34,7 +35,7 @@ test("binds to loopback by default and rejects unauthenticated requests", async 
   assert.deepEqual(await allowed.json(), {
     ok: true,
     name: "cockroach-browser",
-    version: "0.2.1",
+    version: "0.3.0",
     sessions: 0,
     evidence: { ok: true, records: 0, bytes: 0, failures: [] }
   });
@@ -145,6 +146,70 @@ test("exposes only typed read-only capture and network routes without enabling r
   );
   assert.equal(actions[0]?.purpose, "Capture paired visual and semantic evidence");
   assert.equal(actions[2]?.outputFormat, "har");
+});
+
+test("exposes the durable local job API only after explicit execution opt-in", async (t) => {
+  const token = "j".repeat(32);
+  const executed: string[] = [];
+  const runtime = {
+    ...fakeRuntime(await temporaryDirectory(t)),
+    act: async (_sessionId: string, action: { kind: string }) => {
+      executed.push(action.kind);
+      return { status: "succeeded" };
+    }
+  } as unknown as BrowserRuntime;
+  const server = await startBrowserServer({ runtime, port: 0, token, enableJobs: true, allowRawActions: true });
+  t.after(() => server.close());
+  const client = new BrowserClient({ baseUrl: server.url, token });
+
+  const queued = await client.enqueueJob({
+    sessionId: "session-a",
+    purpose: "Run the reviewed local plan",
+    actions: [{ kind: "snapshot", purpose: "Record the current page" }]
+  });
+  assert.equal(queued.state, "queued");
+
+  let completed = await client.job(queued.id);
+  for (let attempt = 0; attempt < 20 && completed.state !== "succeeded"; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    completed = await client.job(queued.id);
+  }
+  assert.equal(completed.state, "succeeded");
+  assert.deepEqual(executed, ["snapshot"]);
+  assert.equal((await client.jobs()).length, 1);
+});
+
+test("filters evidence by persistent team-session grants", async (t) => {
+  const root = await temporaryDirectory(t);
+  const teamSessions = new TeamSessionStore(join(root, "team-sessions.json"));
+  await teamSessions.initialize();
+  await teamSessions.claim("session-a", "alice");
+  const runtime = {
+    ...fakeRuntime(root),
+    evidence: {
+      verify: async () => ({ ok: true, records: 2, bytes: 0, failures: [] }),
+      list: (sessionId?: string) => [
+        { id: "evidence-a", sessionId: "session-a", kind: "snapshot" },
+        { id: "evidence-b", sessionId: "session-b", kind: "snapshot" }
+      ].filter((record) => !sessionId || record.sessionId === sessionId)
+    }
+  } as unknown as BrowserRuntime;
+  const server = await startBrowserServer({
+    runtime,
+    port: 0,
+    token: "z".repeat(32),
+    actorTokens: { alice: "a".repeat(32), bob: "b".repeat(32) },
+    teamSessions
+  });
+  t.after(() => server.close());
+
+  const alice = await fetch(`${server.url}/v1/evidence`, { headers: { authorization: `Bearer ${"a".repeat(32)}` } });
+  assert.equal(alice.status, 200);
+  assert.deepEqual((await alice.json() as { evidence: Array<{ id: string }> }).evidence.map((record) => record.id), ["evidence-a"]);
+
+  const bob = await fetch(`${server.url}/v1/evidence`, { headers: { authorization: `Bearer ${"b".repeat(32)}` } });
+  assert.equal(bob.status, 200);
+  assert.deepEqual((await bob.json() as { evidence: unknown[] }).evidence, []);
 });
 
 test("refuses a non-loopback listener without explicit remote mode and TLS", async () => {

@@ -23,13 +23,18 @@ import type {
   ApprovalDecision,
   ApprovalProvider,
   BrowserAction,
+  BrowserActionBatchInput,
+  BrowserActionBatchResult,
   BrowserEventPublisher,
   BrowserHistoryEntry,
+  BrowserActivityQuery,
+  BrowserLifecycleEvent,
   BrowserNetworkRecord,
   ChallengeReport,
   ContextRecorder,
   EvidenceRecord,
   NetworkRouteSummary,
+  NavigationGraph,
   PageSnapshot,
   ResourceBudget,
   SessionCreateInput,
@@ -37,6 +42,8 @@ import type {
   TabLockSummary,
   TabSummary
 } from "./contracts.js";
+import { ActivityLedger, type ActivityLedgerOptions } from "./activity.js";
+import { resolveBrowserProvider } from "./browser-discovery.js";
 import { canonicalJson, newId, nowIso, sha256 } from "./canonical.js";
 import { detectChallenge } from "./challenge.js";
 import { CockroachBrowserError, errorMessage } from "./errors.js";
@@ -58,6 +65,7 @@ import {
   type DnsResolver
 } from "./policy.js";
 import { ProfileVault } from "./profile-vault.js";
+import { PersistentBrowserProfileStore } from "./persistent-profiles.js";
 import { captureSnapshot, locatorFor } from "./snapshot.js";
 
 export interface SecretResolver {
@@ -73,6 +81,7 @@ export interface BrowserRuntimeOptions {
   dnsResolver?: DnsResolver;
   uploadRoots?: string[];
   now?: () => Date;
+  activity?: ActivityLedgerOptions;
 }
 
 interface InternalTabLock extends TabLockSummary {
@@ -89,7 +98,7 @@ interface ConsoleRecord {
 interface ManagedSession {
   input: SessionCreateInput;
   id: string;
-  browser: Browser;
+  browser?: Browser;
   context: BrowserContext;
   attached: boolean;
   state: SessionSummary["state"];
@@ -114,6 +123,7 @@ interface ManagedSession {
   tabLocks: Map<string, InternalTabLock>;
   routeHandler?: (route: Route) => Promise<void>;
   pageHandler?: (page: Page) => void;
+  persistentProfile?: string;
 }
 
 const CHALLENGE_SAFE_ACTIONS = new Set([
@@ -136,6 +146,7 @@ const CHALLENGE_SAFE_ACTIONS = new Set([
 export class BrowserRuntime {
   readonly root: string;
   readonly profiles: ProfileVault;
+  readonly persistentProfiles: PersistentBrowserProfileStore;
   readonly evidence: EvidenceStore;
   readonly approvalProvider?: ApprovalProvider;
   readonly contextRecorder?: ContextRecorder;
@@ -143,12 +154,15 @@ export class BrowserRuntime {
   readonly secretResolver?: SecretResolver;
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
+  readonly activity: ActivityLedger;
   #sessions = new Map<string, ManagedSession>();
+  #activePersistentProfiles = new Map<string, string>();
   #initialized = false;
 
   constructor(options: BrowserRuntimeOptions = {}) {
     this.root = resolve(options.root ?? join(homedir(), ".cockroach-browser"));
     this.profiles = new ProfileVault(join(this.root, "profiles"));
+    this.persistentProfiles = new PersistentBrowserProfileStore(join(this.root, "browser-profiles"));
     this.evidence = new EvidenceStore({ root: join(this.root, "evidence"), maxBytes: 10 * 1024 ** 3 });
     if (options.approvalProvider) this.approvalProvider = options.approvalProvider;
     if (options.contextRecorder) this.contextRecorder = options.contextRecorder;
@@ -158,6 +172,7 @@ export class BrowserRuntime {
     this.uploadRoots = Object.freeze(
       (options.uploadRoots ?? [join(this.root, "uploads")]).map((entry) => resolve(entry))
     );
+    this.activity = new ActivityLedger(options.activity);
   }
 
   async initialize(): Promise<void> {
@@ -165,6 +180,7 @@ export class BrowserRuntime {
     await mkdir(this.root, { recursive: true });
     for (const uploadRoot of this.uploadRoots) await mkdir(uploadRoot, { recursive: true });
     await this.profiles.initialize();
+    await this.persistentProfiles.initialize();
     await this.evidence.initialize();
     this.#initialized = true;
   }
@@ -197,21 +213,35 @@ export class BrowserRuntime {
       : undefined;
     const profilePassphrase = input.profilePassphrase;
     delete input.profilePassphrase;
+    const provider = await resolveBrowserProvider(input.browserProvider, {
+      ...(input.executablePath ? { executablePath: input.executablePath } : {}),
+      ...(input.cdpEndpoint ? { cdpEndpoint: input.cdpEndpoint } : {})
+    });
+    if (provider.persistentProfile && policy.allowedProfiles && !policy.allowedProfiles.includes(provider.persistentProfile)) {
+      throw new CockroachBrowserError("PROFILE_DENIED", `Persistent profile ${provider.persistentProfile} is not allowed by policy.`);
+    }
+    if (provider.persistentProfile && this.#activePersistentProfiles.has(provider.persistentProfile)) {
+      throw new CockroachBrowserError(
+        "PERSISTENT_PROFILE_IN_USE",
+        `Persistent profile ${provider.persistentProfile} is already owned by session ${this.#activePersistentProfiles.get(provider.persistentProfile)}.`
+      );
+    }
+    if (provider.persistentProfile) this.#activePersistentProfiles.set(provider.persistentProfile, id);
     const createdAt = nowIso();
     let browser: Browser | undefined;
     let context: BrowserContext | undefined;
     let attached = false;
     let managedSession: ManagedSession | undefined;
     try {
-      if (input.cdpEndpoint) {
-        await assertCdpEndpoint(input.cdpEndpoint, Boolean(policy.allowRemote), this.dnsResolver);
+      if (provider.cdpEndpoint) {
+        await assertCdpEndpoint(provider.cdpEndpoint, Boolean(policy.allowRemote), this.dnsResolver);
         if (input.recordHar || input.recordVideo) {
           throw new CockroachBrowserError(
             "ATTACHED_CAPTURE_DENIED",
             "HAR and video recording require a runtime-owned browser context, not an attached CDP context."
           );
         }
-        browser = await chromium.connectOverCDP(input.cdpEndpoint);
+        browser = await chromium.connectOverCDP(provider.cdpEndpoint);
         // From this point the runtime is a guest of a host-owned browser. A
         // failed admission check must never close the host context.
         attached = true;
@@ -239,12 +269,15 @@ export class BrowserRuntime {
                 : {})
             }
           : undefined;
+        const extensionArgs = provider.extensions.length
+          ? [`--disable-extensions-except=${provider.extensions.join(",")}`, `--load-extension=${provider.extensions.join(",")}`]
+          : [];
         const launchOptions: NonNullable<Parameters<typeof chromium.launch>[0]> = {
           headless: (input.mode ?? "headless") === "headless",
-          ...(input.executablePath ? { executablePath: resolve(input.executablePath) } : {}),
-          ...(proxy ? { proxy } : {})
+          ...(provider.executablePath ? { executablePath: provider.executablePath } : {}),
+          ...(proxy ? { proxy } : {}),
+          ...(provider.arguments.length || extensionArgs.length ? { args: [...provider.arguments, ...extensionArgs] } : {})
         };
-        browser = await chromium.launch(launchOptions);
         let storageState: Record<string, unknown> | undefined;
         if (input.profile) {
           if (!profilePassphrase) {
@@ -275,7 +308,25 @@ export class BrowserRuntime {
           ...(input.recordHar ? { recordHar: { path: join(sessionArtifactRoot, "network.har"), mode: "minimal" } } : {}),
           ...(input.recordVideo ? { recordVideo: { dir: join(sessionArtifactRoot, "video") } } : {})
         };
-        context = await browser.newContext(contextOptions);
+        if (provider.persistentProfile || provider.extensions.length) {
+          if ((input.mode ?? "headless") !== "headed") {
+            throw new CockroachBrowserError("PERSISTENT_HEADED_REQUIRED", "Persistent profiles and reviewed browser extensions require a headed session.");
+          }
+          if (input.profile) {
+            throw new CockroachBrowserError("PROFILE_MODE_CONFLICT", "Persistent browser sessions cannot also import an encrypted storage-state profile.");
+          }
+          const persistentRoot = provider.persistentProfile
+            ? (await this.persistentProfiles.prepare(provider.persistentProfile)).path
+            : join(sessionArtifactRoot, "extension-profile");
+          context = await chromium.launchPersistentContext(persistentRoot, {
+            ...launchOptions,
+            ...contextOptions
+          });
+          browser = context.browser() ?? undefined;
+        } else {
+          browser = await chromium.launch(launchOptions);
+          context = await browser.newContext(contextOptions);
+        }
         // Headers may contain bearer credentials. The browser context has its
         // own copy; do not retain them in the long-lived session record.
         delete input.extraHTTPHeaders;
@@ -284,7 +335,7 @@ export class BrowserRuntime {
       const session: ManagedSession = {
         input,
         id,
-        browser,
+        ...(browser ? { browser } : {}),
         context,
         attached,
         state: "starting",
@@ -305,7 +356,8 @@ export class BrowserRuntime {
         actionTail: Promise.resolve(),
         dnsPins,
         consumedApprovals: new Set(),
-        tabLocks: new Map()
+        tabLocks: new Map(),
+        ...(provider.persistentProfile ? { persistentProfile: provider.persistentProfile } : {})
       };
       managedSession = session;
       this.#sessions.set(id, session);
@@ -337,6 +389,7 @@ export class BrowserRuntime {
       if (context && !attached) await context.close().catch(() => undefined);
       if (browser && !attached) await browser.close().catch(() => undefined);
       this.#sessions.delete(id);
+      if (provider.persistentProfile) this.#activePersistentProfiles.delete(provider.persistentProfile);
       throw error;
     }
   }
@@ -369,6 +422,63 @@ export class BrowserRuntime {
 
   async sessions(): Promise<SessionSummary[]> {
     return Promise.all([...this.#sessions.keys()].map((id) => this.session(id)));
+  }
+
+  activities(query: BrowserActivityQuery = {}): BrowserLifecycleEvent[] {
+    return this.activity.list(query);
+  }
+
+  navigationGraph(id: string): NavigationGraph {
+    const session = this.#requireSession(id);
+    const nodeMap = new Map<string, NavigationGraph["nodes"][number]>();
+    const edgeMap = new Map<string, NavigationGraph["edges"][number]>();
+    const previousByTab = new Map<string, string>();
+    for (const entry of session.history) {
+      const nodeId = sha256({ tabId: entry.tabId, url: entry.url }).slice(0, 24);
+      const existing = nodeMap.get(nodeId);
+      if (existing) {
+        existing.lastObservedAt = entry.observedAt;
+        existing.visits += 1;
+        if (entry.title) existing.title = entry.title;
+      } else {
+        nodeMap.set(nodeId, {
+          id: nodeId,
+          tabId: entry.tabId,
+          url: entry.url,
+          title: entry.title,
+          firstObservedAt: entry.observedAt,
+          lastObservedAt: entry.observedAt,
+          visits: 1
+        });
+      }
+      const from = previousByTab.get(entry.tabId);
+      if (from && from !== nodeId) {
+        const edgeId = sha256({ tabId: entry.tabId, from, to: nodeId, source: entry.source }).slice(0, 24);
+        const edge = edgeMap.get(edgeId);
+        if (edge) {
+          edge.traversals += 1;
+          edge.observedAt = entry.observedAt;
+        } else {
+          edgeMap.set(edgeId, {
+            id: edgeId,
+            tabId: entry.tabId,
+            from,
+            to: nodeId,
+            source: entry.source,
+            observedAt: entry.observedAt,
+            traversals: 1
+          });
+        }
+      }
+      previousByTab.set(entry.tabId, nodeId);
+    }
+    return {
+      sessionId: id,
+      generatedAt: nowIso(),
+      nodes: [...nodeMap.values()],
+      edges: [...edgeMap.values()],
+      truncated: session.history.length >= session.budget.maxHistoryEntries
+    };
   }
 
   async closeSession(id: string, options: { saveProfile?: boolean; passphrase?: string } = {}): Promise<void> {
@@ -424,7 +534,8 @@ export class BrowserRuntime {
         });
       }
     }
-    if (!session.attached) await session.browser.close();
+    if (!session.attached && session.browser) await session.browser.close();
+    if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
     session.state = "closed";
     session.updatedAt = nowIso();
     await this.#recordContext(session, "browser.session.closed", {});
@@ -437,6 +548,31 @@ export class BrowserRuntime {
 
   async act(sessionId: string, action: BrowserAction): Promise<{ output: unknown; receipt: ActionReceipt }> {
     return this.#queueAction(sessionId, action);
+  }
+
+  async actBatch(sessionId: string, input: BrowserActionBatchInput): Promise<BrowserActionBatchResult> {
+    if (!Array.isArray(input.actions) || input.actions.length === 0 || input.actions.length > 100) {
+      throw new CockroachBrowserError("ACTION_BATCH_INVALID", "Action batches require between 1 and 100 exact actions.");
+    }
+    const results: BrowserActionBatchResult["results"] = [];
+    let failed = 0;
+    for (let index = 0; index < input.actions.length; index += 1) {
+      try {
+        const result = await this.act(sessionId, input.actions[index]!);
+        results.push({ index, output: result.output, receipt: result.receipt });
+      } catch (error) {
+        failed += 1;
+        results.push({
+          index,
+          error: {
+            code: error instanceof CockroachBrowserError ? error.code : "ACTION_FAILED",
+            message: errorMessage(error)
+          }
+        });
+        if (input.stopOnError !== false) break;
+      }
+    }
+    return { results, completed: results.length - failed, failed };
   }
 
   async [GOVERNANCE_DISPATCH](
@@ -488,6 +624,12 @@ export class BrowserRuntime {
     let failure: { code: string; message: string } | undefined;
     let challengeTransition: "detected" | undefined;
     const evidenceIds: string[] = [];
+
+    await this.#publishEvent(session, "browser.action.started", {
+      action: action.kind,
+      effect,
+      risk
+    });
 
     try {
       this.#assertSessionBudget(session);
@@ -1140,6 +1282,104 @@ export class BrowserRuntime {
         if (!action.expression) throw new CockroachBrowserError("EXPRESSION_REQUIRED", "Evaluate requires JavaScript source.");
         const value = await page.evaluate((expression) => globalThis.eval(expression), action.expression);
         return structuredClone(value);
+      }
+      case "query.inspect": {
+        const query = action.query ?? {};
+        const properties: string[] = query.properties?.length
+          ? [...new Set(query.properties)]
+          : ["text", "attributes", "box", "value", "checked", "visible", "enabled", "count"];
+        const locator = action.ref || action.selector || action.xpath ? await target() : page.locator("body");
+        const total = await locator.count();
+        const returned = query.all ? Math.min(total, 100) : Math.min(total, 1);
+        const names = [...new Set(query.attributeNames ?? [])];
+        if (names.length > 64 || names.some((name) => !/^[A-Za-z_:][A-Za-z0-9:._-]{0,127}$/.test(name))) {
+          throw new CockroachBrowserError("QUERY_ATTRIBUTE_INVALID", "Attribute queries accept at most 64 bounded attribute names.");
+        }
+        const items: Array<Record<string, unknown>> = [];
+        for (let index = 0; index < returned; index += 1) {
+          const item = locator.nth(index);
+          const result: Record<string, unknown> = {};
+          if (properties.includes("text")) result.text = (await item.innerText({ timeout }).catch(() => "")).slice(0, session.budget.maxSnapshotChars);
+          if (properties.includes("html")) result.html = (await item.innerHTML({ timeout }).catch(() => "")).slice(0, session.budget.maxSnapshotChars);
+          if (properties.includes("attributes")) {
+            result.attributes = await item.evaluate((element, requested) => {
+              const entries = requested.length
+                ? requested.map((name) => [name, element.getAttribute(name)] as const)
+                : [...element.attributes].slice(0, 64).map((attribute) => [attribute.name, attribute.value] as const);
+              return Object.fromEntries(entries.filter(([, value]) => value !== null));
+            }, names);
+          }
+          if (properties.includes("box")) result.box = await item.boundingBox();
+          if (properties.includes("value")) result.value = await item.inputValue({ timeout }).catch(() => null);
+          if (properties.includes("checked")) result.checked = await item.isChecked({ timeout }).catch(() => null);
+          if (properties.includes("visible")) result.visible = await item.isVisible();
+          if (properties.includes("enabled")) result.enabled = await item.isEnabled({ timeout }).catch(() => null);
+          items.push(result);
+        }
+        return { count: total, returned, items };
+      }
+      case "emulation.set": {
+        const emulation = action.emulation;
+        if (!emulation || Object.keys(emulation).length === 0) {
+          throw new CockroachBrowserError("EMULATION_REQUIRED", "Emulation requires at least one explicit setting.");
+        }
+        if (emulation.viewport) {
+          const width = boundedInteger(emulation.viewport.width, 320, 7680, "VIEWPORT_INVALID");
+          const height = boundedInteger(emulation.viewport.height, 200, 4320, "VIEWPORT_INVALID");
+          await page.setViewportSize({ width, height });
+        }
+        if (emulation.media !== undefined || emulation.colorScheme || emulation.reducedMotion || emulation.forcedColors) {
+          await page.emulateMedia({
+            ...(emulation.media !== undefined ? { media: emulation.media } : {}),
+            ...(emulation.colorScheme ? { colorScheme: emulation.colorScheme } : {}),
+            ...(emulation.reducedMotion ? { reducedMotion: emulation.reducedMotion } : {}),
+            ...(emulation.forcedColors ? { forcedColors: emulation.forcedColors } : {})
+          });
+        }
+        if (emulation.offline !== undefined) await session.context.setOffline(emulation.offline);
+        if (emulation.extraHTTPHeaders) {
+          const headers = boundedHeaders(emulation.extraHTTPHeaders);
+          await session.context.setExtraHTTPHeaders(headers);
+        }
+        if (emulation.geolocation === null) {
+          await session.context.setGeolocation(null);
+        } else if (emulation.geolocation) {
+          const { latitude, longitude, accuracy = 0 } = emulation.geolocation;
+          if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180 || !Number.isFinite(accuracy) || accuracy < 0 || accuracy > 100_000) {
+            throw new CockroachBrowserError("GEOLOCATION_INVALID", "Geolocation must use valid latitude, longitude, and bounded accuracy values.");
+          }
+          await session.context.setGeolocation({ latitude, longitude, accuracy });
+        }
+        if (emulation.permissions) {
+          const permissions = [...new Set(emulation.permissions)];
+          if (permissions.length > 2) throw new CockroachBrowserError("PERMISSION_LIMIT_EXCEEDED", "Only reviewed geolocation and notification permissions are accepted.");
+          await session.context.grantPermissions(permissions, { origin: new URL(page.url()).origin });
+        }
+        return { applied: Object.keys(emulation).sort() };
+      }
+      case "emulation.clear":
+        await page.emulateMedia({ media: null, colorScheme: "no-preference", reducedMotion: "no-preference", forcedColors: "none" });
+        await session.context.setOffline(false);
+        await session.context.setGeolocation(null);
+        await session.context.clearPermissions();
+        await session.context.setExtraHTTPHeaders({});
+        if (session.input.viewport) await page.setViewportSize(session.input.viewport);
+        return { cleared: true };
+      case "cache.clear": {
+        const cdp = await session.context.newCDPSession(page);
+        await cdp.send("Network.clearBrowserCache");
+        await cdp.detach();
+        return { cleared: "browser-cache" };
+      }
+      case "console.clear": {
+        const removed = session.console.length;
+        session.console.length = 0;
+        return { cleared: removed };
+      }
+      case "network.clear": {
+        const removed = session.network.length;
+        session.network.length = 0;
+        return { cleared: removed };
       }
       case "wait":
         if (action.ref || action.selector || action.xpath) {
@@ -2183,19 +2423,21 @@ export class BrowserRuntime {
       evidenceIds?: string[];
     } = {}
   ): Promise<void> {
+    const event: BrowserLifecycleEvent = {
+      id: newId("event"),
+      type,
+      occurredAt: nowIso(),
+      sessionId: session.id,
+      ...(session.input.actor ? { actor: session.input.actor } : {}),
+      purpose: session.input.purpose,
+      ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+      ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
+      metadata
+    };
+    this.activity.append(event);
     if (!this.eventPublisher) return;
     try {
-      await this.eventPublisher.publish({
-        id: newId("event"),
-        type,
-        occurredAt: nowIso(),
-        sessionId: session.id,
-        ...(session.input.actor ? { actor: session.input.actor } : {}),
-        purpose: session.input.purpose,
-        ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
-        ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
-        metadata
-      });
+      await this.eventPublisher.publish(structuredClone(event));
     } catch {
       // Lifecycle delivery is operational telemetry. A failed endpoint must
       // never change the result of a browser action or evidence capture.
@@ -2333,6 +2575,25 @@ function stringRecord(value: unknown, label: string): Record<string, string> {
       );
     }
     result[key] = entry;
+  }
+  return result;
+}
+
+function boundedHeaders(value: Record<string, string>): Record<string, string> {
+  const entries = Object.entries(value);
+  if (entries.length > 64) {
+    throw new CockroachBrowserError("HEADER_LIMIT_EXCEEDED", "At most 64 explicit HTTP headers may be emulated.");
+  }
+  const result: Record<string, string> = {};
+  for (const [rawName, rawValue] of entries) {
+    const name = rawName.trim().toLowerCase();
+    if (!/^[!#$%&'*+.^_`|~0-9a-z-]{1,128}$/.test(name) || typeof rawValue !== "string" || Buffer.byteLength(rawValue) > 8_192) {
+      throw new CockroachBrowserError("HEADER_INVALID", "Emulated headers must use valid bounded HTTP names and string values.");
+    }
+    if (["authorization", "cookie", "proxy-authorization", "host", "content-length"].includes(name)) {
+      throw new CockroachBrowserError("HEADER_SECRET_DENIED", `Header ${name} must enter through a host secret or session configuration.`);
+    }
+    result[name] = rawValue;
   }
   return result;
 }

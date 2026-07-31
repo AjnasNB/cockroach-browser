@@ -29,7 +29,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.2.1</span>
+      <span class="version">0.3.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -45,7 +45,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" aria-current="page">Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" aria-current="page">Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -59,8 +59,8 @@
     <h2>Configure one endpoint and an opaque key reference</h2>
 <p><code>SignedWebhookDispatcher</code> implements <code>BrowserEventPublisher</code>. Attach it to <code>BrowserRuntime</code> to queue session, action, challenge, and evidence events. Endpoint configuration stores only an opaque <code>ref:</code> value. The host-owned resolver returns the actual key during delivery, and the key is never persisted in configuration, queue entries, dead letters, or receipts.</p> <p>Endpoint URLs must use HTTPS and cannot contain credentials, a query string, or a fragment. Configuration resolves the hostname once to reject an invalid destination early; every delivery resolves and validates it again.</p>
 <div class="code-block">
-  <div class="code-head"><span>webhooks.ts</span><button class="copy-code" type="button" data-copy="#code-18">Copy</button></div>
-  <pre><code id="code-18">import {
+  <div class="code-head"><span>webhooks.ts</span><button class="copy-code" type="button" data-copy="#code-23">Copy</button></div>
+  <pre><code id="code-23">import {
   BrowserRuntime,
   SignedWebhookDispatcher
 } from &quot;cockroach-browser&quot;;
@@ -112,8 +112,8 @@ await browser.initialize();</code></pre>
     <h2>Keep publish and drain as separate authorities</h2>
 <p><code>publish()</code> validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. <code>drain()</code> is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch.</p> <p>Run the drain from a deployment-owned scheduler or worker. An endpoint failure never changes the result of the browser action that produced the lifecycle event.</p>
 <div class="code-block">
-  <div class="code-head"><span>drain.ts</span><button class="copy-code" type="button" data-copy="#code-19">Copy</button></div>
-  <pre><code id="code-19">// Publishing is local-only. Draining owns DNS, key resolution, and HTTPS.
+  <div class="code-head"><span>drain.ts</span><button class="copy-code" type="button" data-copy="#code-24">Copy</button></div>
+  <pre><code id="code-24">// Publishing is local-only. Draining owns DNS, key resolution, and HTTPS.
 const result = await webhooks.drain({
   maxItems: 50,
   deadlineMs: 30_000
@@ -136,8 +136,8 @@ console.log({ result, health, receiptHead: integrity.receiptHead });</code></pre
     <h2>Verify the signature before parsing or dispatching</h2>
 <p>Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and <code>v1=&lt;hex&gt;</code> signature. The signature is HMAC-SHA256 over the domain string <code>cockroach-browser.webhook.v1</code>, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. <code>verifyWebhookSignature()</code> checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison.</p> <p>The built-in <code>WebhookReplayGuard</code> is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.</p>
 <div class="code-block">
-  <div class="code-head"><span>receiver.ts</span><button class="copy-code" type="button" data-copy="#code-20">Copy</button></div>
-  <pre><code id="code-20">import {
+  <div class="code-head"><span>receiver.ts</span><button class="copy-code" type="button" data-copy="#code-25">Copy</button></div>
+  <pre><code id="code-25">import {
   WebhookReplayGuard,
   verifyWebhookSignature
 } from &quot;cockroach-browser&quot;;

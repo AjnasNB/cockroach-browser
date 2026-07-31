@@ -195,6 +195,16 @@ test("denies optional high-authority surfaces until each is enabled", () => {
   );
   assert.equal(annotations.allowed, false);
   assert.match(annotations.reason, /annotations are disabled/i);
+
+  const emulation = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "emulation.set"]
+    },
+    { kind: "emulation.set", emulation: { offline: true } }
+  );
+  assert.equal(emulation.allowed, false);
+  assert.match(emulation.reason, /emulation is disabled/i);
 });
 
 test("marks configured mutations for exact approval", () => {
@@ -242,6 +252,22 @@ test("dialog acceptance and route mutations remain approval-bound after explicit
   assert.equal(networkRoute.effect, "write");
   assert.equal(networkRoute.risk, "critical");
   assert.equal(networkRoute.requiresApproval, true);
+});
+
+test("emulation remains approval-bound after explicit opt-in", () => {
+  const decision = decide(
+    {
+      ...PUBLIC_POLICY,
+      allowEmulation: true,
+      allowedActions: [...(PUBLIC_POLICY.allowedActions ?? []), "emulation.set"],
+      requireApprovalFor: ["emulation.set"]
+    },
+    { kind: "emulation.set", emulation: { viewport: { width: 1280, height: 720 }, offline: false } }
+  );
+  assert.equal(decision.allowed, true);
+  assert.equal(decision.effect, "write");
+  assert.equal(decision.risk, "critical");
+  assert.equal(decision.requiresApproval, true);
 });
 
 function decide(policy: BrowserPolicy, action: Omit<BrowserAction, "purpose">) {

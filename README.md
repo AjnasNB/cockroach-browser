@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
-  <a href="https://cockroachbrowser.com/docs/capabilities/">80-capability registry</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">93-capability registry</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
 </p>
 
@@ -24,12 +24,12 @@ It detects login, consent, CAPTCHA, and access challenges and pauses for a human
 
 ## Release status
 
-Current release line: **0.2.1**
+Current release line: **0.3.0**
 
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 80 entries, with 73 available, 6 adapter-backed, and 1 planned
+- Capability registry: 93 entries, with 87 available and 6 adapter-backed
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 - Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
 - DOI: [10.5281/zenodo.21701792](https://doi.org/10.5281/zenodo.21701792)
@@ -195,10 +195,21 @@ The authenticated daemon exposes:
 | Method | Route | Purpose |
 | --- | --- | --- |
 | GET | `/v1/health` | Runtime and evidence integrity health |
+| GET | `/v1/openapi.json` | Machine-readable authenticated route index |
+| GET | `/v1/metrics` | Prometheus-compatible operational counters |
+| GET | `/v1/activity` | Bounded, actor-filtered activity ledger |
+| GET | `/v1/activity/stream` | Server-sent lifecycle activity stream |
+| GET, POST, DELETE | `/v1/profiles/:name?` | Administrator-owned persistent profile lifecycle |
+| GET, POST | `/v1/jobs` | Opt-in bounded local job queue |
+| GET | `/v1/jobs/:id` | Inspect one visible job |
+| POST | `/v1/jobs/:id/cancel` | Cancel queued or running work |
 | GET | `/v1/capabilities` | Source-derived capability catalog |
 | GET, POST | `/v1/sessions` | List or create authorized sessions |
 | GET, DELETE | `/v1/sessions/:id` | Inspect or close one session |
+| GET | `/v1/sessions/:id/navigation-graph` | Session-local URL nodes and traversed edges |
+| GET, POST | `/v1/sessions/:id/access/*` | Owner-managed viewer and operator grants when configured |
 | POST | `/v1/sessions/:id/actions` | Optional trusted-host action dispatch |
+| POST | `/v1/sessions/:id/actions/batch` | Optional bounded ordered action batch |
 | POST | `/v1/sessions/:id/snapshot` | Semantic snapshot |
 | POST | `/v1/sessions/:id/audit` | Read-only audits |
 | POST | `/v1/sessions/:id/compare` | Visual comparison |
@@ -226,7 +237,7 @@ console.log(await browser.health());
 console.log(await browser.capabilities());
 ```
 
-`BrowserClient` supports health, capabilities, session creation and inspection, session close, actions, snapshots, paired capture, bounded network observation and export, audits, and human-handoff resume. The daemon still enforces its own route and session-authority settings.
+`BrowserClient` supports health, capabilities, session creation and inspection, session close, navigation graphs, actions, bounded batches, jobs, snapshots, paired capture, bounded network observation and export, audits, persistent profile administration, activity polling, and human-handoff resume. The daemon still enforces its own route and session-authority settings.
 
 ## Connect through MCP
 
@@ -237,7 +248,7 @@ Start the daemon, load its token into the client process through a secret store,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.2.1", "mcp"],
+      "args": ["-y", "cockroach-browser@0.3.0", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -303,47 +314,54 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 | `cockroach-browser session create --config FILE --token-file FILE` | Create an authorized daemon session |
 | `cockroach-browser session list --token-file FILE` | List sessions |
 | `cockroach-browser session get --id ID --token-file FILE` | Inspect one session |
+| `cockroach-browser session graph --id ID --token-file FILE` | Read the bounded session navigation graph |
 | `cockroach-browser session close --id ID --token-file FILE` | Close one session |
+| `cockroach-browser browser discover` | Discover reviewed compatible browser binaries without importing ambient profiles |
+| `cockroach-browser activity [--session ID] [--limit N]` | Read the bounded activity ledger |
 | `cockroach-browser snapshot --session ID --token-file FILE [--tab ID]` | Read a semantic snapshot |
 | `cockroach-browser audit --session ID --kinds accessibility,security --token-file FILE` | Run selected audits |
 | `cockroach-browser capture --session ID --token-file FILE [--require-stable] [--include-bounds]` | Capture one paired screenshot and semantic snapshot |
 | `cockroach-browser network --session ID --token-file FILE [--limit N]` | Inspect bounded, redacted network observations |
 | `cockroach-browser network export --session ID --token-file FILE [--format json\|ndjson\|har]` | Print a bounded network evidence export |
 | `cockroach-browser act --session ID --input FILE --token-file FILE` | Use the trusted-host action route when explicitly enabled |
+| `cockroach-browser batch --session ID --input FILE --token-file FILE` | Run 1 to 100 exact actions through the explicitly enabled trusted-host route |
 | `cockroach-browser profile list [--root DIR]` | List isolated local profiles |
 | `cockroach-browser profile import --name NAME --file FILE` | Import encrypted storage state |
 | `cockroach-browser profile export --name NAME --file FILE` | Export encrypted storage state |
+| `cockroach-browser persistent-profile list [--root DIR]` | List runtime-owned persistent browser profiles |
+| `cockroach-browser persistent-profile create --name NAME [--root DIR]` | Prepare one explicit persistent profile |
+| `cockroach-browser persistent-profile archive --name NAME [--root DIR]` | Recoverably archive one explicit persistent profile |
 
 Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passphrases are never accepted as command-line arguments.
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 80 source-registered capabilities
+## 93 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Sessions | 12 | 0 | 0 | 12 |
-| Interaction | 22 | 0 | 0 | 22 |
-| Evidence | 13 | 0 | 0 | 13 |
+| Sessions | 17 | 0 | 0 | 17 |
+| Interaction | 25 | 0 | 0 | 25 |
+| Evidence | 14 | 0 | 0 | 14 |
 | Audit | 6 | 0 | 0 | 6 |
 | Security | 7 | 2 | 0 | 9 |
-| Deployment | 12 | 0 | 0 | 12 |
-| Integration | 1 | 4 | 1 | 6 |
-| **Total** | **73** | **6** | **1** | **80** |
+| Deployment | 16 | 0 | 0 | 16 |
+| Integration | 2 | 4 | 0 | 6 |
+| **Total** | **87** | **6** | **0** | **93** |
 
 ### Sessions
 
-Authorized browser sessions; headless Chromium; headed Chromium; CDP attachment; a custom Chromium executable; named isolated profiles; explicit encrypted storage-state import and export; named encrypted session checkpoints; policy-gated clipboard reads and writes; a user-supplied proxy; deterministic locale and timezone.
+Authorized browser sessions; headless Chromium; headed Chromium; explicit CDP attachment; cross-platform Chrome, Edge, Brave, and Chromium discovery; bundled, system, custom-executable, and CDP providers; reviewed unpacked extensions; runtime-owned persistent profiles with single-writer locking and recoverable archive; named isolated profiles; explicit encrypted storage-state import and export; named encrypted session checkpoints; policy-gated clipboard reads and writes; a user-supplied proxy; deterministic locale and timezone; bounded viewport, media, offline, geolocation, permission, and header emulation.
 
 ### Interaction
 
-Tabs and popups; exclusive tab locks; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history; policy-gated JavaScript; controlled upload; controlled download.
+Tabs and popups; exclusive tab locks; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history and a navigation graph; policy-gated JavaScript; bounded element inspection; ordered policy-evaluated batches; controlled upload; controlled download.
 
 ### Evidence
 
-PNG and JPEG screenshots; paired visual-plus-semantic capture; temporary numbered page annotations; PDF capture; Playwright traces; HAR capture; session video; bounded console records; bounded redacted network inspection and export; hash-chained receipts; bounded readable text and HTML extraction.
+PNG and JPEG screenshots; paired visual-plus-semantic capture; temporary numbered page annotations; PDF capture; Playwright traces; HAR capture; session video; bounded console records; explicit cache, console, and network clearing; bounded redacted network inspection and export; hash-chained receipts; bounded readable text and HTML extraction.
 
 ### Audits
 
@@ -360,7 +378,7 @@ Adapter-backed security surfaces:
 
 ### Deployment
 
-CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; native stdio MCP; Docker; local dashboard; authenticated remote workers; crash-resumable local jobs; doctor and health checks.
+CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; authenticated OpenAPI and Prometheus surfaces; native stdio MCP; Docker; local dashboard; authenticated remote workers and a capacity-aware worker pool; bounded activity polling and server-sent events; crash-resumable local jobs; doctor and health checks.
 
 ### Integrations
 
@@ -375,10 +393,8 @@ Available:
 
 - Signed browser lifecycle webhooks with a local durable outbox, HMAC-SHA256
   signatures, bounded retries, dead letters, and hash-linked delivery receipts
-
-Planned:
-
-- Team session control without raw profile sharing
+- Persistent team session ownership with revocable viewer and operator grants,
+  without raw profile sharing
 
 The complete searchable matrix, including capability IDs, implementation status, and exact API surfaces, is in [docs/capabilities.md](./docs/capabilities.md).
 
@@ -480,9 +496,9 @@ handling, quotas, and recovery procedures.
 
 ## Action surface
 
-The typed runtime implements 58 action kinds:
+The typed runtime implements 64 action kinds:
 
-`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `wait`, `history.inspect`, `capture.paired`, `annotate.show`, `annotate.clear`, `clipboard.read`, `clipboard.write`, `network.inspect`, `network.export`, `network.route.add`, `network.route.remove`, `network.routes.list`, `state.save`, `state.load`, `state.list`, `state.delete`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `tab.lock`, `tab.unlock`, `tab.lock.status`, `trace.start`, and `trace.stop`.
+`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `query.inspect`, `emulation.set`, `emulation.clear`, `cache.clear`, `console.clear`, `network.clear`, `wait`, `history.inspect`, `capture.paired`, `annotate.show`, `annotate.clear`, `clipboard.read`, `clipboard.write`, `network.inspect`, `network.export`, `network.route.add`, `network.route.remove`, `network.routes.list`, `state.save`, `state.load`, `state.list`, `state.delete`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `tab.lock`, `tab.unlock`, `tab.lock.status`, `trace.start`, and `trace.stop`.
 
 Availability in the type system does not grant authority. The session policy, effect policy, approval provider, server surface, origin checks, and resource budget decide whether an action can run.
 

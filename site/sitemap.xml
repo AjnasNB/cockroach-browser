@@ -6,6 +6,7 @@
   <url><loc>https://cockroachbrowser.com/docs/operator-install/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/sessions/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/actions/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://cockroachbrowser.com/docs/operator-runtime/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/capture/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/network/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://cockroachbrowser.com/docs/files/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>

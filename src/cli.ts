@@ -9,7 +9,7 @@ import {
   type PairedCaptureOptions
 } from "./client.js";
 import { CAPABILITIES } from "./capabilities.js";
-import type { BrowserAction, SessionCreateInput } from "./contracts.js";
+import type { BrowserAction, BrowserActionBatchInput, SessionCreateInput } from "./contracts.js";
 import {
   installOperatorService,
   operatorServiceStatus,
@@ -20,11 +20,13 @@ import {
 import { BrowserRuntime } from "./runtime.js";
 import { startBrowserServer } from "./server.js";
 import { startMcpServer } from "./mcp.js";
+import { discoverBrowserExecutables } from "./browser-discovery.js";
+import { TeamSessionStore } from "./team-sessions.js";
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const [command = "help", subcommand, ...rest] = argv;
   if (command === "help" || command === "--help" || command === "-h") return printHelp();
-  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.2.1" });
+  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.3.0" });
   if (command === "capabilities") {
     const status = flag(rest, "--status");
     return print(CAPABILITIES.filter((entry) => !status || entry.status === status));
@@ -36,6 +38,8 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   if (command === "serve") return serve(argv.slice(1));
   if (command === "mcp") return startMcpServer();
   if (command === "profile") return profileCommand(subcommand, rest);
+  if (command === "persistent-profile") return persistentProfileCommand(subcommand, rest);
+  if (command === "browser" && subcommand === "discover") return print(await discoverBrowserExecutables());
 
   const client = await clientFrom(rest);
   if (command === "session" && subcommand === "create") {
@@ -44,6 +48,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   }
   if (command === "session" && subcommand === "list") return print(await client.sessions());
   if (command === "session" && subcommand === "get") return print(await client.session(requiredFlag(rest, "--id")));
+  if (command === "session" && subcommand === "graph") return print(await client.navigationGraph(requiredFlag(rest, "--id")));
   if (command === "session" && subcommand === "close") {
     await client.closeSession(requiredFlag(rest, "--id"));
     return print({ closed: true });
@@ -99,9 +104,23 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     const kinds = flag(rest, "--kinds")?.split(",") as Array<"accessibility" | "performance" | "assets" | "console" | "security"> | undefined;
     return print(await client.audit(requiredFlag(rest, "--session"), kinds));
   }
+  if (command === "activity") {
+    const sessionId = flag(rest, "--session");
+    const after = flag(rest, "--after");
+    const limit = numberFlag(rest, "--limit");
+    return print(await client.activity({
+      ...(sessionId ? { sessionId } : {}),
+      ...(after ? { after } : {}),
+      ...(limit !== undefined ? { limit } : {})
+    }));
+  }
   if (command === "act") {
     const action = await jsonFile<BrowserAction>(requiredFlag(rest, "--input"));
     return print(await client.act(requiredFlag(rest, "--session"), action));
+  }
+  if (command === "batch") {
+    const input = await jsonFile<BrowserActionBatchInput>(requiredFlag(rest, "--input"));
+    return print(await client.actBatch(requiredFlag(rest, "--session"), input));
   }
   throw new Error(`Unknown command: ${argv.join(" ")}`);
 }
@@ -115,6 +134,14 @@ async function serve(args: string[]): Promise<void> {
   const tlsKey = flag(args, "--tls-key");
   const allowRawActions = args.includes("--allow-raw-actions");
   const allowSessionHostConfiguration = args.includes("--allow-session-host-config");
+  const enableJobs = args.includes("--enable-jobs");
+  const actorTokensFile = flag(args, "--actor-tokens-file");
+  const teamAccessFile = flag(args, "--team-access-file");
+  if (Boolean(actorTokensFile) !== Boolean(teamAccessFile)) {
+    throw new Error("Use --actor-tokens-file and --team-access-file together so actor authentication and persistent role grants cannot drift apart.");
+  }
+  const actorTokens = actorTokensFile ? await jsonFile<Record<string, string>>(actorTokensFile) : undefined;
+  const teamSessions = teamAccessFile ? new TeamSessionStore(teamAccessFile) : undefined;
   const server = await startBrowserServer({
     host,
     port,
@@ -122,6 +149,9 @@ async function serve(args: string[]): Promise<void> {
     ...(tokenFile ? { tokenFile } : {}),
     ...(allowRawActions ? { allowRawActions: true } : {}),
     ...(allowSessionHostConfiguration ? { allowSessionHostConfiguration: true } : {}),
+    ...(enableJobs ? { enableJobs: true } : {}),
+    ...(actorTokens ? { actorTokens } : {}),
+    ...(teamSessions ? { teamSessions } : {}),
     ...((tlsCert && tlsKey) ? { tls: { certFile: tlsCert, keyFile: tlsKey }, allowRemote: true } : {})
   });
   print({
@@ -164,6 +194,21 @@ async function profileCommand(subcommand: string | undefined, args: string[]): P
     return print({ exported: name });
   }
   throw new Error("Use profile list, profile import, or profile export.");
+}
+
+async function persistentProfileCommand(subcommand: string | undefined, args: string[]): Promise<void> {
+  const root = flag(args, "--root");
+  const runtime = new BrowserRuntime({ ...(root ? { root } : {}) });
+  await runtime.initialize();
+  try {
+    if (subcommand === "list") return print(await runtime.persistentProfiles.list());
+    const name = requiredFlag(args, "--name");
+    if (subcommand === "create") return print(await runtime.persistentProfiles.prepare(name));
+    if (subcommand === "archive") return print(await runtime.persistentProfiles.archive(name));
+    throw new Error("Use persistent-profile list, persistent-profile create, or persistent-profile archive.");
+  } finally {
+    await runtime.close();
+  }
 }
 
 async function doctor(args: string[]): Promise<void> {
@@ -364,8 +409,8 @@ function networkOptions(args: string[]): {
 }
 
 function requiredShell(value: string | undefined): CompletionShell {
-  if (value === "bash" || value === "zsh" || value === "powershell") return value;
-  throw new Error("Choose a completion shell: bash, zsh, or powershell.");
+  if (value === "bash" || value === "zsh" || value === "fish" || value === "powershell") return value;
+  throw new Error("Choose a completion shell: bash, zsh, fish, or powershell.");
 }
 
 function print(value: unknown): void {
@@ -377,22 +422,26 @@ function printText(value: string): void {
 }
 
 function printHelp(): void {
-  process.stdout.write(`Cockroach Browser 0.2.1
+  process.stdout.write(`Cockroach Browser 0.3.0
 
 Usage:
   cockroach-browser bootstrap [--root PATH] [--check-only]
   cockroach-browser setup [--root PATH]
   cockroach-browser doctor [--root PATH]
-  cockroach-browser completion <bash|zsh|powershell>
+  cockroach-browser completion <bash|zsh|fish|powershell>
   cockroach-browser service install --confirm-local-owner [--root PATH] [--port 43110]
   cockroach-browser service status [--root PATH] [--port 43110]
   cockroach-browser service uninstall --confirm-local-owner [--root PATH] [--port 43110]
   cockroach-browser serve [--host 127.0.0.1] [--port 43110]
-    [--allow-raw-actions] [--allow-session-host-config]
+    [--allow-raw-actions] [--allow-session-host-config] [--enable-jobs]
+    [--actor-tokens-file actors.json --team-access-file team-sessions.json]
   cockroach-browser mcp
   cockroach-browser capabilities [--status available]
   cockroach-browser session create --config session.json --token-file TOKEN_FILE
   cockroach-browser session list --token-file TOKEN_FILE
+  cockroach-browser session graph --id ID --token-file TOKEN_FILE
+  cockroach-browser browser discover
+  cockroach-browser activity [--session ID] [--after ISO_TIME] [--limit 200]
   cockroach-browser snapshot --session ID --token-file TOKEN_FILE
   cockroach-browser capture --session ID [--full-page] [--require-stable]
     [--include-bounds] [--format png|jpeg] --token-file TOKEN_FILE
@@ -401,10 +450,14 @@ Usage:
   cockroach-browser network export --session ID [--format json|ndjson|har]
     --token-file TOKEN_FILE
   cockroach-browser act --session ID --input action.json --token-file TOKEN_FILE
+  cockroach-browser batch --session ID --input actions.json --token-file TOKEN_FILE
   cockroach-browser audit --session ID --kinds accessibility,security --token-file TOKEN_FILE
   cockroach-browser profile list
   cockroach-browser profile import --name NAME --file storage.json
   cockroach-browser profile export --name NAME --file storage.json
+  cockroach-browser persistent-profile list [--root PATH]
+  cockroach-browser persistent-profile create --name NAME [--root PATH]
+  cockroach-browser persistent-profile archive --name NAME [--root PATH]
 
 Bootstrap installs Chromium only when it is missing, initializes the local data root,
 and probes an authenticated ephemeral loopback daemon. Per-user service changes never

@@ -29,7 +29,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.2.1</span>
+      <span class="version">0.3.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -45,7 +45,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" aria-current="page">Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" aria-current="page">Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -59,8 +59,8 @@
     <h2>Local daemon</h2>
 <p>Use the CLI for a single-user workstation or development environment. The daemon creates its own token file and serves only on loopback unless you explicitly configure a remote deployment.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-21">Copy</button></div>
-  <pre><code id="code-21">npx cockroach-browser serve --host 127.0.0.1 --port 43110
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-26">Copy</button></div>
+  <pre><code id="code-26">npx cockroach-browser serve --host 127.0.0.1 --port 43110
 
 # The daemon writes a 32-byte bearer token to its local data directory.
 # Pass its path to every CLI call instead of putting a token in shell history.
@@ -71,26 +71,34 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token</c
     <h2>Container</h2>
 <p>Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-22">Copy</button></div>
-  <pre><code id="code-22">docker build -t cockroach-browser:0.2.1 .
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-27">Copy</button></div>
+  <pre><code id="code-27">docker build -t cockroach-browser:0.3.0 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp \
   --tmpfs /data \
   -p 127.0.0.1:43110:43110 \
-  cockroach-browser:0.2.1</code></pre>
+  cockroach-browser:0.3.0</code></pre>
 </div>
   </section><section class="manual-section" id="remote-worker">
     <span class="section-number">03</span>
     <h2>Remote worker</h2>
 <p>Remote binding requires TLS and bearer authentication. Place the worker behind service identity where possible. Do not expose an unauthenticated daemon to the public internet. Keep browser profiles isolated by deployment and owner.</p>
-  </section><section class="manual-section" id="release-verification">
+  </section><section class="manual-section" id="openapi-metrics-and-activity">
     <span class="section-number">04</span>
+    <h2>OpenAPI, metrics, and activity</h2>
+<p>Authenticated operators can inspect <code>/v1/openapi.json</code>, scrape Prometheus text from <code>/v1/metrics</code>, poll <code>/v1/activity</code>, or subscribe to <code>/v1/activity/stream</code>. The activity surface is bounded and actor-filtered; it is not a raw browser telemetry dump.</p>
+  </section><section class="manual-section" id="team-and-worker-operation">
+    <span class="section-number">05</span>
+    <h2>Team and worker operation</h2>
+<p>Embed <code>TeamSessionStore</code> to persist owner, viewer, and operator roles with revocation. Use <code>BrowserWorkerPool</code> to choose healthy authenticated workers by capacity, weight, and explicit tags. Keep profile directories local to their owning worker.</p>
+  </section><section class="manual-section" id="release-verification">
+    <span class="section-number">06</span>
     <h2>Release verification</h2>
 <p>Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#local-daemon">Local daemon</a><a href="#container">Container</a><a href="#remote-worker">Remote worker</a><a href="#release-verification">Release verification</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#local-daemon">Local daemon</a><a href="#container">Container</a><a href="#remote-worker">Remote worker</a><a href="#openapi-metrics-and-activity">OpenAPI, metrics, and activity</a><a href="#team-and-worker-operation">Team and worker operation</a><a href="#release-verification">Release verification</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

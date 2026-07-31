@@ -1,6 +1,6 @@
 {
   "name": "cockroach-browser",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "The browser runtime your AI agents can use without inheriting your whole machine.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",

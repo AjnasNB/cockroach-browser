@@ -61,7 +61,26 @@ history.inspect returns sanitized URLs, titles, tab IDs, timestamps, and action 
 
 Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.
 
+## Inspect a target without inventing a selector
+
+query.inspect returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.
+
+## Run an ordered bounded batch
+
+A batch contains 1 to 100 exact actions. Every attempted step receives its own policy decision and receipt. Choose stop-on-error for dependent workflows or continue semantics for independent observations; a batch never creates a route around action policy.
+
+```
+cockroach-browser batch \
+  --session "$SESSION_ID" \
+  --input ./review-actions.json \
+  --token-file .cockroach-browser/auth-token
+```
+
+## Emulate only what the session permits
+
+emulation.set can apply bounded viewport, media, offline, geolocation, permissions, and non-secret headers after allowEmulation and exact approval. emulation.clear returns to the session baseline. These actions do not provide fingerprint evasion or access-control bypass.
+
 
 ## Release status
 
-This manual targets Cockroach Browser 0.2.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.3.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

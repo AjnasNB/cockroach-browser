@@ -8,10 +8,25 @@ Public manual: https://cockroachbrowser.com/docs/sessions/
 
 ## Choose the browser connection
 
-Launch bundled Chromium in headless or headed mode, supply a compatible executable, or attach to a user-selected CDP endpoint. CDP attachment is never discovered automatically. The host names the endpoint and accepts responsibility for that browser.- Headless: unattended evidence and audits.
-- Headed: review, login, consent, and human handoff.
-- CDP: attach to an explicitly selected Chrome debugging endpoint.
-- Custom executable: use a compatible browser binary selected by the operator.
+Launch bundled Chromium, discover a reviewed system installation, supply a compatible executable, or attach to a user-selected CDP endpoint. cockroach-browser browser discover reports Chrome, Edge, Brave, and Chromium candidates across Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Discovery never imports an ambient browser profile. CDP attachment remains explicit: the host names the endpoint and accepts responsibility for that browser.- Bundled: package-managed Chromium.
+- System: one reviewed installed browser channel.
+- Custom: one explicit compatible executable and bounded arguments.
+- CDP: attach to an explicitly selected debugging endpoint.
+- Extensions: load reviewed unpacked directories in an isolated headed context.
+
+```
+cockroach-browser browser discover
+```
+
+## Create an explicit persistent profile
+
+Persistent profiles preserve cookies, permissions, extension state, and browser storage across headed sessions in a runtime-owned user-data directory. They are never found by scanning a user's normal Chrome or Brave profile. A profile has one active writer, cannot be combined with remote CDP attachment or imported storage state, and can be archived through an exact recoverable operation.
+
+```
+cockroach-browser persistent-profile create --name support-review
+cockroach-browser persistent-profile list
+cockroach-browser persistent-profile archive --name support-review
+```
 
 ## Keep profiles explicit and encrypted
 
@@ -59,4 +74,4 @@ Closing a session releases tabs, browser context, traces, and runtime state. Per
 
 ## Release status
 
-This manual targets Cockroach Browser 0.2.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.3.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

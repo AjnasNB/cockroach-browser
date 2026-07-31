@@ -29,7 +29,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.2.1</span>
+      <span class="version">0.3.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -45,7 +45,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" aria-current="page">Actions and semantic refs</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" aria-current="page">Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -63,8 +63,8 @@
     <h2>Use a ref from the current snapshot</h2>
 <p>Refs make the action target inspectable. A click receipt records the canonical input digest, output digest, policy digest, URLs before and after, evidence IDs, and the previous receipt hash.</p>
 <div class="code-block">
-  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-11">Copy</button></div>
-  <pre><code id="code-11">const snapshot = await browser.snapshot(session.id);
+  <div class="code-head"><span>semantic-action.mjs</span><button class="copy-code" type="button" data-copy="#code-13">Copy</button></div>
+  <pre><code id="code-13">const snapshot = await browser.snapshot(session.id);
 const releaseLink = snapshot.refs.find(
   (ref) =&gt; ref.role === &quot;link&quot; &amp;&amp; ref.name.includes(&quot;Release notes&quot;)
 );
@@ -88,8 +88,8 @@ console.log(result.receipt.receiptHash);</code></pre>
     <h2>Target exact XPath and same-origin frames</h2>
 <p>Element actions accept exactly one semantic ref, CSS selector, or XPath. CSS and XPath actions may target one exact same-origin frame by index, name, or URL. Cross-origin frames remain unavailable, and a snapshot ref cannot be combined with a separate frame target because the ref already identifies its observed frame.</p>
 <div class="code-block">
-  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-12">Copy</button></div>
-  <pre><code id="code-12">await browser.act(session.id, {
+  <div class="code-head"><span>same-origin-frame.mjs</span><button class="copy-code" type="button" data-copy="#code-14">Copy</button></div>
+  <pre><code id="code-14">await browser.act(session.id, {
   kind: &quot;fill&quot;,
   xpath: &quot;//*[@id='account-name']&quot;,
   frame: { name: &quot;account-panel&quot; },
@@ -109,9 +109,28 @@ console.log(result.receipt.receiptHash);</code></pre>
     <span class="section-number">07</span>
     <h2>JavaScript is an explicit capability</h2>
 <p>Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.</p>
+  </section><section class="manual-section" id="inspect-a-target-without-inventing-a-selector">
+    <span class="section-number">08</span>
+    <h2>Inspect a target without inventing a selector</h2>
+<p><code>query.inspect</code> returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.</p>
+  </section><section class="manual-section" id="run-an-ordered-bounded-batch">
+    <span class="section-number">09</span>
+    <h2>Run an ordered bounded batch</h2>
+<p>A batch contains 1 to 100 exact actions. Every attempted step receives its own policy decision and receipt. Choose stop-on-error for dependent workflows or continue semantics for independent observations; a batch never creates a route around action policy.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-15">Copy</button></div>
+  <pre><code id="code-15">cockroach-browser batch \
+  --session &quot;$SESSION_ID&quot; \
+  --input ./review-actions.json \
+  --token-file .cockroach-browser/auth-token</code></pre>
+</div>
+  </section><section class="manual-section" id="emulate-only-what-the-session-permits">
+    <span class="section-number">10</span>
+    <h2>Emulate only what the session permits</h2>
+<p><code>emulation.set</code> can apply bounded viewport, media, offline, geolocation, permissions, and non-secret headers after <code>allowEmulation</code> and exact approval. <code>emulation.clear</code> returns to the session baseline. These actions do not provide fingerprint evasion or access-control bypass.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#snapshot-before-action">Snapshot before action</a><a href="#use-a-ref-from-the-current-snapshot">Use a ref from the current snapshot</a><a href="#supported-interactions">Supported interactions</a><a href="#target-exact-xpath-and-same-origin-frames">Target exact XPath and same-origin frames</a><a href="#handle-dialogs-explicitly">Handle dialogs explicitly</a><a href="#inspect-only-this-session-s-history">Inspect only this session's history</a><a href="#javascript-is-an-explicit-capability">JavaScript is an explicit capability</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#snapshot-before-action">Snapshot before action</a><a href="#use-a-ref-from-the-current-snapshot">Use a ref from the current snapshot</a><a href="#supported-interactions">Supported interactions</a><a href="#target-exact-xpath-and-same-origin-frames">Target exact XPath and same-origin frames</a><a href="#handle-dialogs-explicitly">Handle dialogs explicitly</a><a href="#inspect-only-this-session-s-history">Inspect only this session's history</a><a href="#javascript-is-an-explicit-capability">JavaScript is an explicit capability</a><a href="#inspect-a-target-without-inventing-a-selector">Inspect a target without inventing a selector</a><a href="#run-an-ordered-bounded-batch">Run an ordered bounded batch</a><a href="#emulate-only-what-the-session-permits">Emulate only what the session permits</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

@@ -6,6 +6,51 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-31
+
+### Added
+
+- cross-platform discovery for reviewed Chrome, Edge, Brave, and Chromium
+  installations on Windows, macOS, Linux, ARM64, and Raspberry Pi hosts
+- explicit bundled, system, custom-executable, and CDP browser providers with
+  authority-expanding launch arguments rejected before dispatch
+- reviewed unpacked extension loading in isolated headed contexts
+- runtime-owned persistent browser profiles with single-writer locking,
+  explicit preparation, and recoverable archival
+- bounded element inspection for text, cleaned HTML, attributes, geometry,
+  form state, visibility, enabled state, and counts
+- policy-evaluated device and network emulation with exact approval and a
+  deterministic clear operation
+- ordered action batches of up to 100 steps with a separate policy decision and
+  receipt for every attempted action
+- explicit cache, console, and network clearing without deleting committed
+  evidence
+- session navigation graphs and a bounded lifecycle activity ledger with
+  polling and server-sent-event surfaces
+- authenticated OpenAPI discovery, Prometheus-compatible metrics, and a
+  bounded error view
+- an opt-in authenticated job API backed by the crash-resumable local queue,
+  with per-session role checks and safe automatic retries limited to reads
+- capacity- and tag-aware routing across authenticated browser workers
+- persistent team session ownership with revocable viewer and operator roles,
+  without sharing raw profile material
+- CLI commands for browser discovery, navigation graphs, activity, ordered
+  batches, persistent profile lifecycle, and file-backed team authorization
+- dashboard views for runtime-owned profiles and the bounded activity stream
+- complete operator-runtime documentation and a 93-entry source-derived
+  capability registry
+
+### Security
+
+- persistent profiles are never discovered from ambient user browser data and
+  cannot be combined with CDP attachment or imported storage state
+- non-loopback workers require HTTPS and strong bearer tokens
+- emulation, custom providers, extensions, JavaScript, and action batches do
+  not widen origin, credential, effect, or resource authority
+- access challenges continue to stop for human or authorized resolver handoff;
+  the runtime does not add CAPTCHA or access-control bypass
+- team actor tokens cannot read another session's evidence or artifacts
+
 ## [0.2.1] - 2026-07-30
 
 ### Changed
@@ -90,7 +135,9 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/AjnasNB/cockroach-browser/releases/tag/v0.1.0

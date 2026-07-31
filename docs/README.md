@@ -10,6 +10,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Operator install](./operator-install.md)
 - [Sessions and profiles](./sessions.md)
 - [Actions and semantic refs](./actions.md)
+- [Operator runtime](./operator-runtime.md)
 - [Capture and evidence](./capture.md)
 - [Network boundary](./network.md)
 - [Files and downloads](./files.md)
