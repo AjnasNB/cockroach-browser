@@ -195,11 +195,11 @@ button:active,
 
 .hero {
   display: grid;
-  min-height: min(680px, calc(100dvh - 72px));
-  padding: clamp(4rem, 8vw, 7rem) 0 clamp(3.5rem, 7vw, 6rem);
-  grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  min-height: min(560px, calc(100dvh - 72px));
+  padding: clamp(2.75rem, 4.5vw, 4.5rem) 0;
+  grid-template-columns: minmax(0, 1.12fr) minmax(300px, 0.88fr);
   align-items: center;
-  gap: clamp(3rem, 7vw, 7rem);
+  gap: clamp(2rem, 4vw, 4rem);
 }
 
 .eyebrow {
@@ -214,13 +214,14 @@ button:active,
 
 .hero h1,
 .page-hero h1 {
-  max-width: 18ch;
+  max-width: 24ch;
   margin: 0;
   font-family: var(--display);
-  font-size: clamp(3.25rem, 5.8vw, 6.4rem);
+  font-size: clamp(2.75rem, 3.7vw, 4.4rem);
   font-weight: 400;
-  letter-spacing: -0.055em;
-  line-height: 0.94;
+  letter-spacing: -0.048em;
+  line-height: 0.96;
+  text-wrap: balance;
 }
 
 .hero-copy {
@@ -238,7 +239,7 @@ button:active,
 }
 
 .hero-mark {
-  width: clamp(150px, 18vw, 245px);
+  width: clamp(150px, 15vw, 230px);
   height: auto;
   filter: drop-shadow(0 0 32px rgba(53, 243, 207, 0.12));
 }

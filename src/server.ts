@@ -44,7 +44,7 @@ const DASHBOARD_FILES = new Map<string, { file: string; contentType: string }>([
   ["/dashboard/", { file: "index.html", contentType: "text/html; charset=utf-8" }],
   ["/dashboard/app.js", { file: "app.js", contentType: "text/javascript; charset=utf-8" }],
   ["/dashboard/styles.css", { file: "styles.css", contentType: "text/css; charset=utf-8" }],
-  ["/dashboard/assets/logo.svg", { file: "assets/logo.svg", contentType: "image/svg+xml; charset=utf-8" }]
+  ["/dashboard/assets/logo.png", { file: "assets/logo.png", contentType: "image/png" }]
 ]);
 
 const DASHBOARD_ROOTS = [
@@ -112,7 +112,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, {
           ok: true,
           name: "cockroach-browser",
-          version: "0.2.0",
+          version: "0.2.1",
           sessions: (await runtime.sessions()).length,
           evidence: await runtime.evidence.verify()
         });

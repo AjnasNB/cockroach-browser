@@ -34,7 +34,7 @@ test("binds to loopback by default and rejects unauthenticated requests", async 
   assert.deepEqual(await allowed.json(), {
     ok: true,
     name: "cockroach-browser",
-    version: "0.2.0",
+    version: "0.2.1",
     sessions: 0,
     evidence: { ok: true, records: 0, bytes: 0, failures: [] }
   });
@@ -60,7 +60,7 @@ test("serves the packaged dashboard without weakening API authentication", async
   assert.match(page.headers.get("content-security-policy") ?? "", /connect-src 'self'/);
   assert.match(await page.text(), /Cockroach Browser Control Room/);
 
-  for (const path of ["app.js", "styles.css", "assets/logo.svg"]) {
+  for (const path of ["app.js", "styles.css", "assets/logo.png"]) {
     const asset = await fetch(`${server.dashboardUrl}${path}`);
     assert.equal(asset.status, 200, path);
     assert.ok(Number(asset.headers.get("content-length")) > 0, path);

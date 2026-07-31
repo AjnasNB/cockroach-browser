@@ -60,9 +60,7 @@ for (const required of [
   "llms-full.txt",
   "_headers",
   "_redirects",
-  "assets/logo.svg",
-  "assets/favicon.svg",
-  "assets/og-card.svg"
+  "assets/logo.png"
 ]) {
   if (!(await exists(resolve(siteRoot, required)))) failures.push(`missing required public artifact ${required}`);
 }

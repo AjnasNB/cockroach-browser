@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./site/assets/logo.svg" width="112" alt="Cockroach Browser logo">
+  <img src="https://cockroachbrowser.com/assets/logo.png" width="144" alt="Cockroach Browser globe and cockroach logo">
 </p>
 
 <h1 align="center">Cockroach Browser</h1>
@@ -10,6 +10,12 @@
   Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions
 </p>
 
+<p align="center">
+  <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">80-capability registry</a> -
+  <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
+</p>
+
 Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-capable AI agents. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
 
 The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
@@ -18,13 +24,15 @@ It detects login, consent, CAPTCHA, and access challenges and pauses for a human
 
 ## Release status
 
-Current release line: **0.2.0**
+Current release line: **0.2.1**
 
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
 - Capability registry: 80 entries, with 73 available, 6 adapter-backed, and 1 planned
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
+- Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
+- DOI: [10.5281/zenodo.21701792](https://doi.org/10.5281/zenodo.21701792)
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 
@@ -229,7 +237,7 @@ Start the daemon, load its token into the client process through a secret store,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.2.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.2.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"

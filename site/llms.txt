@@ -1,10 +1,11 @@
 # Cockroach Browser
 
-> The browser runtime AI agents can use without inheriting your whole machine.
+> The browser runtime your AI agents can use without inheriting your whole machine.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
 npm: https://www.npmjs.com/package/cockroach-browser
+Technical paper: https://cockroachbrowser.com/paper/
 
 ## Documentation
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
@@ -30,6 +31,6 @@ npm: https://www.npmjs.com/package/cockroach-browser
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
 
 ## Capability states
-- Available: implemented in the 0.2.0 runtime or shipped deployment surface.
+- Available: implemented in the 0.2.1 runtime or shipped deployment surface.
 - Adapter: integration contract shipped, external authority or package required.
 - Planned: documented direction, not part of the current release.

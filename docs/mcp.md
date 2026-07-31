@@ -15,7 +15,7 @@ Start the authenticated daemon first. Load its token into the MCP process throug
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.2.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.2.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -40,4 +40,4 @@ MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, 
 
 ## Release status
 
-This manual targets Cockroach Browser 0.2.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.2.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
