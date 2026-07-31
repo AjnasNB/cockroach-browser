@@ -972,6 +972,11 @@ cockroach-browser persistent-profile archive --name support-review`,
           "<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the session, records evidence, and waits for a human or authorized resolver. It does not bypass CAPTCHAs, defeat access controls, cloak automation, rotate fingerprints to evade defenses, or promise access after a site denies it.</p>"
       },
       {
+        title: "Deliberate security boundaries",
+        body:
+          "<p>Cockroach Browser intentionally excludes CAPTCHA or access-control bypass, covert stealth or cloaking, automatic discovery of ambient browser cookies or profiles, and public unauthenticated server binding.</p><p>Use explicit runtime-owned profiles, reviewed browser providers, authenticated loopback or TLS transport, human challenge handoff, and Maqam-ready exact approval for consequential operations. These are product invariants, not missing browser features.</p>"
+      },
+      {
         title: "Exact approval for consequential actions",
         body:
           "<p>Use the Maqam adapter for writes, execute effects, uploads, downloads, credential use, JavaScript, and other high-risk operations. Approval must bind to the canonical action input and expire after use.</p>"

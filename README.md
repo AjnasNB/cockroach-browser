@@ -22,6 +22,17 @@ The package supports headed or headless Chromium, explicit Chrome/CDP attachment
 
 It detects login, consent, CAPTCHA, and access challenges and pauses for a human or an explicitly authorized resolver. It does not bypass CAPTCHAs, access controls, paywalls, rate limits, or site authorization.
 
+### Deliberate security boundaries
+
+Cockroach Browser intentionally does **not** provide:
+
+- CAPTCHA or access-control bypass
+- covert stealth, cloaking, or fingerprint-evasion behavior
+- automatic discovery of ambient browser cookies or profiles
+- public unauthenticated server binding
+
+The supported paths are explicit persistent profiles, reviewed browser providers, authenticated loopback or TLS transport, human challenge handoff, and Maqam-ready approval for consequential operations. These boundaries are part of the product contract, not missing browser features.
+
 ## Release status
 
 Current release line: **0.3.0**

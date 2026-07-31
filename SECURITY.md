@@ -8,7 +8,8 @@ Security fixes are provided for the current stable release. Pre-release versions
 
 | Version | Supported |
 | --- | --- |
-| 0.2.x | Yes |
+| 0.3.x | Yes |
+| 0.2.x | No |
 | 0.1.x | No |
 | Earlier | No |
 
@@ -59,6 +60,8 @@ interactive profiles.
 Headless mode is not a sandbox. Browser rendering, JavaScript execution, downloads, uploads, extensions, remote CDP, proxies, and imported profiles increase authority. Only enable them for a target you are authorized to operate.
 
 Cockroach Browser does not bypass CAPTCHAs, access controls, rate limits, paywalls, or site authorization. Challenge detection stops and requires a human or an explicitly authorized external workflow.
+
+The runtime deliberately excludes CAPTCHA or access-control bypass, covert stealth or cloaking, fingerprint evasion, automatic discovery of ambient browser cookies or profiles, and public unauthenticated server binding. Use explicit runtime-owned profiles, reviewed providers, authenticated transport, human challenge handoff, and exact approval instead. These exclusions are security invariants and must not be weakened by adapters, deployment wrappers, or future capability additions.
 
 XPath, low-level mouse and keyboard input, dialog handling, and request interception do not expand authority. They remain subject to the same origin, action, effect, approval, and resource policy as semantic-reference actions. Mouse coordinates are limited to the current viewport, prompt values come from opaque host references, and history inspection exposes only sanitized entries observed inside the current session.
 
