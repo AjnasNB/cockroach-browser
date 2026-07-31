@@ -32,6 +32,7 @@ export const ACTION_KINDS = [
   "console.clear",
   "network.clear",
   "wait",
+  "challenge.resolve",
   "history.inspect",
   "capture.paired",
   "annotate.show",

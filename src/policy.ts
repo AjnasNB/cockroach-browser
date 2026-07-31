@@ -75,7 +75,8 @@ const HIGH_RISK_ACTIONS = new Set<ActionKind>([
   "state.load",
   "state.delete",
   "tab.lock",
-  "tab.unlock"
+  "tab.unlock",
+  "challenge.resolve"
 ]);
 
 const DEFAULT_APPROVAL_ACTIONS = new Set<ActionKind>([
@@ -87,7 +88,7 @@ export function effectForAction(action: ActionKind | BrowserAction): Effect {
   const kind = typeof action === "string" ? action : action.kind;
   if (kind === "upload") return "upload";
   if (kind === "download") return "download";
-  if (kind === "evaluate") return "execute";
+  if (kind === "evaluate" || kind === "challenge.resolve") return "execute";
   if (
     kind.startsWith("cookies.")
     || kind.startsWith("storage.")
@@ -102,6 +103,7 @@ export function riskForAction(action: ActionKind | BrowserAction): RiskLevel {
   const kind = typeof action === "string" ? action : action.kind;
   if (
     kind === "evaluate"
+    || kind === "challenge.resolve"
     || kind === "cookies.write"
     || kind === "storage.write"
     || kind === "state.load"

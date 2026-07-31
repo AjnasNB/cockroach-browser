@@ -45,7 +45,11 @@ import type {
 import { ActivityLedger, type ActivityLedgerOptions } from "./activity.js";
 import { resolveBrowserProvider } from "./browser-discovery.js";
 import { canonicalJson, newId, nowIso, sha256 } from "./canonical.js";
-import { detectChallenge } from "./challenge.js";
+import {
+  detectChallenge,
+  requestAuthorizedChallengeResolution,
+  type AuthorizedChallengeResolver
+} from "./challenge.js";
 import { CockroachBrowserError, errorMessage } from "./errors.js";
 import { EvidenceStore } from "./evidence.js";
 import { GOVERNANCE_DISPATCH, type GovernanceDispatch } from "./internal-authority.js";
@@ -78,6 +82,8 @@ export interface BrowserRuntimeOptions {
   contextRecorder?: ContextRecorder;
   eventPublisher?: BrowserEventPublisher;
   secretResolver?: SecretResolver;
+  challengeResolver?: AuthorizedChallengeResolver;
+  challengeResolverTimeoutMs?: number;
   dnsResolver?: DnsResolver;
   uploadRoots?: string[];
   now?: () => Date;
@@ -133,6 +139,7 @@ const CHALLENGE_SAFE_ACTIONS = new Set([
   "pdf",
   "extract",
   "wait",
+  "challenge.resolve",
   "tab.switch",
   "tab.close",
   "tab.lock.status",
@@ -152,6 +159,8 @@ export class BrowserRuntime {
   readonly contextRecorder?: ContextRecorder;
   readonly eventPublisher?: BrowserEventPublisher;
   readonly secretResolver?: SecretResolver;
+  readonly challengeResolver?: AuthorizedChallengeResolver;
+  readonly challengeResolverTimeoutMs: number;
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
   readonly activity: ActivityLedger;
@@ -168,6 +177,20 @@ export class BrowserRuntime {
     if (options.contextRecorder) this.contextRecorder = options.contextRecorder;
     if (options.eventPublisher) this.eventPublisher = options.eventPublisher;
     if (options.secretResolver) this.secretResolver = options.secretResolver;
+    if (options.challengeResolver) this.challengeResolver = options.challengeResolver;
+    if (
+      options.challengeResolverTimeoutMs !== undefined
+      && (!Number.isSafeInteger(options.challengeResolverTimeoutMs) || options.challengeResolverTimeoutMs <= 0)
+    ) {
+      throw new CockroachBrowserError(
+        "CHALLENGE_RESOLVER_TIMEOUT_INVALID",
+        "The authorized challenge resolver timeout must be a positive safe integer."
+      );
+    }
+    this.challengeResolverTimeoutMs = Math.max(
+      1_000,
+      Math.min(options.challengeResolverTimeoutMs ?? 30_000, 120_000)
+    );
     if (options.dnsResolver) this.dnsResolver = options.dnsResolver;
     this.uploadRoots = Object.freeze(
       (options.uploadRoots ?? [join(this.root, "uploads")]).map((entry) => resolve(entry))
@@ -709,6 +732,9 @@ export class BrowserRuntime {
           session.state = "ready";
         }
       }
+      if (action.kind === "challenge.resolve") {
+        status = session.challenge?.detected ? "challenge" : "succeeded";
+      }
     } catch (error) {
       const code = error instanceof CockroachBrowserError ? error.code : "ACTION_FAILED";
       status = /(DENIED|REQUIRED|EXPIRED|REPLAY|MISMATCH|EXCEEDED)/.test(code) ? "denied" : "failed";
@@ -786,6 +812,17 @@ export class BrowserRuntime {
           kind: session.challenge?.kind ?? "unknown",
           evidence: session.challenge?.evidence ?? []
         },
+        { receiptHash: receipt.receiptHash }
+      );
+    }
+    if (action.kind === "challenge.resolve" && status === "succeeded") {
+      const resolution = isPlainObject(output) && typeof output.resolution === "string"
+        ? output.resolution
+        : "authorized-resolver";
+      await this.#publishEvent(
+        session,
+        "browser.challenge.resolved",
+        { resolution },
         { receiptHash: receipt.receiptHash }
       );
     }
@@ -1392,6 +1429,43 @@ export class BrowserRuntime {
         }
         await page.waitForTimeout(Math.min(timeout, 10_000));
         return { waitedMs: Math.min(timeout, 10_000) };
+      case "challenge.resolve": {
+        if (!session.challenge?.detected) {
+          throw new CockroachBrowserError("CHALLENGE_NOT_ACTIVE", "No active challenge is available for resolution.");
+        }
+        if (!this.challengeResolver) {
+          throw new CockroachBrowserError(
+            "CHALLENGE_RESOLVER_REQUIRED",
+            "This runtime has no explicitly configured authorized challenge resolver."
+          );
+        }
+        const resolverTimeout = Math.min(timeout, this.challengeResolverTimeoutMs);
+        const requestedAt = nowIso();
+        const result = await requestAuthorizedChallengeResolution(
+          this.challengeResolver,
+          {
+            sessionId: session.id,
+            origin: new URL(page.url()).origin,
+            purpose: action.purpose,
+            report: structuredClone(session.challenge),
+            requestedAt,
+            deadlineAt: new Date(Date.now() + resolverTimeout).toISOString()
+          },
+          resolverTimeout
+        );
+        const report = await detectChallenge(page);
+        session.challenge = report;
+        session.state = report.detected ? "challenge" : "ready";
+        session.updatedAt = nowIso();
+        return {
+          resolution: report.detected ? result.status : "authorized-resolver",
+          resolverStatus: result.status,
+          verified: !report.detected,
+          ...(result.reference ? { reference: result.reference } : {}),
+          ...(result.reason ? { reason: result.reason } : {}),
+          challenge: structuredClone(report)
+        };
+      }
       case "history.inspect": {
         const limit = boundedInteger(
           action.limit ?? Math.min(25, session.budget.maxHistoryEntries),

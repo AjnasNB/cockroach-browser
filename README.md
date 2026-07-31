@@ -20,7 +20,20 @@ Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-c
 
 The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
 
-It detects login, consent, CAPTCHA, and access challenges and pauses for a human or an explicitly authorized resolver. It does not bypass CAPTCHAs, access controls, paywalls, rate limits, or site authorization.
+It detects login, consent, CAPTCHA, and access challenges and can pause for a human or an operator-authorized resolver. High-authority browser controls stay behind explicit host configuration, session policy, and Maqam-ready approval.
+
+### Governed high-authority controls
+
+Cockroach Browser keeps powerful browser options explicit instead of discovering or exposing them silently:
+
+| Requested capability | Governed Cockroach Browser path |
+| --- | --- |
+| CAPTCHA or access-control bypass | Detect and stop on challenges, then hand control to a human or an explicitly configured resolver for a site the operator is authorized to use. No bypass engine is bundled. |
+| Covert stealth, cloaking, or fingerprint evasion | Use deterministic device, locale, timezone, media, permission, proxy, header, and browser-provider configuration for compatibility testing. Configuration cannot silently expand origin or credential authority. |
+| Ambient browser cookies or profiles | Select a runtime-owned persistent profile or explicitly import encrypted storage state. The runtime never scans unrelated user profiles. |
+| Public unauthenticated server binding | Use authenticated remote-worker mode with TLS, bearer authentication, origin policy, and finite budgets. Loopback remains the default. |
+
+These controls preserve the powerful operational workflows people expect from an agent browser while keeping the operator—not page content or the model—in charge of authority.
 
 ## Release status
 
@@ -627,10 +640,42 @@ When Cockroach Browser detects a login, consent screen, CAPTCHA, or access chall
 2. Evidence records explain what was detected.
 3. Automated execution pauses.
 4. A user handles the challenge in a headed session, or an explicitly authorized external workflow resolves it.
-5. The trusted host calls `resumeAfterHuman` or the challenge-resume endpoint.
-6. Policy, origin, and budget checks continue to apply.
+5. The trusted host calls `resumeAfterHuman`, the challenge-resume endpoint, or the approval-bound `challenge.resolve` action.
+6. The runtime independently checks the page again before leaving the challenge state.
+7. Policy, origin, budget, approval, and receipt checks continue to apply.
 
 Challenge handling is a pause and handoff protocol, never a bypass mechanism.
+
+```ts
+import { BrowserRuntime } from "cockroach-browser";
+
+const runtime = new BrowserRuntime({
+  approvalProvider: maqamApprovalProvider,
+  challengeResolver: {
+    async resolve(request, signal) {
+      return operatorQueue.waitForCompletion(
+        {
+          sessionId: request.sessionId,
+          origin: request.origin,
+          challenge: request.report.kind,
+          deadlineAt: request.deadlineAt
+        },
+        { signal }
+      );
+    }
+  }
+});
+
+await runtime.act(sessionId, {
+  kind: "challenge.resolve",
+  purpose: "Ask the authorized operator to complete the active challenge"
+});
+```
+
+The callback receives metadata only. It never receives a Playwright page, cookies,
+storage, credentials, or raw browser-control primitives. A resolver claim is not
+accepted as proof: the runtime re-detects the challenge, keeps the session paused
+when it remains, and writes the result into a hash-linked action receipt.
 
 ## Security defaults
 

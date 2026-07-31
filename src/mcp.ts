@@ -195,6 +195,7 @@ const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
   }).strict(),
   z.object({ kind: z.literal("drag"), ...purposeFree, ref: refField, targetRef: refField }).strict(),
   z.object({ kind: z.literal("wait"), ...purposeFree, timeoutMs: z.number().int().min(1).max(60_000) }).strict(),
+  z.object({ kind: z.literal("challenge.resolve"), ...purposeFree, timeoutMs: z.number().int().min(1_000).max(120_000).optional() }).strict(),
   z.object({
     kind: z.literal("capture.paired"),
     ...purposeFree,

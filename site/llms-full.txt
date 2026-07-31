@@ -339,8 +339,11 @@ Cockroach Browser is built around explicit sessions, explicit origins, separate 
 ### Threat boundary
 Assume page content is untrusted, agent input may be wrong, downloaded files may be hostile, and browser state may contain credentials. Keep session lifecycle, profile management, secret resolution, and remote binding in host-controlled code.
 
-### Challenges stop automation
-The runtime detects login, consent, CAPTCHA, and access challenges, pauses the session, records evidence, and waits for a human or authorized resolver. It does not bypass CAPTCHAs, defeat access controls, cloak automation, rotate fingerprints to evade defenses, or promise access after a site denies it.
+### Challenges move to an authorized operator path
+The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization. The challenge.resolve action is classified as a critical execute effect and requires exact approval by default. Its page-less callback receives only bounded challenge metadata, never cookies, storage, credentials, a Playwright page, or raw browser control. The runtime independently checks the page after the handoff and keeps the session paused when the challenge remains.
+
+### Governed high-authority controls
+Cockroach Browser does not silently expose CAPTCHA or access-control bypass, covert stealth or cloaking, ambient browser cookies or profiles, or public unauthenticated server binding.Use operator-authorized challenge handoff, deterministic compatibility emulation, explicit runtime-owned profiles or encrypted state import, reviewed browser providers, and authenticated loopback or TLS transport. Maqam-ready exact approval keeps consequential operations bound to their reviewed input.
 
 ### Exact approval for consequential actions
 Use the Maqam adapter for writes, execute effects, uploads, downloads, credential use, JavaScript, and other high-risk operations. Approval must bind to the canonical action input and expire after use.
@@ -443,6 +446,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Visual comparison [available]: Compare screenshots and emit a diff plus mismatch percentage. Surface: compare.
 - Challenge detection [available]: Detect login, consent, CAPTCHA, and access challenges. Surface: challenge.
 - Human challenge handoff [available]: Pause for a user or authorized resolver instead of bypassing controls. Surface: challenge wait.
+- Authorized challenge resolver [available]: Request a host-owned operator workflow through a page-less callback, then independently verify the page before resuming. Surface: challenge.resolve.
 - Origin allowlists [available]: Fail closed when navigation leaves explicitly allowed origins. Surface: allowedOrigins.
 - Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
 - Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.

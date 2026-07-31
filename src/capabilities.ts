@@ -74,6 +74,7 @@ export const CAPABILITIES: readonly Capability[] = Object.freeze([
   ["audit.visual", "audit", "Visual comparison", "Compare screenshots and emit a diff plus mismatch percentage.", "available", "compare"],
   ["challenge.detect", "security", "Challenge detection", "Detect login, consent, CAPTCHA, and access challenges.", "available", "challenge"],
   ["challenge.handoff", "security", "Human challenge handoff", "Pause for a user or authorized resolver instead of bypassing controls.", "available", "challenge wait"],
+  ["challenge.authorized_resolver", "security", "Authorized challenge resolver", "Request a host-owned operator workflow through a page-less callback, then independently verify the page before resuming.", "available", "challenge.resolve"],
   ["security.origins", "security", "Origin allowlists", "Fail closed when navigation leaves explicitly allowed origins.", "available", "allowedOrigins"],
   ["security.private_network", "security", "Private-network blocking", "Reject private and loopback destinations in the public browser adapter.", "available", "policy"],
   ["security.effects", "security", "Effect-level policy", "Separate read, write, execute, upload, download, and credential authority.", "available", "allowedEffects"],
