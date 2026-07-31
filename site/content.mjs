@@ -969,7 +969,7 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Challenges move to an authorized operator path",
         body:
-          "<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.</p>"
+          "<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.</p> <p>The <code>challenge.resolve</code> action is classified as a critical execute effect and requires exact approval by default. Its page-less callback receives only bounded challenge metadata, never cookies, storage, credentials, a Playwright page, or raw browser control. The runtime independently checks the page after the handoff and keeps the session paused when the challenge remains.</p>"
       },
       {
         title: "Governed high-authority controls",

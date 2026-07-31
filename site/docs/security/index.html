@@ -61,7 +61,7 @@
   </section><section class="manual-section" id="challenges-move-to-an-authorized-operator-path">
     <span class="section-number">02</span>
     <h2>Challenges move to an authorized operator path</h2>
-<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.</p>
+<p>The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.</p> <p>The <code>challenge.resolve</code> action is classified as a critical execute effect and requires exact approval by default. Its page-less callback receives only bounded challenge metadata, never cookies, storage, credentials, a Playwright page, or raw browser control. The runtime independently checks the page after the handoff and keeps the session paused when the challenge remains.</p>
   </section><section class="manual-section" id="governed-high-authority-controls">
     <span class="section-number">03</span>
     <h2>Governed high-authority controls</h2>

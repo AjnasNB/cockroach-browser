@@ -68,6 +68,7 @@ This file is generated from `src/capabilities.ts`.
 | `audit.visual` | audit | Visual comparison | **available** | `compare` |
 | `challenge.detect` | security | Challenge detection | **available** | `challenge` |
 | `challenge.handoff` | security | Human challenge handoff | **available** | `challenge wait` |
+| `challenge.authorized_resolver` | security | Authorized challenge resolver | **available** | `challenge.resolve` |
 | `security.origins` | security | Origin allowlists | **available** | `allowedOrigins` |
 | `security.private_network` | security | Private-network blocking | **available** | `policy` |
 | `security.effects` | security | Effect-level policy | **available** | `allowedEffects` |

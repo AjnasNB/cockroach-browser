@@ -640,10 +640,42 @@ When Cockroach Browser detects a login, consent screen, CAPTCHA, or access chall
 2. Evidence records explain what was detected.
 3. Automated execution pauses.
 4. A user handles the challenge in a headed session, or an explicitly authorized external workflow resolves it.
-5. The trusted host calls `resumeAfterHuman` or the challenge-resume endpoint.
-6. Policy, origin, and budget checks continue to apply.
+5. The trusted host calls `resumeAfterHuman`, the challenge-resume endpoint, or the approval-bound `challenge.resolve` action.
+6. The runtime independently checks the page again before leaving the challenge state.
+7. Policy, origin, budget, approval, and receipt checks continue to apply.
 
 Challenge handling is a pause and handoff protocol, never a bypass mechanism.
+
+```ts
+import { BrowserRuntime } from "cockroach-browser";
+
+const runtime = new BrowserRuntime({
+  approvalProvider: maqamApprovalProvider,
+  challengeResolver: {
+    async resolve(request, signal) {
+      return operatorQueue.waitForCompletion(
+        {
+          sessionId: request.sessionId,
+          origin: request.origin,
+          challenge: request.report.kind,
+          deadlineAt: request.deadlineAt
+        },
+        { signal }
+      );
+    }
+  }
+});
+
+await runtime.act(sessionId, {
+  kind: "challenge.resolve",
+  purpose: "Ask the authorized operator to complete the active challenge"
+});
+```
+
+The callback receives metadata only. It never receives a Playwright page, cookies,
+storage, credentials, or raw browser-control primitives. A resolver claim is not
+accepted as proof: the runtime re-detects the challenge, keeps the session paused
+when it remains, and writes the result into a hash-linked action receipt.
 
 ## Security defaults
 

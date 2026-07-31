@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Capability matrix | Cockroach Browser</title>
-  <meta name="description" content="93 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="description" content="94 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta name="theme-color" content="#050a0d">
   <link rel="canonical" href="https://cockroachbrowser.com/docs/capabilities/">
   <link rel="icon" href="/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Capability matrix | Cockroach Browser">
-  <meta property="og:description" content="93 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta property="og:description" content="94 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta property="og:url" content="https://cockroachbrowser.com/docs/capabilities/">
   <meta property="og:image" content="https://cockroachbrowser.com/assets/logo.png">
   <meta property="og:image:type" content="image/png">
@@ -19,7 +19,7 @@
   <meta property="og:image:height" content="1250">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Capability matrix | Cockroach Browser">
-  <meta name="twitter:description" content="93 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
+  <meta name="twitter:description" content="94 mapped Cockroach Browser capabilities, each marked available, adapter, or planned.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
 </head>
 <body>
@@ -51,18 +51,18 @@
     <header class="page-hero">
       <p class="eyebrow">Machine-derived from src/capabilities.ts</p>
       <h1>Capability matrix</h1>
-      <p class="kicker">93 named surfaces. No hidden universal-access claim.</p>
-      <p class="lede"><strong>87</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>0</strong> remain planned.</p>
+      <p class="kicker">94 named surfaces. No hidden universal-access claim.</p>
+      <p class="lede"><strong>88</strong> runtime surfaces are available, <strong>6</strong> require an external integration authority, and <strong>0</strong> remain planned.</p>
     </header>
     <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.3.0. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
-      <button type="button" data-cap-filter="available" aria-pressed="false">Available 87</button>
+      <button type="button" data-cap-filter="available" aria-pressed="false">Available 88</button>
       <button type="button" data-cap-filter="adapter" aria-pressed="false">Adapter 6</button>
       <button type="button" data-cap-filter="planned" aria-pressed="false">Planned 0</button>
       <input class="cap-search" data-cap-search type="search" aria-label="Search capabilities" placeholder="Search screenshots, MCP, profiles, Maqam...">
     </div>
-    <p class="cap-count" data-cap-count>93 capabilities shown</p>
+    <p class="cap-count" data-cap-count>94 capabilities shown</p>
     <div class="cap-grid"><article class="cap-card" data-capability data-status="available">
     <div class="cap-meta"><span>01 / sessions</span><span class="status status--available">available</span></div>
     <h2>Authorized browser sessions</h2>
@@ -385,146 +385,151 @@
     <code>challenge wait</code>
   </article><article class="cap-card" data-capability data-status="available">
     <div class="cap-meta"><span>65 / security</span><span class="status status--available">available</span></div>
+    <h2>Authorized challenge resolver</h2>
+    <p>Request a host-owned operator workflow through a page-less callback, then independently verify the page before resuming.</p>
+    <code>challenge.resolve</code>
+  </article><article class="cap-card" data-capability data-status="available">
+    <div class="cap-meta"><span>66 / security</span><span class="status status--available">available</span></div>
     <h2>Origin allowlists</h2>
     <p>Fail closed when navigation leaves explicitly allowed origins.</p>
     <code>allowedOrigins</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>66 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>67 / security</span><span class="status status--available">available</span></div>
     <h2>Private-network blocking</h2>
     <p>Reject private and loopback destinations in the public browser adapter.</p>
     <code>policy</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>67 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>68 / security</span><span class="status status--available">available</span></div>
     <h2>Effect-level policy</h2>
     <p>Separate read, write, execute, upload, download, and credential authority.</p>
     <code>allowedEffects</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>68 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>69 / security</span><span class="status status--available">available</span></div>
     <h2>Finite budgets</h2>
     <p>Clamp actions, tabs, time, upload, download, snapshot, and evidence size.</p>
     <code>budget</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>69 / security</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>70 / security</span><span class="status status--available">available</span></div>
     <h2>Policy-bounded network routes</h2>
     <p>Abort or statically fulfill exact-origin requests under per-rule and session byte ceilings.</p>
     <code>network.route.*</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>70 / security</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>71 / security</span><span class="status status--adapter">adapter</span></div>
     <h2>Exact action approvals</h2>
     <p>Bind high-risk approval to the canonical action input.</p>
     <code>MaqamApprovalProvider</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>71 / security</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>72 / security</span><span class="status status--adapter">adapter</span></div>
     <h2>Secret references</h2>
     <p>Resolve proxy and integration secrets through the host, never manifests.</p>
     <code>SecretResolver</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>72 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>73 / deployment</span><span class="status status--available">available</span></div>
     <h2>Command-line interface</h2>
     <p>Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in.</p>
     <code>cockroach-browser</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>73 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>74 / deployment</span><span class="status status--available">available</span></div>
     <h2>Shell completions</h2>
     <p>Generate auditable Bash, Zsh, Fish, or PowerShell completion scripts without modifying shell profiles.</p>
     <code>completion bash|zsh|fish|powershell</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>74 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>75 / deployment</span><span class="status status--available">available</span></div>
     <h2>Per-user daemon autostart</h2>
     <p>Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation.</p>
     <code>service install|status|uninstall</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>75 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>76 / deployment</span><span class="status status--available">available</span></div>
     <h2>One-command bootstrap</h2>
     <p>Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon.</p>
     <code>bootstrap</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>76 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>77 / deployment</span><span class="status status--available">available</span></div>
     <h2>TypeScript SDK</h2>
     <p>Embed the runtime or call an authenticated daemon.</p>
     <code>BrowserRuntime/BrowserClient</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>77 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>78 / deployment</span><span class="status status--available">available</span></div>
     <h2>Authenticated HTTP API</h2>
     <p>Expose the runtime through a bearer-token localhost server.</p>
     <code>serve</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>78 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>79 / deployment</span><span class="status status--available">available</span></div>
     <h2>OpenAPI discovery</h2>
     <p>Publish an authenticated machine-readable route index for local SDK and operator tooling.</p>
     <code>/v1/openapi.json</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>79 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>80 / deployment</span><span class="status status--available">available</span></div>
     <h2>Prometheus metrics</h2>
     <p>Expose authenticated session, action, and failure counters for local operations.</p>
     <code>/v1/metrics</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>80 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>81 / deployment</span><span class="status status--available">available</span></div>
     <h2>Observation-first MCP server</h2>
     <p>Expose health, capabilities, sessions, snapshots, paired capture, network observations, audits, and canonical Maqam action proposals over stdio.</p>
     <code>mcp</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>81 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>82 / deployment</span><span class="status status--available">available</span></div>
     <h2>Docker runtime</h2>
     <p>Run Chromium and the authenticated daemon in a container.</p>
     <code>Dockerfile</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>82 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>83 / deployment</span><span class="status status--available">available</span></div>
     <h2>Local dashboard</h2>
     <p>Inspect sessions, evidence, challenges, and receipts.</p>
     <code>dashboard</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>83 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>84 / deployment</span><span class="status status--available">available</span></div>
     <h2>Authenticated remote workers</h2>
     <p>Connect SDK clients to explicitly configured remote daemons.</p>
     <code>BrowserClient</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>84 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>85 / deployment</span><span class="status status--available">available</span></div>
     <h2>Multi-worker orchestration</h2>
     <p>Route sessions across healthy authenticated browser daemons by capacity, weight, and explicit tags.</p>
     <code>BrowserWorkerPool</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>85 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>86 / deployment</span><span class="status status--available">available</span></div>
     <h2>Configurable activity stream</h2>
     <p>Read bounded summary or detailed lifecycle activity through polling or server-sent events.</p>
     <code>/v1/activity and /v1/activity/stream</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>86 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>87 / deployment</span><span class="status status--available">available</span></div>
     <h2>Durable local jobs</h2>
     <p>Queue bounded action plans with checkpoints and retries.</p>
     <code>JobQueue</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>87 / deployment</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>88 / deployment</span><span class="status status--available">available</span></div>
     <h2>Doctor and daemon health checks</h2>
     <p>Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count.</p>
     <code>doctor and /v1/health</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>88 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>89 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Maqam governance</h2>
     <p>Route high-risk browser actions through exact approval and receipts.</p>
     <code>cockroach-browser/maqam</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>89 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>90 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Qarinah memory</h2>
     <p>Record cited browser outcomes without persisting hidden reasoning or secrets.</p>
     <code>cockroach-browser/qarinah</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>90 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>91 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>Cockroach Crawler handoff</h2>
     <p>Hand breadth-first collection to the crawler while retaining browser evidence.</p>
     <code>cockroach-browser/crawler</code>
   </article><article class="cap-card" data-capability data-status="adapter">
-    <div class="cap-meta"><span>91 / integration</span><span class="status status--adapter">adapter</span></div>
+    <div class="cap-meta"><span>92 / integration</span><span class="status status--adapter">adapter</span></div>
     <h2>ProductLoop capability snapshot</h2>
     <p>Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority.</p>
     <code>docs/productloop.md</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>92 / integration</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>93 / integration</span><span class="status status--available">available</span></div>
     <h2>Signed lifecycle webhooks</h2>
     <p>Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery.</p>
     <code>SignedWebhookDispatcher</code>
   </article><article class="cap-card" data-capability data-status="available">
-    <div class="cap-meta"><span>93 / integration</span><span class="status status--available">available</span></div>
+    <div class="cap-meta"><span>94 / integration</span><span class="status status--available">available</span></div>
     <h2>Team session control</h2>
     <p>Persist session owners, viewer and operator grants, revocation generations, policy, and receipts without sharing raw profiles.</p>
     <code>TeamSessionStore and /access</code>

@@ -6,6 +6,12 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+### Added
+
+- a page-less authorized challenge-resolution callback with bounded deadlines,
+  exact approval, independent post-handoff verification, MCP proposals, and
+  hash-linked action receipts
+
 ## [0.3.0] - 2026-07-31
 
 ### Added

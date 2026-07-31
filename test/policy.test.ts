@@ -111,12 +111,14 @@ test("classifies effects and risk before dispatch", () => {
   assert.equal(effectForAction("snapshot"), "read");
   assert.equal(effectForAction("fill"), "write");
   assert.equal(effectForAction("evaluate"), "execute");
+  assert.equal(effectForAction("challenge.resolve"), "execute");
   assert.equal(effectForAction("upload"), "upload");
   assert.equal(effectForAction("cookies.read"), "credential");
   assert.equal(riskForAction("snapshot"), "low");
   assert.equal(riskForAction("navigate"), "medium");
   assert.equal(riskForAction("click"), "high");
   assert.equal(riskForAction("evaluate"), "critical");
+  assert.equal(riskForAction("challenge.resolve"), "critical");
   assert.equal(
     effectForAction({ kind: "click", ref: "r1", purpose: "Confirm", dialog: { action: "accept" } }),
     "write"
@@ -217,6 +219,21 @@ test("marks configured mutations for exact approval", () => {
   assert.equal(decision.risk, "high");
   assert.equal(decision.requiresApproval, true);
   assert.match(decision.digest, /^sha256:[a-f0-9]{64}$/);
+});
+
+test("requires exact approval for authorized challenge resolution by default", () => {
+  const decision = evaluateAction(
+    {
+      allowedOrigins: ["https://example.com"],
+      allowedActions: ["challenge.resolve"],
+      allowedEffects: ["execute"]
+    },
+    { kind: "challenge.resolve", purpose: "Ask the authorized operator to complete the active challenge" }
+  );
+  assert.equal(decision.allowed, true);
+  assert.equal(decision.effect, "execute");
+  assert.equal(decision.risk, "critical");
+  assert.equal(decision.requiresApproval, true);
 });
 
 test("dialog acceptance and route mutations remain approval-bound after explicit opt-in", () => {
