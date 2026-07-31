@@ -1,6 +1,10 @@
 import type {
   ActionReceipt,
   BrowserAction,
+  BrowserActionBatchInput,
+  BrowserActionBatchResult,
+  BrowserLifecycleEvent,
+  NavigationGraph,
   BrowserNetworkRecord,
   PageSnapshot,
   SessionCreateInput,
@@ -8,6 +12,7 @@ import type {
 } from "./contracts.js";
 import type { Capability } from "./capabilities.js";
 import { CockroachBrowserError } from "./errors.js";
+import type { BrowserJob } from "./job-queue.js";
 
 export interface BrowserClientOptions {
   baseUrl?: string;
@@ -70,12 +75,57 @@ export class BrowserClient {
     return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}`);
   }
 
+  navigationGraph(id: string): Promise<NavigationGraph> {
+    return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}/navigation-graph`);
+  }
+
+  async activity(options: { sessionId?: string; after?: string; limit?: number } = {}): Promise<BrowserLifecycleEvent[]> {
+    const query = new URLSearchParams();
+    if (options.sessionId) query.set("sessionId", options.sessionId);
+    if (options.after) query.set("after", options.after);
+    if (options.limit !== undefined) query.set("limit", String(options.limit));
+    const result = await this.request<{ activity: BrowserLifecycleEvent[] }>("GET", `/v1/activity${query.size ? `?${query}` : ""}`);
+    return result.activity;
+  }
+
   async closeSession(id: string): Promise<void> {
     await this.request("DELETE", `/v1/sessions/${encodeURIComponent(id)}`);
   }
 
   act(id: string, action: BrowserAction): Promise<Record<string, unknown>> {
     return this.request("POST", `/v1/sessions/${encodeURIComponent(id)}/actions`, action);
+  }
+
+  actBatch(id: string, input: BrowserActionBatchInput): Promise<BrowserActionBatchResult> {
+    return this.request("POST", `/v1/sessions/${encodeURIComponent(id)}/actions/batch`, input);
+  }
+
+  async persistentProfiles(): Promise<Array<{ name: string; createdAt: string; updatedAt: string; bytes: number }>> {
+    return (await this.request<{ profiles: Array<{ name: string; createdAt: string; updatedAt: string; bytes: number }> }>("GET", "/v1/profiles")).profiles;
+  }
+
+  createPersistentProfile(name: string): Promise<Record<string, unknown>> {
+    return this.request("POST", `/v1/profiles/${encodeURIComponent(name)}`, {});
+  }
+
+  archivePersistentProfile(name: string): Promise<Record<string, unknown>> {
+    return this.request("DELETE", `/v1/profiles/${encodeURIComponent(name)}`);
+  }
+
+  async jobs(): Promise<BrowserJob[]> {
+    return (await this.request<{ jobs: BrowserJob[] }>("GET", "/v1/jobs")).jobs;
+  }
+
+  job(id: string): Promise<BrowserJob> {
+    return this.request("GET", `/v1/jobs/${encodeURIComponent(id)}`);
+  }
+
+  enqueueJob(input: { sessionId: string; purpose: string; actions: BrowserAction[]; maxAttempts?: number }): Promise<BrowserJob> {
+    return this.request("POST", "/v1/jobs", input);
+  }
+
+  cancelJob(id: string): Promise<BrowserJob> {
+    return this.request("POST", `/v1/jobs/${encodeURIComponent(id)}/cancel`, {});
   }
 
   snapshot(id: string, tabId?: string): Promise<PageSnapshot> {

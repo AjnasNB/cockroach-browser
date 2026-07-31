@@ -25,6 +25,12 @@ export const ACTION_KINDS = [
   "upload",
   "download",
   "evaluate",
+  "query.inspect",
+  "emulation.set",
+  "emulation.clear",
+  "cache.clear",
+  "console.clear",
+  "network.clear",
   "wait",
   "history.inspect",
   "capture.paired",
@@ -113,6 +119,8 @@ export interface BrowserPolicy {
   allowClipboard?: boolean;
   allowStateExport?: boolean;
   allowAnnotations?: boolean;
+  /** Allow bounded device, media, permission, and network emulation actions. */
+  allowEmulation?: boolean;
   /** Allow an exact action to accept a JavaScript dialog. Dismiss remains the safe default. */
   allowDialogAccept?: boolean;
   /** Allow host-reviewed request blocking or static response fulfillment rules. */
@@ -146,6 +154,8 @@ export interface SessionCreateInput {
   viewport?: { width: number; height: number };
   executablePath?: string;
   cdpEndpoint?: string;
+  /** Explicit, host-reviewed browser provider. Never discovered from ambient profiles. */
+  browserProvider?: BrowserProviderInput;
   userAgent?: string;
   extraHTTPHeaders?: Record<string, string>;
   proxy?: ProxyConfig;
@@ -154,6 +164,42 @@ export interface SessionCreateInput {
   recordVideo?: boolean;
   purpose: string;
   actor?: string;
+}
+
+export type BrowserProviderKind = "bundled" | "system" | "custom" | "cdp";
+
+export interface BrowserProviderInput {
+  kind: BrowserProviderKind;
+  /** Required for custom providers; must resolve to a regular executable file. */
+  executablePath?: string;
+  /** Required for CDP providers. Remote endpoints still require policy.allowRemote. */
+  cdpEndpoint?: string;
+  /** Chromium channel hint used by system discovery, for example chrome or msedge. */
+  channel?: "chrome" | "chrome-beta" | "chrome-dev" | "chrome-canary" | "msedge" | "msedge-beta" | "msedge-dev" | "msedge-canary";
+  /** Reviewed unpacked extension directories. Remote downloads and CRX installation are not performed. */
+  extensions?: string[];
+  /** Host-reviewed Chromium arguments. Dangerous remote-debug or public-bind flags are rejected. */
+  arguments?: string[];
+  /** Runtime-owned persistent user-data directory. Ambient host profiles are never discovered. */
+  persistentProfile?: string;
+}
+
+export interface BrowserEmulationInput {
+  viewport?: { width: number; height: number };
+  colorScheme?: "light" | "dark" | "no-preference";
+  reducedMotion?: "reduce" | "no-preference";
+  forcedColors?: "active" | "none";
+  media?: "screen" | "print" | null;
+  offline?: boolean;
+  geolocation?: { latitude: number; longitude: number; accuracy?: number } | null;
+  permissions?: Array<"geolocation" | "notifications">;
+  extraHTTPHeaders?: Record<string, string>;
+}
+
+export interface BrowserQueryInput {
+  properties?: Array<"text" | "html" | "attributes" | "box" | "value" | "checked" | "visible" | "enabled" | "count">;
+  attributeNames?: string[];
+  all?: boolean;
 }
 
 export interface BrowserAction {
@@ -174,6 +220,8 @@ export interface BrowserAction {
   key?: string;
   text?: string;
   expression?: string;
+  emulation?: BrowserEmulationInput;
+  query?: BrowserQueryInput;
   path?: string;
   paths?: string[];
   timeoutMs?: number;
@@ -205,6 +253,17 @@ export interface BrowserAction {
   waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
   purpose: string;
   approvalId?: string;
+}
+
+export interface BrowserActionBatchInput {
+  actions: BrowserAction[];
+  stopOnError?: boolean;
+}
+
+export interface BrowserActionBatchResult {
+  results: Array<{ index: number; output?: unknown; receipt?: ActionReceipt; error?: { code: string; message: string } }>;
+  completed: number;
+  failed: number;
 }
 
 export interface FrameTarget {
@@ -276,6 +335,34 @@ export interface BrowserHistoryEntry {
   title: string;
   observedAt: string;
   source: ActionKind | "session.start";
+}
+
+export interface NavigationGraphNode {
+  id: string;
+  tabId: string;
+  url: string;
+  title: string;
+  firstObservedAt: string;
+  lastObservedAt: string;
+  visits: number;
+}
+
+export interface NavigationGraphEdge {
+  id: string;
+  tabId: string;
+  from: string;
+  to: string;
+  source: BrowserHistoryEntry["source"];
+  observedAt: string;
+  traversals: number;
+}
+
+export interface NavigationGraph {
+  sessionId: string;
+  generatedAt: string;
+  nodes: NavigationGraphNode[];
+  edges: NavigationGraphEdge[];
+  truncated: boolean;
 }
 
 export interface BrowserNetworkRecord {
@@ -444,7 +531,9 @@ export interface ContextRecorder {
 export const BROWSER_EVENT_TYPES = [
   "browser.session.created",
   "browser.session.closed",
+  "browser.action.started",
   "browser.action.completed",
+  "browser.progress",
   "browser.challenge.detected",
   "browser.challenge.resolved",
   "browser.evidence.recorded"
@@ -462,6 +551,14 @@ export interface BrowserLifecycleEvent {
   receiptHash?: string;
   evidenceIds?: string[];
   metadata?: Record<string, unknown>;
+}
+
+export type ActivityDetail = "off" | "summary" | "detailed";
+
+export interface BrowserActivityQuery {
+  sessionId?: string;
+  after?: string;
+  limit?: number;
 }
 
 export interface BrowserEventPublisher {

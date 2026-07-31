@@ -3,6 +3,8 @@ const state = {
   token: "",
   health: null,
   sessions: [],
+  profiles: [],
+  activity: [],
   evidence: [],
   view: "overview"
 };
@@ -38,14 +40,18 @@ async function connect() {
   setStatus("Connecting", "idle");
   connectButton.disabled = true;
   try {
-    const [health, sessions, evidence, verify] = await Promise.all([
+    const [health, sessions, profiles, activity, evidence, verify] = await Promise.all([
       request("/v1/health"),
       request("/v1/sessions"),
+      optionalRequest("/v1/profiles", { profiles: [] }),
+      request("/v1/activity?limit=200"),
       request("/v1/evidence"),
       request("/v1/evidence/verify")
     ]);
     state.health = health;
     state.sessions = sessions.sessions ?? [];
+    state.profiles = profiles.profiles ?? [];
+    state.activity = activity.activity ?? [];
     state.evidence = evidence.evidence ?? [];
     state.verify = verify;
     setStatus(`Connected to ${state.url}`, "ok");
@@ -67,11 +73,21 @@ async function request(path) {
   return payload;
 }
 
+async function optionalRequest(path, fallback) {
+  try {
+    return await request(path);
+  } catch {
+    return fallback;
+  }
+}
+
 function render() {
   const challenged = state.sessions.filter((session) => session.state === "challenge" || session.challenge?.detected);
   const labels = {
     overview: "Browser control room",
     sessions: "Authorized sessions",
+    profiles: "Runtime-owned profiles",
+    activity: "Browser activity",
     evidence: "Evidence ledger",
     challenges: "Challenge handoff",
     receipts: "Receipt integrity"
@@ -83,6 +99,20 @@ function render() {
     panels.innerHTML = widePanel(
       "Sessions",
       listSessions(state.sessions, "No active sessions. Connect an authorized worker to inspect its session state.")
+    );
+    return;
+  }
+  if (state.view === "profiles") {
+    panels.innerHTML = widePanel(
+      "Persistent profiles",
+      listProfiles(state.profiles, "No runtime-owned persistent profiles exist. Ambient browser profiles are never discovered automatically.")
+    );
+    return;
+  }
+  if (state.view === "activity") {
+    panels.innerHTML = widePanel(
+      "Recent activity",
+      listActivity(state.activity, "No lifecycle events are retained by this worker yet.")
     );
     return;
   }
@@ -120,6 +150,7 @@ function render() {
   panels.innerHTML = `
     ${metricPanel("Active sessions", state.sessions.length, "Authorized Chromium contexts currently owned by this worker.")}
     ${metricPanel("Evidence records", state.evidence.length, "Snapshots, artifacts, audits, comparisons, and action records.")}
+    ${metricPanel("Persistent profiles", state.profiles.length, "Explicit runtime-owned profiles; ambient personal profiles remain outside the daemon.")}
     ${metricPanel("Receipt chain", state.verify?.ok ? "OK" : state.health ? "CHECK" : "WAIT", "Integrity is verified against the local evidence ledger.")}
     ${widePanel("Sessions", listSessions(state.sessions, "No active sessions."))}
     ${widePanel("Challenges", listSessions(challenged, "No active challenge. Login, consent, CAPTCHA, and access challenges pause here."))}
@@ -174,4 +205,31 @@ function listEvidence(records, emptyMessage) {
       <code>${escapeHtml(record.digest ?? record.receiptHash ?? record.createdAt ?? "recorded")}</code>
     </li>
   `).join("")}</ul>`;
+}
+
+function listProfiles(profiles, emptyMessage) {
+  if (!profiles.length) return `<div class="empty">${escapeHtml(emptyMessage)}</div>`;
+  return `<ul class="session-list">${profiles.map((profile) => `
+    <li>
+      <span>${escapeHtml(profile.name ?? "unnamed")}<br><small>${escapeHtml(profile.updatedAt ?? profile.createdAt ?? "recorded")}</small></span>
+      <code>${escapeHtml(formatBytes(profile.bytes ?? 0))}</code>
+    </li>
+  `).join("")}</ul>`;
+}
+
+function listActivity(activity, emptyMessage) {
+  if (!activity.length) return `<div class="empty">${escapeHtml(emptyMessage)}</div>`;
+  return `<ul class="session-list">${[...activity].reverse().map((event) => `
+    <li>
+      <span>${escapeHtml(event.type ?? "browser.event")}<br><small>${escapeHtml(event.sessionId ?? "runtime")} · ${escapeHtml(event.at ?? "recorded")}</small></span>
+      <code>${escapeHtml(event.actionKind ?? event.metadata?.status ?? "observed")}</code>
+    </li>
+  `).join("")}</ul>`;
+}
+
+function formatBytes(value) {
+  if (!Number.isFinite(value) || value <= 0) return "0 B";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KiB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MiB`;
 }

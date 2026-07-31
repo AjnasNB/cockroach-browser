@@ -1,6 +1,6 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.2.1",
+  version: "0.3.0",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
@@ -21,6 +21,7 @@ export const navGroups = [
     title: "Operate",
     items: [
       ["Actions and semantic refs", "actions"],
+      ["Operator runtime", "operator-runtime"],
       ["Capture and evidence", "capture"],
       ["Network boundary", "network"],
       ["Files and downloads", "files"],
@@ -155,7 +156,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.2.1", "mcp"],
+      "args": ["-y", "cockroach-browser@0.3.0", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -253,13 +254,13 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.2.1 .
+  docker: `docker build -t cockroach-browser:0.3.0 .
 docker run --rm \\
   --read-only \\
   --tmpfs /tmp \\
   --tmpfs /data \\
   -p 127.0.0.1:43110:43110 \\
-  cockroach-browser:0.2.1`,
+  cockroach-browser:0.3.0`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\
@@ -398,7 +399,18 @@ cockroach-browser service status`,
       {
         title: "Choose the browser connection",
         body:
-          "<p>Launch bundled Chromium in headless or headed mode, supply a compatible executable, or attach to a user-selected CDP endpoint. CDP attachment is never discovered automatically. The host names the endpoint and accepts responsibility for that browser.</p><ul><li><strong>Headless:</strong> unattended evidence and audits.</li><li><strong>Headed:</strong> review, login, consent, and human handoff.</li><li><strong>CDP:</strong> attach to an explicitly selected Chrome debugging endpoint.</li><li><strong>Custom executable:</strong> use a compatible browser binary selected by the operator.</li></ul>"
+          "<p>Launch bundled Chromium, discover a reviewed system installation, supply a compatible executable, or attach to a user-selected CDP endpoint. <code>cockroach-browser browser discover</code> reports Chrome, Edge, Brave, and Chromium candidates across Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Discovery never imports an ambient browser profile. CDP attachment remains explicit: the host names the endpoint and accepts responsibility for that browser.</p><ul><li><strong>Bundled:</strong> package-managed Chromium.</li><li><strong>System:</strong> one reviewed installed browser channel.</li><li><strong>Custom:</strong> one explicit compatible executable and bounded arguments.</li><li><strong>CDP:</strong> attach to an explicitly selected debugging endpoint.</li><li><strong>Extensions:</strong> load reviewed unpacked directories in an isolated headed context.</li></ul>",
+        code: `cockroach-browser browser discover`,
+        label: "terminal"
+      },
+      {
+        title: "Create an explicit persistent profile",
+        body:
+          "<p>Persistent profiles preserve cookies, permissions, extension state, and browser storage across headed sessions in a runtime-owned user-data directory. They are never found by scanning a user's normal Chrome or Brave profile. A profile has one active writer, cannot be combined with remote CDP attachment or imported storage state, and can be archived through an exact recoverable operation.</p>",
+        code: `cockroach-browser persistent-profile create --name support-review
+cockroach-browser persistent-profile list
+cockroach-browser persistent-profile archive --name support-review`,
+        label: "terminal"
       },
       {
         title: "Keep profiles explicit and encrypted",
@@ -476,6 +488,71 @@ cockroach-browser service status`,
         title: "JavaScript is an explicit capability",
         body:
           "<p>Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.</p>"
+      },
+      {
+        title: "Inspect a target without inventing a selector",
+        body:
+          "<p><code>query.inspect</code> returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.</p>"
+      },
+      {
+        title: "Run an ordered bounded batch",
+        body:
+          "<p>A batch contains 1 to 100 exact actions. Every attempted step receives its own policy decision and receipt. Choose stop-on-error for dependent workflows or continue semantics for independent observations; a batch never creates a route around action policy.</p>",
+        code: `cockroach-browser batch \\
+  --session "$SESSION_ID" \\
+  --input ./review-actions.json \\
+  --token-file .cockroach-browser/auth-token`,
+        label: "terminal"
+      },
+      {
+        title: "Emulate only what the session permits",
+        body:
+          "<p><code>emulation.set</code> can apply bounded viewport, media, offline, geolocation, permissions, and non-secret headers after <code>allowEmulation</code> and exact approval. <code>emulation.clear</code> returns to the session baseline. These actions do not provide fingerprint evasion or access-control bypass.</p>"
+      }
+    ]
+  },
+  {
+    slug: "operator-runtime",
+    title: "Operator runtime",
+    kicker: "Discover, route, observe, and share browser work without sharing the machine.",
+    lede:
+      "Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.",
+    sections: [
+      {
+        title: "Inspect browser and daemon state",
+        body:
+          "<p><code>browser discover</code> reports installed compatible browsers. <code>doctor</code> verifies Node, Chromium, the data root, and local service readiness. The authenticated daemon publishes <code>/v1/health</code>, <code>/v1/openapi.json</code>, and Prometheus text at <code>/v1/metrics</code>.</p>"
+      },
+      {
+        title: "Follow the activity stream",
+        body:
+          "<p><code>/v1/activity</code> returns a bounded filtered ledger. <code>/v1/activity/stream</code> emits the same lifecycle records over server-sent events. Actor-scoped tokens see only sessions for which they have viewer access; the administrator token remains local deployment authority.</p>",
+        code: `cockroach-browser activity --session "$SESSION_ID" --limit 200 \\
+  --token-file .cockroach-browser/auth-token`,
+        label: "terminal"
+      },
+      {
+        title: "See how a session moved",
+        body:
+          "<p>The navigation graph turns admitted session history into stable URL nodes and traversed edges. It is session-local, bounded by the history ceiling, and does not inspect a user's ambient browsing history.</p>",
+        code: `cockroach-browser session graph --id "$SESSION_ID" \\
+  --token-file .cockroach-browser/auth-token`,
+        label: "terminal"
+      },
+      {
+        title: "Share control without sharing profiles",
+        body:
+          "<p><code>TeamSessionStore</code> persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. Grant generations and revocations are durable, while raw cookies and browser profiles never enter the access record.</p>"
+      },
+      {
+        title: "Route across authenticated workers",
+        body:
+          "<p><code>BrowserWorkerPool</code> checks authenticated daemon health, capacity, weight, and explicit tags before creating a session. Non-loopback workers require HTTPS and strong bearer tokens. The pool does not discover public workers or accept unauthenticated endpoints.</p>"
+      },
+      {
+        title: "Clear retained runtime state deliberately",
+        body:
+          "<p><code>cache.clear</code>, <code>console.clear</code>, and <code>network.clear</code> are explicit policy-evaluated actions. They clear only the authorized session's runtime state and produce receipts; they do not erase evidence already committed to the evidence ledger.</p>"
       }
     ]
   },
@@ -656,7 +733,7 @@ cockroach-browser service status`,
       {
         title: "Durability scope",
         body:
-          "<p>The built-in job queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling and team session control remain planned capabilities. Signed lifecycle delivery is available through the separate local durable webhook outbox; it does not turn the job queue into a distributed scheduler.</p>"
+          "<p>The built-in job queue is process-local and file-backed. It is useful for one owned worker. Team session ownership and revocable viewer/operator grants are available through <code>TeamSessionStore</code>, and <code>BrowserWorkerPool</code> can route new sessions across reviewed authenticated daemons. Neither turns the local queue into a distributed transaction coordinator. Signed lifecycle delivery remains a separate durable webhook outbox.</p>"
       }
     ]
   },
@@ -873,7 +950,7 @@ cockroach-browser service status`,
       {
         title: "Current status",
         body:
-          "<p>The ProductLoop integration in 0.2.1 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
+          "<p>The ProductLoop integration in 0.3.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.</p>"
       }
     ]
   },
@@ -931,6 +1008,16 @@ cockroach-browser service status`,
         title: "Remote worker",
         body:
           "<p>Remote binding requires TLS and bearer authentication. Place the worker behind service identity where possible. Do not expose an unauthenticated daemon to the public internet. Keep browser profiles isolated by deployment and owner.</p>"
+      },
+      {
+        title: "OpenAPI, metrics, and activity",
+        body:
+          "<p>Authenticated operators can inspect <code>/v1/openapi.json</code>, scrape Prometheus text from <code>/v1/metrics</code>, poll <code>/v1/activity</code>, or subscribe to <code>/v1/activity/stream</code>. The activity surface is bounded and actor-filtered; it is not a raw browser telemetry dump.</p>"
+      },
+      {
+        title: "Team and worker operation",
+        body:
+          "<p>Embed <code>TeamSessionStore</code> to persist owner, viewer, and operator roles with revocation. Use <code>BrowserWorkerPool</code> to choose healthy authenticated workers by capacity, weight, and explicit tags. Keep profile directories local to their owning worker.</p>"
       },
       {
         title: "Release verification",

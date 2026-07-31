@@ -29,7 +29,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.2.1</span>
+      <span class="version">0.3.0</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/" >Product</a>
@@ -45,7 +45,7 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/capture/" aria-current="page">Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" aria-current="page">Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
@@ -63,8 +63,8 @@
     <h2>Capture the pixels and the cited page state together</h2>
 <p><code>capture.paired</code> records a screenshot and semantic snapshot under one receipt. <code>requireStable</code> rejects a capture when the page revision changes during collection. Optional element bounds connect numbered semantic refs to visible regions without turning coordinates into long-lived selectors.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-13">Copy</button></div>
-  <pre><code id="code-13">npx cockroach-browser capture \
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-18">Copy</button></div>
+  <pre><code id="code-18">npx cockroach-browser capture \
   --session &quot;$SESSION_ID&quot; \
   --require-stable \
   --include-bounds \

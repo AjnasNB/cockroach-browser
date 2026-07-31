@@ -40,10 +40,14 @@ The generated service cannot add remote binding, raw-action routes, session host
 Every session has an owner, purpose, mode, origin boundary, action boundary, effect boundary, and finite budget. Profiles are named, isolated, and imported only by an authorized operator.
 
 ### Choose the browser connection
-Launch bundled Chromium in headless or headed mode, supply a compatible executable, or attach to a user-selected CDP endpoint. CDP attachment is never discovered automatically. The host names the endpoint and accepts responsibility for that browser.- Headless: unattended evidence and audits.
-- Headed: review, login, consent, and human handoff.
-- CDP: attach to an explicitly selected Chrome debugging endpoint.
-- Custom executable: use a compatible browser binary selected by the operator.
+Launch bundled Chromium, discover a reviewed system installation, supply a compatible executable, or attach to a user-selected CDP endpoint. cockroach-browser browser discover reports Chrome, Edge, Brave, and Chromium candidates across Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Discovery never imports an ambient browser profile. CDP attachment remains explicit: the host names the endpoint and accepts responsibility for that browser.- Bundled: package-managed Chromium.
+- System: one reviewed installed browser channel.
+- Custom: one explicit compatible executable and bounded arguments.
+- CDP: attach to an explicitly selected debugging endpoint.
+- Extensions: load reviewed unpacked directories in an isolated headed context.
+
+### Create an explicit persistent profile
+Persistent profiles preserve cookies, permissions, extension state, and browser storage across headed sessions in a runtime-owned user-data directory. They are never found by scanning a user's normal Chrome or Brave profile. A profile has one active writer, cannot be combined with remote CDP attachment or imported storage state, and can be archived through an exact recoverable operation.
 
 ### Keep profiles explicit and encrypted
 Profiles isolate cookies and storage. Import and export require an explicit name, file path, and passphrase supplied through an environment variable. Passphrases are not accepted as command arguments and are not written to manifests.
@@ -84,6 +88,37 @@ history.inspect returns sanitized URLs, titles, tab IDs, timestamps, and action 
 
 ### JavaScript is an explicit capability
 Expression evaluation is disabled unless the session policy allows JavaScript and the action is approved when required. Do not use evaluation as a shortcut around origin, credential, file, or effect controls.
+
+### Inspect a target without inventing a selector
+query.inspect returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.
+
+### Run an ordered bounded batch
+A batch contains 1 to 100 exact actions. Every attempted step receives its own policy decision and receipt. Choose stop-on-error for dependent workflows or continue semantics for independent observations; a batch never creates a route around action policy.
+
+### Emulate only what the session permits
+emulation.set can apply bounded viewport, media, offline, geolocation, permissions, and non-secret headers after allowEmulation and exact approval. emulation.clear returns to the session baseline. These actions do not provide fingerprint evasion or access-control bypass.
+
+## Operator runtime
+
+Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.
+
+### Inspect browser and daemon state
+browser discover reports installed compatible browsers. doctor verifies Node, Chromium, the data root, and local service readiness. The authenticated daemon publishes /v1/health, /v1/openapi.json, and Prometheus text at /v1/metrics.
+
+### Follow the activity stream
+/v1/activity returns a bounded filtered ledger. /v1/activity/stream emits the same lifecycle records over server-sent events. Actor-scoped tokens see only sessions for which they have viewer access; the administrator token remains local deployment authority.
+
+### See how a session moved
+The navigation graph turns admitted session history into stable URL nodes and traversed edges. It is session-local, bounded by the history ceiling, and does not inspect a user's ambient browsing history.
+
+### Share control without sharing profiles
+TeamSessionStore persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. Grant generations and revocations are durable, while raw cookies and browser profiles never enter the access record.
+
+### Route across authenticated workers
+BrowserWorkerPool checks authenticated daemon health, capacity, weight, and explicit tags before creating a session. Non-loopback workers require HTTPS and strong bearer tokens. The pool does not discover public workers or accept unauthenticated endpoints.
+
+### Clear retained runtime state deliberately
+cache.clear, console.clear, and network.clear are explicit policy-evaluated actions. They clear only the authorized session's runtime state and produce receipts; they do not erase evidence already committed to the evidence ledger.
 
 ## Capture and evidence
 
@@ -178,7 +213,7 @@ Automatic retry is limited to read-like operations such as snapshots, waits, and
 Maqam and application services should carry stable operation IDs through policy, browser execution, downstream writes, and receipts. Cross-ledger writes are not one transaction, so use an explicit outbox and reconcile by ID.
 
 ### Durability scope
-The built-in job queue is process-local and file-backed. It is useful for one owned worker. Distributed scheduling and team session control remain planned capabilities. Signed lifecycle delivery is available through the separate local durable webhook outbox; it does not turn the job queue into a distributed scheduler.
+The built-in job queue is process-local and file-backed. It is useful for one owned worker. Team session ownership and revocable viewer/operator grants are available through TeamSessionStore, and BrowserWorkerPool can route new sessions across reviewed authenticated daemons. Neither turns the local queue into a distributed transaction coordinator. Signed lifecycle delivery remains a separate durable webhook outbox.
 
 ## MCP
 
@@ -295,7 +330,7 @@ Product workflows should call a Maqam-governed tool wrapper for consequential br
 Browser evidence proves what Chromium observed and executed. Maqam proves the policy and approval path. Qarinah preserves cited project memory. ProductLoop coordinates packages and workflows. Stable IDs connect these records without pretending they are one database.
 
 ### Current status
-The ProductLoop integration in 0.2.1 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
+The ProductLoop integration in 0.3.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
 
 ## Security
 
@@ -333,6 +368,12 @@ Pin the package and browser version, use a read-only root filesystem, mount only
 ### Remote worker
 Remote binding requires TLS and bearer authentication. Place the worker behind service identity where possible. Do not expose an unauthenticated daemon to the public internet. Keep browser profiles isolated by deployment and owner.
 
+### OpenAPI, metrics, and activity
+Authenticated operators can inspect /v1/openapi.json, scrape Prometheus text from /v1/metrics, poll /v1/activity, or subscribe to /v1/activity/stream. The activity surface is bounded and actor-filtered; it is not a raw browser telemetry dump.
+
+### Team and worker operation
+Embed TeamSessionStore to persist owner, viewer, and operator roles with revocation. Use BrowserWorkerPool to choose healthy authenticated workers by capacity, weight, and explicit tags. Keep profile directories local to their owning worker.
+
 ### Release verification
 Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.
 
@@ -343,13 +384,18 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Headed Chromium [available]: Show the real browser for review, login, and human handoff. Surface: mode=headed.
 - Attach over CDP [available]: Connect to a user-selected Chrome debugging endpoint. Surface: cdpEndpoint.
 - Custom Chromium executable [available]: Launch an explicitly supplied compatible browser binary. Surface: executablePath.
+- Cross-platform browser discovery [available]: Discover reviewed Chrome, Edge, Brave, and Chromium binaries on Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Surface: browser discover and discoverBrowserExecutables.
+- Explicit browser providers [available]: Select bundled, system, custom executable, or CDP providers without ambient profile discovery. Surface: browserProvider.
+- Reviewed unpacked extensions [available]: Load explicit local extension directories in an isolated headed browser without downloading CRX files. Surface: browserProvider.extensions.
 - Named isolated profiles [available]: Keep cookies and storage separated by an explicit profile name. Surface: profile.
+- Runtime-owned persistent browser profiles [available]: Keep headed browser cookies, permissions, extensions, and storage across sessions in an explicit runtime-owned user-data directory, with single-writer locking and recoverable archival. Surface: browserProvider.persistentProfile and /v1/profiles.
 - Explicit storage-state import [available]: Import a user-selected encrypted storage-state file. Surface: profile import.
 - Explicit storage-state export [available]: Export a selected session for an authorized workflow. Surface: profile export.
 - Encrypted state checkpoints [available]: Save, list, restore, and delete named encrypted cookie and same-origin storage checkpoints through host-owned passphrase references. Surface: state.*.
 - Policy-gated clipboard [available]: Read or write bounded clipboard text only when the host grants clipboard authority and resolves the exact secret reference. Surface: clipboard.*.
 - User-supplied proxy [available]: Route one session through an explicitly configured proxy. Surface: proxy.
 - Locale and timezone [available]: Create deterministic locale and timezone contexts. Surface: locale/timezoneId.
+- Device and network emulation [available]: Apply bounded viewport, media, offline, geolocation, permission, and non-secret header settings behind explicit emulation policy and approval. Surface: emulation.set/clear.
 - Tabs and popups [available]: Open, list, switch, and close bounded tabs. Surface: tab.*.
 - Exclusive tab locks [available]: Bind a tab to one owner and opaque lock-token reference for a finite lease before executing protected actions. Surface: tab.lock/unlock/status.
 - Navigation [available]: Navigate, reload, go back, and go forward within allowed origins. Surface: navigate/back/forward/reload.
@@ -369,7 +415,10 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Same-origin frame targeting [available]: Target an exact index, name, or URL without entering cross-origin frames. Surface: action.frame.
 - Explicit dialog handling [available]: Dismiss dialogs by default and require policy plus approval before accepting one. Surface: action.dialog.
 - Bounded browser history [available]: Inspect a sanitized, session-local record of observed page states under a finite retention ceiling. Surface: history.inspect.
+- Navigation graph [available]: Aggregate admitted page history into stable nodes and traversed edges for agent planning and review. Surface: session graph and /navigation-graph.
 - Policy-gated JavaScript [available]: Evaluate JavaScript only when the session policy and approval allow it. Surface: evaluate.
+- Bounded element inspection [available]: Inspect text, HTML, attributes, boxes, form state, visibility, enabled state, and counts for an explicit target. Surface: query.inspect.
+- Ordered action batches [available]: Run up to 100 exact policy-evaluated actions with stop-on-error or continue semantics and an individual receipt for every attempted step. Surface: /actions/batch.
 - File upload [available]: Upload explicit paths under byte and policy limits. Surface: upload.
 - Controlled downloads [available]: Capture downloads into the evidence directory under byte limits. Surface: download.
 - Screenshots [available]: Capture PNG or JPEG evidence with source metadata. Surface: screenshot.
@@ -380,6 +429,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - HAR capture [available]: Record network archives when enabled at session creation. Surface: recordHar.
 - Session video [available]: Record browser video when enabled at session creation. Surface: recordVideo.
 - Console records [available]: Capture bounded console messages with timestamps. Surface: session evidence.
+- Explicit runtime clearing [available]: Clear browser cache or retained console and network observations through policy-evaluated actions. Surface: cache.clear/console.clear/network.clear.
 - Network records [available]: Capture bounded request and response metadata. Surface: session evidence.
 - Network inspection [available]: Filter redacted request and response observations by method, status, and resource type under a finite record ceiling. Surface: network.inspect and browser_network.
 - Network export [available]: Export the bounded redacted observation set as JSON, NDJSON, or HAR-compatible evidence. Surface: network.export.
@@ -401,15 +451,19 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
 - Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
 - Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.
-- Shell completions [available]: Generate auditable bash, zsh, or PowerShell completion scripts without modifying shell profiles. Surface: completion bash|zsh|powershell.
+- Shell completions [available]: Generate auditable Bash, Zsh, Fish, or PowerShell completion scripts without modifying shell profiles. Surface: completion bash|zsh|fish|powershell.
 - Per-user daemon autostart [available]: Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation. Surface: service install|status|uninstall.
 - One-command bootstrap [available]: Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon. Surface: bootstrap.
 - TypeScript SDK [available]: Embed the runtime or call an authenticated daemon. Surface: BrowserRuntime/BrowserClient.
 - Authenticated HTTP API [available]: Expose the runtime through a bearer-token localhost server. Surface: serve.
+- OpenAPI discovery [available]: Publish an authenticated machine-readable route index for local SDK and operator tooling. Surface: /v1/openapi.json.
+- Prometheus metrics [available]: Expose authenticated session, action, and failure counters for local operations. Surface: /v1/metrics.
 - Observation-first MCP server [available]: Expose health, capabilities, sessions, snapshots, paired capture, network observations, audits, and canonical Maqam action proposals over stdio. Surface: mcp.
 - Docker runtime [available]: Run Chromium and the authenticated daemon in a container. Surface: Dockerfile.
 - Local dashboard [available]: Inspect sessions, evidence, challenges, and receipts. Surface: dashboard.
 - Authenticated remote workers [available]: Connect SDK clients to explicitly configured remote daemons. Surface: BrowserClient.
+- Multi-worker orchestration [available]: Route sessions across healthy authenticated browser daemons by capacity, weight, and explicit tags. Surface: BrowserWorkerPool.
+- Configurable activity stream [available]: Read bounded summary or detailed lifecycle activity through polling or server-sent events. Surface: /v1/activity and /v1/activity/stream.
 - Durable local jobs [available]: Queue bounded action plans with checkpoints and retries. Surface: JobQueue.
 - Doctor and daemon health checks [available]: Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count. Surface: doctor and /v1/health.
 - Maqam governance [adapter]: Route high-risk browser actions through exact approval and receipts. Surface: cockroach-browser/maqam.
@@ -417,4 +471,4 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Cockroach Crawler handoff [adapter]: Hand breadth-first collection to the crawler while retaining browser evidence. Surface: cockroach-browser/crawler.
 - ProductLoop capability snapshot [adapter]: Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority. Surface: docs/productloop.md.
 - Signed lifecycle webhooks [available]: Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery. Surface: SignedWebhookDispatcher.
-- Team session control [planned]: Share policy and receipts without sharing raw browser profiles. Surface: roadmap.
+- Team session control [available]: Persist session owners, viewer and operator grants, revocation generations, policy, and receipts without sharing raw profiles. Surface: TeamSessionStore and /access.

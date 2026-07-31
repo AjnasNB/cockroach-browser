@@ -5,7 +5,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export type OperatorPlatform = "win32" | "darwin" | "linux";
-export type CompletionShell = "bash" | "zsh" | "powershell";
+export type CompletionShell = "bash" | "zsh" | "fish" | "powershell";
 
 export interface OperatorCommandResult {
   command: string;
@@ -79,9 +79,13 @@ const COMMANDS = [
   "snapshot",
   "capture",
   "network",
+  "activity",
+  "batch",
+  "browser",
   "audit",
   "act",
   "profile",
+  "persistent-profile",
   "version",
   "help"
 ] as const;
@@ -89,8 +93,9 @@ const COMMANDS = [
 export function shellCompletion(shell: CompletionShell): string {
   if (shell === "bash") return bashCompletion();
   if (shell === "zsh") return zshCompletion();
+  if (shell === "fish") return fishCompletion();
   if (shell === "powershell") return powershellCompletion();
-  throw new Error(`Unsupported shell: ${String(shell)}. Use bash, zsh, or powershell.`);
+  throw new Error(`Unsupported shell: ${String(shell)}. Use bash, zsh, fish, or powershell.`);
 }
 
 export function operatorServiceDefinition(options: OperatorInstallOptions = {}): OperatorServiceDefinition {
@@ -449,10 +454,12 @@ _cockroach_browser() {
     return
   fi
   case "\${COMP_WORDS[1]}" in
-    completion) COMPREPLY=( $(compgen -W "bash zsh powershell" -- "\${current}") ) ;;
+    completion) COMPREPLY=( $(compgen -W "bash zsh fish powershell" -- "\${current}") ) ;;
     service) COMPREPLY=( $(compgen -W "install uninstall status --confirm-local-owner --definition-only --root --port" -- "\${current}") ) ;;
-    session) COMPREPLY=( $(compgen -W "create list get close" -- "\${current}") ) ;;
+    session) COMPREPLY=( $(compgen -W "create list get close graph" -- "\${current}") ) ;;
+    browser) COMPREPLY=( $(compgen -W "discover" -- "\${current}") ) ;;
     profile) COMPREPLY=( $(compgen -W "list import export" -- "\${current}") ) ;;
+    persistent-profile) COMPREPLY=( $(compgen -W "list create archive --name --root" -- "\${current}") ) ;;
     capabilities) COMPREPLY=( $(compgen -W "--status available adapter planned" -- "\${current}") ) ;;
     *) COMPREPLY=( $(compgen -W "--help --root --token-file" -- "\${current}") ) ;;
   esac
@@ -474,15 +481,30 @@ ${COMMANDS.map((command) => `    '${command}:${completionDescription(command)}'`
     return
   fi
   case "$words[2]" in
-    completion) _values 'shell' bash zsh powershell ;;
+    completion) _values 'shell' bash zsh fish powershell ;;
     service) _values 'operation' install uninstall status '--confirm-local-owner[confirm local account ownership]' '--definition-only[write definition without activation]' '--root[daemon data root]' '--port[loopback port]' ;;
-    session) _values 'operation' create list get close ;;
+    session) _values 'operation' create list get close graph ;;
+    browser) _values 'operation' discover ;;
     profile) _values 'operation' list import export ;;
+    persistent-profile) _values 'operation' list create archive '--name[profile name]' '--root[runtime root]' ;;
     capabilities) _values 'filter' '--status[available, adapter, or planned]' ;;
     *) _arguments '*:argument:_files' ;;
   esac
 }
 _cockroach_browser "$@"
+`;
+}
+
+function fishCompletion(): string {
+  const commands = COMMANDS.map((command) => `complete -c cockroach-browser -n '__fish_use_subcommand' -a '${command}' -d '${completionDescription(command)}'`).join("\n");
+  return `# ${GENERATED_MARKER}
+${commands}
+complete -c cockroach-browser -n '__fish_seen_subcommand_from completion' -a 'bash zsh fish powershell'
+complete -c cockroach-browser -n '__fish_seen_subcommand_from service' -a 'install uninstall status --confirm-local-owner --definition-only --root --port'
+complete -c cockroach-browser -n '__fish_seen_subcommand_from session' -a 'create list get close graph'
+complete -c cockroach-browser -n '__fish_seen_subcommand_from browser' -a 'discover'
+complete -c cockroach-browser -n '__fish_seen_subcommand_from persistent-profile' -a 'list create archive --name --root'
+complete -c cockroach-browser -n '__fish_seen_subcommand_from capabilities' -a '--status available adapter planned'
 `;
 }
 
@@ -495,10 +517,12 @@ Register-ArgumentCompleter -Native -CommandName cockroach-browser -ScriptBlock {
   $candidates = @(${commands})
   if ($words.Count -ge 2) {
     switch ($words[1]) {
-      'completion' { $candidates = @('bash', 'zsh', 'powershell') }
+      'completion' { $candidates = @('bash', 'zsh', 'fish', 'powershell') }
       'service' { $candidates = @('install', 'uninstall', 'status', '--confirm-local-owner', '--definition-only', '--root', '--port') }
-      'session' { $candidates = @('create', 'list', 'get', 'close') }
+      'session' { $candidates = @('create', 'list', 'get', 'close', 'graph') }
+      'browser' { $candidates = @('discover') }
       'profile' { $candidates = @('list', 'import', 'export') }
+      'persistent-profile' { $candidates = @('list', 'create', 'archive', '--name', '--root') }
       'capabilities' { $candidates = @('--status', 'available', 'adapter', 'planned') }
       default { $candidates = @('--help', '--root', '--token-file') }
     }
@@ -524,9 +548,13 @@ function completionDescription(command: typeof COMMANDS[number]): string {
     snapshot: "Capture semantic page state",
     capture: "Capture paired visual and semantic evidence",
     network: "Inspect or export bounded network observations",
+    activity: "Read the bounded runtime activity stream",
+    batch: "Run a finite transactional action batch",
+    browser: "Discover compatible local browser providers",
     audit: "Run page audits",
     act: "Dispatch a trusted-host action",
     profile: "Manage explicit encrypted profile files",
+    "persistent-profile": "Manage explicit runtime-owned headed browser profiles",
     version: "Print the package version",
     help: "Show command help"
   };

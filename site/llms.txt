@@ -12,6 +12,7 @@ Technical paper: https://cockroachbrowser.com/paper/
 - [Operator install](https://cockroachbrowser.com/docs/operator-install/)
 - [Sessions and profiles](https://cockroachbrowser.com/docs/sessions/)
 - [Actions and semantic refs](https://cockroachbrowser.com/docs/actions/)
+- [Operator runtime](https://cockroachbrowser.com/docs/operator-runtime/)
 - [Capture and evidence](https://cockroachbrowser.com/docs/capture/)
 - [Network boundary](https://cockroachbrowser.com/docs/network/)
 - [Files and downloads](https://cockroachbrowser.com/docs/files/)
@@ -31,6 +32,6 @@ Technical paper: https://cockroachbrowser.com/paper/
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
 
 ## Capability states
-- Available: implemented in the 0.2.1 runtime or shipped deployment surface.
+- Available: implemented in the 0.3.0 runtime or shipped deployment surface.
 - Adapter: integration contract shipped, external authority or package required.
 - Planned: documented direction, not part of the current release.

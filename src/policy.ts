@@ -40,6 +40,11 @@ const WRITE_ACTIONS = new Set<ActionKind>([
   "state.save",
   "state.load",
   "state.delete",
+  "emulation.set",
+  "emulation.clear",
+  "cache.clear",
+  "console.clear",
+  "network.clear",
   "tab.lock",
   "tab.unlock"
 ]);
@@ -105,6 +110,8 @@ export function riskForAction(action: ActionKind | BrowserAction): RiskLevel {
     || kind === "clipboard.write"
     || kind === "network.route.add"
     || kind === "network.route.remove"
+    || kind === "emulation.set"
+    || kind === "emulation.clear"
   ) return "critical";
   if (typeof action !== "string" && action.dialog?.action === "accept") return "high";
   if (HIGH_RISK_ACTIONS.has(kind)) return "high";
@@ -384,6 +391,10 @@ export function evaluateAction(policy: BrowserPolicy, action: BrowserAction): Po
   if (action.kind.startsWith("annotate.") && !normalized.allowAnnotations) {
     allowed = false;
     reason = "Page annotations are disabled for this session.";
+  }
+  if (action.kind.startsWith("emulation.") && !normalized.allowEmulation) {
+    allowed = false;
+    reason = "Browser emulation is disabled for this session.";
   }
   if (action.dialog?.action === "accept" && !normalized.allowDialogAccept) {
     allowed = false;

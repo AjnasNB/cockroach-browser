@@ -71,6 +71,9 @@ test(
     await runtime.initialize();
     t.after(() => runtime.close());
     const session = await runtime.createSession({
+      ...(process.env.COCKROACH_BROWSER_EXECUTABLE
+        ? { executablePath: process.env.COCKROACH_BROWSER_EXECUTABLE }
+        : {}),
       startUrl: origin,
       purpose: "Release browser smoke test",
       policy: {
@@ -93,6 +96,12 @@ test(
           "network.export",
           "network.route.add",
           "network.routes.list",
+          "network.clear",
+          "console.clear",
+          "cache.clear",
+          "query.inspect",
+          "emulation.set",
+          "emulation.clear",
           "state.save",
           "state.load",
           "state.list",
@@ -109,6 +118,7 @@ test(
         allowClipboard: true,
         allowStateExport: true,
         allowAnnotations: true,
+        allowEmulation: true,
         requireApprovalFor: []
       }
     });
@@ -121,6 +131,25 @@ test(
     assert(save);
     assert(confirm);
     assert(fetch);
+
+    const inspected = await runtime.act(session.id, {
+      kind: "query.inspect",
+      ref: name.ref,
+      query: { properties: ["attributes", "box", "value", "visible", "enabled", "count"] },
+      purpose: "Inspect a bounded element property set"
+    });
+    assert.equal((inspected.output as { count: number }).count, 1);
+    assert.equal((inspected.output as { items: Array<{ visible: boolean }> }).items[0]?.visible, true);
+
+    await runtime.act(session.id, {
+      kind: "emulation.set",
+      emulation: { viewport: { width: 1024, height: 768 }, colorScheme: "dark" },
+      purpose: "Apply explicit page emulation"
+    });
+    await runtime.act(session.id, {
+      kind: "emulation.clear",
+      purpose: "Restore the explicit page emulation"
+    });
 
     await runtime.act(session.id, {
       kind: "fill",
@@ -315,6 +344,16 @@ test(
       stateName: "fixture-state",
       purpose: "Delete the encrypted fixture state"
     });
+    const batch = await runtime.actBatch(session.id, {
+      stopOnError: true,
+      actions: [
+        { kind: "cache.clear", purpose: "Clear the fixture browser cache" },
+        { kind: "console.clear", purpose: "Clear the fixture console ledger" },
+        { kind: "network.clear", purpose: "Clear the fixture network ledger" }
+      ]
+    });
+    assert.equal(batch.completed, 3);
+    assert.equal(batch.failed, 0);
     assert.equal((await runtime.evidence.verify()).ok, true);
     assert.equal(
       lifecycleEvents.some((event) => event.type === "browser.session.created"),

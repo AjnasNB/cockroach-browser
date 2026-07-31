@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operator runtime | Cockroach Browser</title>
+  <meta name="description" content="Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/docs/operator-runtime/">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Operator runtime | Cockroach Browser">
+  <meta property="og:description" content="Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.">
+  <meta property="og:url" content="https://cockroachbrowser.com/docs/operator-runtime/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/logo.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1250">
+  <meta property="og:image:height" content="1250">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Operator runtime | Cockroach Browser">
+  <meta name="twitter:description" content="Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.png" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.3.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/" >Product</a>
+      <a href="/docs/" aria-current="page">Docs</a>
+      <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/dashboard/" >Dashboard</a>
+      <a href="/paper/" >Paper</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main" class="docs-layout">
+  <nav class="docs-sidebar" aria-label="Documentation">
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" aria-current="page">Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+</nav>
+  <article class="docs-main">
+    <header class="page-hero">
+      <p class="eyebrow">Cockroach Browser manual / Operator runtime</p>
+      <h1>Operator runtime</h1>
+      <p class="kicker">Discover, route, observe, and share browser work without sharing the machine.</p>
+      <p class="lede">Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.</p>
+    </header>
+    <section class="manual-section" id="inspect-browser-and-daemon-state">
+    <span class="section-number">01</span>
+    <h2>Inspect browser and daemon state</h2>
+<p><code>browser discover</code> reports installed compatible browsers. <code>doctor</code> verifies Node, Chromium, the data root, and local service readiness. The authenticated daemon publishes <code>/v1/health</code>, <code>/v1/openapi.json</code>, and Prometheus text at <code>/v1/metrics</code>.</p>
+  </section><section class="manual-section" id="follow-the-activity-stream">
+    <span class="section-number">02</span>
+    <h2>Follow the activity stream</h2>
+<p><code>/v1/activity</code> returns a bounded filtered ledger. <code>/v1/activity/stream</code> emits the same lifecycle records over server-sent events. Actor-scoped tokens see only sessions for which they have viewer access; the administrator token remains local deployment authority.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-16">Copy</button></div>
+  <pre><code id="code-16">cockroach-browser activity --session &quot;$SESSION_ID&quot; --limit 200 \
+  --token-file .cockroach-browser/auth-token</code></pre>
+</div>
+  </section><section class="manual-section" id="see-how-a-session-moved">
+    <span class="section-number">03</span>
+    <h2>See how a session moved</h2>
+<p>The navigation graph turns admitted session history into stable URL nodes and traversed edges. It is session-local, bounded by the history ceiling, and does not inspect a user's ambient browsing history.</p>
+<div class="code-block">
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-17">Copy</button></div>
+  <pre><code id="code-17">cockroach-browser session graph --id &quot;$SESSION_ID&quot; \
+  --token-file .cockroach-browser/auth-token</code></pre>
+</div>
+  </section><section class="manual-section" id="share-control-without-sharing-profiles">
+    <span class="section-number">04</span>
+    <h2>Share control without sharing profiles</h2>
+<p><code>TeamSessionStore</code> persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. Grant generations and revocations are durable, while raw cookies and browser profiles never enter the access record.</p>
+  </section><section class="manual-section" id="route-across-authenticated-workers">
+    <span class="section-number">05</span>
+    <h2>Route across authenticated workers</h2>
+<p><code>BrowserWorkerPool</code> checks authenticated daemon health, capacity, weight, and explicit tags before creating a session. Non-loopback workers require HTTPS and strong bearer tokens. The pool does not discover public workers or accept unauthenticated endpoints.</p>
+  </section><section class="manual-section" id="clear-retained-runtime-state-deliberately">
+    <span class="section-number">06</span>
+    <h2>Clear retained runtime state deliberately</h2>
+<p><code>cache.clear</code>, <code>console.clear</code>, and <code>network.clear</code> are explicit policy-evaluated actions. They clear only the authorized session's runtime state and produce receipts; they do not erase evidence already committed to the evidence ledger.</p>
+  </section>
+  </article>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#inspect-browser-and-daemon-state">Inspect browser and daemon state</a><a href="#follow-the-activity-stream">Follow the activity stream</a><a href="#see-how-a-session-moved">See how a session moved</a><a href="#share-control-without-sharing-profiles">Share control without sharing profiles</a><a href="#route-across-authenticated-workers">Route across authenticated workers</a><a href="#clear-retained-runtime-state-deliberately">Clear retained runtime state deliberately</a></aside>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
+      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/docs/security/">Security</a>
+      <a href="/paper/">Technical paper</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>
