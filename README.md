@@ -4,7 +4,7 @@
 
 <h1 align="center">Cockroach Browser</h1>
 
-<p align="center"><strong>The browser runtime your AI agents can use without inheriting your whole machine.</strong></p>
+<p align="center"><strong>Powerful browser automation for AI agents - without inheriting your whole machine.</strong></p>
 
 <p align="center">
   Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions

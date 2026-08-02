@@ -5,7 +5,7 @@ export const site = {
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "The browser runtime your AI agents can use without inheriting your whole machine."
+    "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence."
 };
 
 export const navGroups = [
@@ -1034,7 +1034,7 @@ cockroach-browser persistent-profile archive --name support-review`,
 ];
 
 export const homepage = {
-  title: "The browser runtime your AI agents can use without inheriting your whole machine.",
+  title: "Powerful browser automation for AI agents. Your machine stays yours.",
   lede:
     "One lightweight TypeScript package for authorized Chromium sessions, semantic page references, real interaction, paired evidence, network inspection, MCP, and Maqam-governed actions.",
   proof: []
