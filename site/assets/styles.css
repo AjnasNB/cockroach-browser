@@ -1069,17 +1069,18 @@ button:active,
 
   .docs-sidebar {
     position: static;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-height: none;
     padding: 1rem 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
     gap: 1rem;
-    overflow: auto;
+    overflow: visible;
   }
 
   .nav-group {
-    min-width: 175px;
+    min-width: 0;
     margin: 0;
   }
 
