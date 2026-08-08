@@ -1,11 +1,17 @@
 {
   "title": "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
   "upload_type": "publication",
-  "publication_type": "report",
+  "publication_type": "technicalnote",
   "description": "Implementation-backed technical paper for Cockroach Browser 0.3.0. It documents explicit browser authority, isolated profiles, semantic interaction, evidence receipts, authenticated control surfaces, challenge handoff, ecosystem adapters, verification scope, and limitations.",
   "creators": [
     {
       "name": "N B, Ajnas"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Ahammed, Shahin",
+      "type": "ProjectMember"
     }
   ],
   "version": "1.1",
