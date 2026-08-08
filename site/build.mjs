@@ -51,8 +51,8 @@ await writePage("dashboard/index.html", publicDashboard());
 await writePage("paper/index.html", publicationPage());
 await mkdir(resolve(root, "paper"), { recursive: true });
 await copyFile(
-  resolve(sourceRoot, "docs", "Cockroach-Browser-Technical-White-Paper-v1.0.pdf"),
-  resolve(root, "paper", "Cockroach-Browser-Technical-White-Paper-v1.0.pdf")
+  resolve(sourceRoot, "docs", "Cockroach-Browser-Technical-White-Paper-v1.1.pdf"),
+  resolve(root, "paper", "Cockroach-Browser-Technical-White-Paper-v1.1.pdf")
 );
 await writePage("404.html", notFound());
 await writePage("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${site.origin}/sitemap.xml\n`);
@@ -537,7 +537,7 @@ ${header("dashboard")}
 function publicationPage() {
   return `${baseHead({
     title: "Technical paper",
-    description: "Implementation-backed technical white paper for Cockroach Browser 0.2.1.",
+    description: "Implementation-backed technical white paper for Cockroach Browser 0.3.0.",
     canonical: `${site.origin}/paper/`,
     type: "article",
     schemas: [{
@@ -545,8 +545,8 @@ function publicationPage() {
       "@id": `${site.origin}/paper/#article`,
       headline: "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
       author: { "@type": "Person", name: "Ajnas N B" },
-      datePublished: "2026-07-30",
-      version: "1.0",
+      datePublished: "2026-08-08",
+      version: "1.1",
       license: "https://creativecommons.org/licenses/by/4.0/",
       url: `${site.origin}/paper/`,
       sameAs: "https://doi.org/10.5281/zenodo.21701791",
@@ -559,13 +559,13 @@ ${header("paper")}
   ${docsSidebar("")}
   <article class="docs-main">
     <header class="page-hero">
-      <p class="eyebrow">Cockroach Browser / technical paper / version 1.0</p>
+      <p class="eyebrow">Cockroach Browser / technical paper / version 1.1</p>
       <h1>A local-first browser runtime for AI agents.</h1>
       <p class="kicker">Powerful browser automation for AI agents - without inheriting your whole machine.</p>
-      <p class="lede">Ajnas NB · July 2026 · Cockroach Browser 0.3.0</p>
+      <p class="lede">Ajnas N B &middot; August 2026 &middot; Cockroach Browser 0.3.0</p>
       <div class="hero-actions">
-        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.0.pdf">Download the PDF</a>
-        <a class="button" href="https://doi.org/10.5281/zenodo.21701792">Cite on Zenodo</a>
+        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">Download the PDF</a>
+        <a class="button" href="https://doi.org/10.5281/zenodo.21701791">Cite the paper series</a>
         <a class="button" href="${site.repository}/blob/main/docs/whitepaper.md">Read the source</a>
       </div>
     </header>
@@ -578,14 +578,14 @@ ${header("paper")}
     <section class="manual-section" id="release-surface">
       <span class="section-number">Implementation</span>
       <h2>One package, several explicit control surfaces.</h2>
-      <p>Version 0.2.1 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, per-user service definitions, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
-      <p>The source-derived capability registry contains 80 entries: 73 implemented runtime surfaces, 6 host-backed adapters, and 1 explicitly planned capability.</p>
+      <p>Version 0.3.0 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, explicit browser providers, runtime-owned persistent profiles, authenticated jobs and workers, team-scoped roles, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
+      <p>The annotated <code>v0.3.0</code> source-derived capability registry contains 94 entries: 88 directly available surfaces and 6 host-backed adapters. This is an implementation inventory, not a performance or security score.</p>
     </section>
     <section class="manual-section" id="status">
       <span class="section-number">Status</span>
       <h2>Implementation-backed and open for technical review.</h2>
-      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.2.1. The paper has not undergone independent peer review.</p>
-      <p>Permanent publication record: <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
+      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.3.0. The paper has not undergone independent peer review or independent security certification.</p>
+      <p>Persistent paper-series record: <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>. Version 1.0 remains preserved at <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
   </article>

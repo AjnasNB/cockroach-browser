@@ -1,0 +1,36 @@
+{
+  "title": "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
+  "upload_type": "publication",
+  "publication_type": "report",
+  "description": "Implementation-backed technical paper for Cockroach Browser 0.3.0. It documents explicit browser authority, isolated profiles, semantic interaction, evidence receipts, authenticated control surfaces, challenge handoff, ecosystem adapters, verification scope, and limitations.",
+  "creators": [
+    {
+      "name": "N B, Ajnas"
+    }
+  ],
+  "version": "1.1",
+  "publication_date": "2026-08-08",
+  "license": "cc-by-4.0",
+  "access_right": "open",
+  "keywords": [
+    "AI agents",
+    "browser automation",
+    "Chromium",
+    "browser evidence",
+    "MCP",
+    "local-first software",
+    "capability security"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/AjnasNB/cockroach-browser/tree/v0.3.0",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://www.npmjs.com/package/cockroach-browser/v/0.3.0",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

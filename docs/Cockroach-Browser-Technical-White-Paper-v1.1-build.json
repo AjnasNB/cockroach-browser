@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "paper": {
+    "title": "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
+    "version": "1.1",
+    "publicationDate": "2026-08-08",
+    "conceptDoi": "10.5281/zenodo.21701791",
+    "license": "CC-BY-4.0"
+  },
+  "implementation": {
+    "package": "cockroach-browser",
+    "version": "0.3.0",
+    "tag": "v0.3.0",
+    "tagType": "annotated",
+    "commit": "76c1095a6066bfa0242d8ea4413b0643133c977c"
+  },
+  "inputs": {
+    "source": {
+      "path": "docs/whitepaper.md",
+      "sha256": "7a4a3ce96af093fd3f2457509afa37a840be115e23df3422cb62ba5d988ee516"
+    },
+    "builder": {
+      "path": "scripts/build-whitepaper-pdf.py",
+      "sha256": "7da750f67cbdb27a28ca46de91ac69ec4cd36c71e1acf465502e8476974b6adb"
+    }
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "reportlab": "4.4.9"
+  },
+  "output": {
+    "path": "docs/Cockroach-Browser-Technical-White-Paper-v1.1.pdf",
+    "sha256": "15d2401d88913830bcff29190c62ccb3ec31201df5746107c55ab81d262a6540",
+    "bytes": 1338769,
+    "pages": 10,
+    "pageSize": "A4",
+    "renderInspection": {
+      "renderer": "Poppler pdftoppm",
+      "dpi": 120,
+      "pagesInspected": 10,
+      "status": "pass"
+    }
+  },
+  "claimBoundary": {
+    "implementationBacked": true,
+    "independentPeerReview": false,
+    "independentSecurityCertification": false,
+    "performanceBenchmark": false
+  }
+}

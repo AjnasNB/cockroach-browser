@@ -55,6 +55,7 @@
     "schemas/",
     "server.json",
     "README.md",
+    "CITATION.cff",
     "SECURITY.md",
     "CHANGELOG.md",
     "LICENSE",
