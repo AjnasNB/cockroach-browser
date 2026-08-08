@@ -19,8 +19,9 @@ The build reads the public capability registry from
 - the product website;
 - the documentation index and individual manuals;
 - the source-derived capability matrix;
+- the evidence-bounded alternatives and product-layer comparison;
 - the public dashboard preview;
-- `robots.txt`, `sitemap.xml`, `llms.txt`, and `llms-full.txt`;
+- `robots.txt`, `sitemap.xml`, `search.json`, `llms.txt`, and `llms-full.txt`;
 - Cloudflare Pages `_headers` and `_redirects`;
 - matching Markdown manuals under `docs/`.
 

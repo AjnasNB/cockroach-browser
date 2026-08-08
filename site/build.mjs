@@ -1,6 +1,14 @@
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { homepage, navGroups, pages, site } from "./content.mjs";
+import {
+  alternatives,
+  comparison,
+  comparisonQuestions,
+  homepage,
+  navGroups,
+  pages,
+  site
+} from "./content.mjs";
 
 const root = resolve(import.meta.dirname);
 const sourceRoot = resolve(root, "..");
@@ -47,6 +55,7 @@ for (const page of pages) {
 await writePage("docs/capabilities/index.html", capabilityPage());
 await writeRootDoc("capabilities.md", capabilityMarkdown());
 await writeRootDoc("README.md", docsReadme());
+await writePage("alternatives/index.html", alternativesPage());
 await writePage("dashboard/index.html", publicDashboard());
 await writePage("paper/index.html", publicationPage());
 await mkdir(resolve(root, "paper"), { recursive: true });
@@ -57,6 +66,7 @@ await copyFile(
 await writePage("404.html", notFound());
 await writePage("robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${site.origin}/sitemap.xml\n`);
 await writePage("sitemap.xml", sitemap());
+await writePage("search.json", `${JSON.stringify(searchIndex(), null, 2)}\n`);
 await writePage(
   "llms.txt",
   `# ${site.name}
@@ -67,9 +77,15 @@ Canonical website: ${site.origin}
 Repository: ${site.repository}
 npm: ${site.npm}
 Technical paper: ${site.origin}/paper/
+Alternatives and product-layer comparison: ${site.origin}/alternatives/
 
 ## Documentation
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](${site.origin}/docs/${slug}/)`).join("\n")}
+
+## Alternatives and product layers
+${comparison.methodology}
+
+${alternatives.map((entry) => `- [${entry.name}](${site.origin}/alternatives/#${entry.id}): ${entry.nativeFocus}`).join("\n")}
 
 ## Security boundary
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
@@ -82,7 +98,7 @@ Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses
 );
 await writePage(
   "llms-full.txt",
-  `# ${site.name} documentation\n\n${pages.map((page) => [
+  `# ${site.name} documentation\n\n## Alternatives and comparison method\n\n${comparison.methodology}\n\n${alternatives.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n${pages.map((page) => [
     `## ${page.title}`,
     page.lede,
     ...page.sections.map((section) => `### ${section.title}\n${stripHtml(section.body)}`)
@@ -107,10 +123,11 @@ await writePage(
   `/docs /docs/ 301
 /dashboard /dashboard/ 301
 /paper /paper/ 301
+/alternatives /alternatives/ 301
 `
 );
 
-process.stdout.write(`Built ${pages.length + 5} HTML pages and ${capabilities.length} capability records.\n`);
+process.stdout.write(`Built ${pages.length + 7} HTML pages and ${capabilities.length} capability records.\n`);
 
 function parseCapabilities(source) {
   const pattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
@@ -152,6 +169,7 @@ function baseHead({ title, description, canonical, type = "website", robots = "i
   <link rel="canonical" href="${canonical}">
   <link rel="alternate" hreflang="en" href="${canonical}">
   <link rel="alternate" hreflang="x-default" href="${canonical}">
+  <link rel="alternate" type="application/json" href="/search.json" title="${site.name} search index">
   <link rel="icon" href="/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="${type}">
@@ -211,6 +229,7 @@ function header(active = "") {
       <a href="/" ${active === "home" ? 'aria-current="page"' : ""}>Product</a>
       <a href="/docs/" ${active === "docs" ? 'aria-current="page"' : ""}>Docs</a>
       <a href="/docs/capabilities/">Capabilities</a>
+      <a href="/alternatives/" ${active === "alternatives" ? 'aria-current="page"' : ""}>Alternatives</a>
       <a href="/dashboard/" ${active === "dashboard" ? 'aria-current="page"' : ""}>Dashboard</a>
       <a href="/paper/" ${active === "paper" ? 'aria-current="page"' : ""}>Paper</a>
       <a href="${site.repository}">GitHub</a>
@@ -230,6 +249,7 @@ function footer() {
     </div>
     <div class="footer-links">
       <a href="/docs/security/">Security</a>
+      <a href="/alternatives/">Alternatives</a>
       <a href="/paper/">Technical paper</a>
       <a href="${site.repository}">Source</a>
       <a href="${site.npm}">npm</a>
@@ -499,6 +519,167 @@ ${header("docs")}
 ${footer()}`;
 }
 
+function alternativesPage() {
+  const categoryLabels = [
+    ["primitive", "Automation primitives"],
+    ["mcp", "MCP control servers"],
+    ["agent", "Agent frameworks"],
+    ["infrastructure", "Browser infrastructure"]
+  ];
+  const rows = alternatives.map((entry) => `<tr id="${entry.id}" data-alternative data-category="${entry.category}">
+    <th scope="row"><a href="#${entry.id}">${escapeHtml(entry.name)}</a><span class="comparison-kind">${escapeHtml(entry.categoryLabel)}</span></th>
+    <td>${escapeHtml(entry.nativeFocus)}</td>
+    <td>${escapeHtml(entry.chooseWhen)}</td>
+    <td><p>${escapeHtml(entry.relationship)}</p><a class="source-link" href="${escapeAttr(entry.source)}">${escapeHtml(entry.sourceLabel)}</a></td>
+  </tr>`).join("");
+  const filters = categoryLabels.map(([category, label]) => {
+    const count = alternatives.filter((entry) => entry.category === category).length;
+    return `<button type="button" data-alt-filter="${category}" aria-pressed="false">${escapeHtml(label)} ${count}</button>`;
+  }).join("");
+  const canonical = `${site.origin}/alternatives/`;
+  return `${baseHead({
+    title: "Cockroach Browser alternatives by product layer",
+    description: comparison.description,
+    canonical,
+    type: "article",
+    schemas: [
+      {
+        "@type": "TechArticle",
+        "@id": `${canonical}#webpage`,
+        author: { "@type": "Person", name: "Ajnas N B" },
+        dateModified: comparison.checkedOn,
+        about: { "@id": `${site.origin}/#software` }
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonical}#alternatives`,
+        name: "Browser automation tools and infrastructure compared by product layer",
+        numberOfItems: alternatives.length,
+        itemListOrder: "https://schema.org/ItemListUnordered",
+        itemListElement: alternatives.map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "SoftwareApplication",
+            name: entry.name,
+            applicationCategory: entry.categoryLabel,
+            description: entry.nativeFocus,
+            url: entry.source
+          }
+        }))
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${canonical}#faq`,
+        mainEntity: comparisonQuestions.map(([name, answer]) => ({
+          "@type": "Question",
+          name,
+          acceptedAnswer: { "@type": "Answer", text: answer }
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Product", item: `${site.origin}/` },
+          { "@type": "ListItem", position: 2, name: "Alternatives", item: canonical }
+        ]
+      }
+    ]
+  })}
+<body>
+${header("alternatives")}
+<main id="main" class="comparison-page">
+  <section class="shell comparison-hero">
+    <div>
+      <p class="eyebrow">Browser automation alternatives / checked ${comparison.checkedOn}</p>
+      <h1>Choose the browser layer you actually need.</h1>
+      <p class="hero-copy">Cockroach Browser does not replace every automation library, MCP server, agent framework, or hosted browser. It packages a local-first execution layer around explicit session authority, semantic snapshots, evidence, and receipt chains.</p>
+      <div class="hero-actions">
+        <a class="button button--primary" href="#comparison">Compare the layers</a>
+        <a class="button" href="/docs/capabilities/">Inspect shipped capabilities</a>
+      </div>
+    </div>
+    <aside class="comparison-boundary" aria-label="How to read this comparison">
+      <span class="section-number">Read this first</span>
+      <h2>No shared benchmark. No universal winner.</h2>
+      <p>${escapeHtml(comparison.methodology)}</p>
+      <dl>
+        <div><dt>Primitive</dt><dd>Direct browser APIs</dd></div>
+        <div><dt>Control server</dt><dd>Agent-facing browser tools</dd></div>
+        <div><dt>Agent framework</dt><dd>Planning and model-directed actions</dd></div>
+        <div><dt>Infrastructure</dt><dd>Hosted or self-hosted browser capacity</dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="section" id="decision-map">
+    <div class="shell">
+      <div class="section-head">
+        <h2>Start with the architectural decision.</h2>
+        <p>A product can be excellent at its own layer and still be the wrong answer for a different layer. These routes keep the comparison concrete.</p>
+      </div>
+      <div class="decision-map">
+        <article><span>01 / direct code</span><h3>Pick an automation primitive.</h3><p>Use Playwright, Puppeteer, or Selenium when your application should own browser calls and you are prepared to design the surrounding service and trust model.</p></article>
+        <article><span>02 / agent tools</span><h3>Pick an MCP control server.</h3><p>Use Playwright MCP for structured browser tools or Chrome DevTools MCP when debugging and performance inspection are central.</p></article>
+        <article><span>03 / autonomous work</span><h3>Pick an agent framework.</h3><p>Use Browser Use or Stagehand when model-directed planning, natural-language actions, and high-level task execution are the product requirement.</p></article>
+        <article><span>04 / remote capacity</span><h3>Pick browser infrastructure.</h3><p>Use Browserbase or Browserless when browser fleet operations, remote sessions, proxy features, or managed capacity are the main constraint.</p></article>
+        <article><span>05 / bounded execution</span><h3>Pick Cockroach Browser.</h3><p>Use Cockroach Browser when the host agent needs one explicit session policy, authenticated local transport, bounded actions, evidence artifacts, and receipt-linked outcomes.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="comparison">
+    <div class="shell comparison-shell">
+      <div class="section-head">
+        <h2>Nine alternatives, grouped by layer.</h2>
+        <p>Search by product, capability, deployment, or boundary. Every source link points to documentation controlled by the compared project.</p>
+      </div>
+      <div class="comparison-toolbar" aria-label="Alternative filters">
+        <button type="button" data-alt-filter="all" aria-pressed="true">All ${alternatives.length}</button>
+        ${filters}
+        <input data-alt-search type="search" aria-label="Search browser alternatives" placeholder="Search Playwright, MCP, local, evidence...">
+      </div>
+      <p class="comparison-count" data-alt-count aria-live="polite">${alternatives.length} alternatives shown</p>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <caption>Browser automation alternatives compared by native focus, selection criteria, and relationship to Cockroach Browser.</caption>
+          <thead><tr><th scope="col">Product and layer</th><th scope="col">Native focus</th><th scope="col">Choose it when</th><th scope="col">Relationship and source</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="comparison-empty" data-alt-empty hidden>No alternatives match this filter. Clear the search or select all layers.</div>
+    </div>
+  </section>
+
+  <section class="section" id="cockroach-boundary">
+    <div class="shell">
+      <div class="section-head">
+        <h2>Where Cockroach Browser fits.</h2>
+        <p>It is an authority and evidence runtime around browser execution. It is not a language-neutral test ecosystem, an autonomous planner, a hosted fleet, or an independent security certification.</p>
+      </div>
+      <div class="authority-ledger">
+        <article><span>Session authority</span><h3>Origins, actions, effects, and budgets.</h3><p>The host admits a purpose and finite policy before execution instead of handing a general browser object to an unbounded task.</p></article>
+        <article><span>Observed targets</span><h3>Snapshot-scoped semantic refs.</h3><p>Actions can use references tied to observed page state, with refresh required after a page revision changes.</p></article>
+        <article><span>Outcome proof</span><h3>Artifacts and hash-linked receipts.</h3><p>Snapshots, screenshots, traces, action inputs, outcomes, and digests can remain connected after the session ends.</p></article>
+        <article><span>Governance hook</span><h3>Optional Maqam approval.</h3><p>A host can route consequential operations through an external policy and one-use approval authority without making Maqam part of the browser engine.</p></article>
+      </div>
+      <div class="callout"><strong>Important limit</strong><p>This page compares documented product surfaces. It does not establish comparative security, reliability, task success, performance, legal compliance, or independent certification. Evaluate those properties in your own threat model and workload.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="shell">
+      <div class="section-head">
+        <h2>Direct comparison answers.</h2>
+        <p>Short answers for architecture reviews, search engines, and agents that need the product boundary without marketing shorthand.</p>
+      </div>
+      <div class="answer-grid">${comparisonQuestions.map(([question, answer]) => `<article><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join("")}</div>
+    </div>
+  </section>
+</main>
+${footer()}`;
+}
+
 function publicDashboard() {
   return `${baseHead({
     title: "Local dashboard",
@@ -614,6 +795,7 @@ ${footer()}`;
 function docsSidebar(active) {
   return `<nav class="docs-sidebar" aria-label="Documentation">
   ${navGroups.map((group) => `<div class="nav-group"><h2>${escapeHtml(group.title)}</h2>${group.items.map(([title, slug]) => `<a href="/docs/${slug}/" ${active === slug ? 'aria-current="page"' : ""}>${escapeHtml(title)}</a>`).join("")}</div>`).join("")}
+  <div class="nav-group"><h2>Compare</h2><a href="/alternatives/">Alternatives by product layer</a></div>
 </nav>`;
 }
 
@@ -663,12 +845,63 @@ function stripHtml(value) {
 }
 
 function sitemap() {
-  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/dashboard/", "/paper/"];
+  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>2026-08-08</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
 </urlset>
 `;
+}
+
+function searchIndex() {
+  return {
+    version: 1,
+    checkedOn: comparison.checkedOn,
+    documents: [
+      {
+        title: site.name,
+        url: `${site.origin}/`,
+        kind: "product",
+        summary: site.description,
+        keywords: ["browser automation", "AI agents", "local-first", "evidence", "MCP", "Maqam"]
+      },
+      {
+        title: comparison.title,
+        url: `${site.origin}/alternatives/`,
+        kind: "comparison",
+        summary: comparison.description,
+        keywords: alternatives.map((entry) => entry.name)
+      },
+      ...alternatives.map((entry) => ({
+        title: `${site.name} and ${entry.name}`,
+        url: `${site.origin}/alternatives/#${entry.id}`,
+        kind: "alternative",
+        summary: `${entry.nativeFocus} ${entry.relationship}`,
+        keywords: [entry.name, entry.categoryLabel, "browser automation alternative"]
+      })),
+      ...pages.map((page) => ({
+        title: page.title,
+        url: `${site.origin}/docs/${page.slug}/`,
+        kind: "documentation",
+        summary: page.lede,
+        keywords: page.sections.map((section) => section.title)
+      })),
+      {
+        title: "Capability matrix",
+        url: `${site.origin}/docs/capabilities/`,
+        kind: "documentation",
+        summary: `${capabilities.length} source-derived capabilities with available, adapter, and planned status.`,
+        keywords: capabilities.map((entry) => entry.title)
+      },
+      {
+        title: "Technical paper",
+        url: `${site.origin}/paper/`,
+        kind: "research",
+        summary: "Implementation-backed Cockroach Browser 0.3.0 technical white paper.",
+        keywords: ["white paper", "browser authority", "evidence", "governance"]
+      }
+    ]
+  };
 }
 
 function markdownManual(page) {
@@ -718,6 +951,7 @@ The public documentation lives at ${site.origin}/docs/.
 ## Manuals
 
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](./${slug}.md)`).join("\n")}
+- [Alternatives and product-layer comparison](${site.origin}/alternatives/)
 - [Technical white paper](./whitepaper.md)
 
 ## Product boundaries

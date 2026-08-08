@@ -1,0 +1,493 @@
+{
+  "version": 1,
+  "checkedOn": "2026-08-08",
+  "documents": [
+    {
+      "title": "Cockroach Browser",
+      "url": "https://cockroachbrowser.com/",
+      "kind": "product",
+      "summary": "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence.",
+      "keywords": [
+        "browser automation",
+        "AI agents",
+        "local-first",
+        "evidence",
+        "MCP",
+        "Maqam"
+      ]
+    },
+    {
+      "title": "Cockroach Browser alternatives",
+      "url": "https://cockroachbrowser.com/alternatives/",
+      "kind": "comparison",
+      "summary": "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+      "keywords": [
+        "Playwright",
+        "Puppeteer",
+        "Selenium",
+        "Playwright MCP",
+        "Chrome DevTools MCP",
+        "Browser Use",
+        "Stagehand",
+        "Browserbase",
+        "Browserless"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Playwright",
+      "url": "https://cockroachbrowser.com/alternatives/#playwright",
+      "kind": "alternative",
+      "summary": "Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs. Cockroach Browser uses playwright-core underneath its runtime. The comparison is therefore package layer versus underlying primitive, not a claim that Cockroach Browser replaces or outperforms Playwright.",
+      "keywords": [
+        "Playwright",
+        "Automation primitive",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Puppeteer",
+      "url": "https://cockroachbrowser.com/alternatives/#puppeteer",
+      "kind": "alternative",
+      "summary": "A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi. Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.",
+      "keywords": [
+        "Puppeteer",
+        "Automation primitive",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Selenium",
+      "url": "https://cockroachbrowser.com/alternatives/#selenium",
+      "kind": "alternative",
+      "summary": "WebDriver-based browser automation with local or remote execution and broad language and browser support. Cockroach Browser is a TypeScript and Node.js runtime centered on agent sessions, local authority, and evidence. That is a narrower product shape than Selenium's general WebDriver ecosystem.",
+      "keywords": [
+        "Selenium",
+        "Automation primitive",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Playwright MCP",
+      "url": "https://cockroachbrowser.com/alternatives/#playwright-mcp",
+      "kind": "alternative",
+      "summary": "MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction. The official project states that Playwright MCP is not a security boundary. Cockroach Browser's distinct focus is an explicit session policy, finite budgets, authenticated local transport, evidence records, and optional Maqam approval hooks.",
+      "keywords": [
+        "Playwright MCP",
+        "MCP control server",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Chrome DevTools MCP",
+      "url": "https://cockroachbrowser.com/alternatives/#chrome-devtools-mcp",
+      "kind": "alternative",
+      "summary": "Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents. Cockroach Browser emphasizes bounded operational sessions and proof of actions. Chrome DevTools MCP emphasizes Chrome inspection and diagnostics; its official documentation warns that connected MCP clients can inspect and modify browser data.",
+      "keywords": [
+        "Chrome DevTools MCP",
+        "MCP control server",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Browser Use",
+      "url": "https://cockroachbrowser.com/alternatives/#browser-use",
+      "kind": "alternative",
+      "summary": "A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops. Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.",
+      "keywords": [
+        "Browser Use",
+        "Agent framework",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Stagehand",
+      "url": "https://cockroachbrowser.com/alternatives/#stagehand",
+      "kind": "alternative",
+      "summary": "Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows. Cockroach Browser keeps model choice and planning outside the runtime. Its native concern is what one admitted session may do and which evidence and receipts remain afterward.",
+      "keywords": [
+        "Stagehand",
+        "Agent framework",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Browserbase",
+      "url": "https://cockroachbrowser.com/alternatives/#browserbase",
+      "kind": "alternative",
+      "summary": "Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations. Cockroach Browser defaults to a local or operator-managed runtime. Browserbase provides hosted infrastructure. These deployment choices can address different parts of one architecture.",
+      "keywords": [
+        "Browserbase",
+        "Hosted infrastructure",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Browserless",
+      "url": "https://cockroachbrowser.com/alternatives/#browserless",
+      "kind": "alternative",
+      "summary": "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs. Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.",
+      "keywords": [
+        "Browserless",
+        "Hosted or self-hosted infrastructure",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Getting started",
+      "url": "https://cockroachbrowser.com/docs/getting-started/",
+      "kind": "documentation",
+      "summary": "Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.",
+      "keywords": [
+        "Install the package and Chromium",
+        "Start the authenticated localhost daemon",
+        "Create the smallest useful session",
+        "Embed the runtime"
+      ]
+    },
+    {
+      "title": "Operator install",
+      "url": "https://cockroachbrowser.com/docs/operator-install/",
+      "kind": "documentation",
+      "summary": "Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.",
+      "keywords": [
+        "Bootstrap and probe the local runtime",
+        "Generate completion scripts",
+        "Install a per-user loopback daemon",
+        "Inspect before activation",
+        "Keep service authority narrow"
+      ]
+    },
+    {
+      "title": "Sessions and profiles",
+      "url": "https://cockroachbrowser.com/docs/sessions/",
+      "kind": "documentation",
+      "summary": "Every session has an owner, purpose, mode, origin boundary, action boundary, effect boundary, and finite budget. Profiles are named, isolated, and imported only by an authorized operator.",
+      "keywords": [
+        "Choose the browser connection",
+        "Create an explicit persistent profile",
+        "Keep profiles explicit and encrypted",
+        "Checkpoint only the current authorized session",
+        "Keep clipboard and tabs under policy",
+        "Budget every session",
+        "Close deliberately"
+      ]
+    },
+    {
+      "title": "Actions and semantic refs",
+      "url": "https://cockroachbrowser.com/docs/actions/",
+      "kind": "documentation",
+      "summary": "Semantic snapshots turn visible page state into compact references with roles and accessible names. Each reference is bound to the observed page revision, so agents refresh the snapshot after page state changes instead of guessing viewport coordinates.",
+      "keywords": [
+        "Snapshot before action",
+        "Use a ref from the current snapshot",
+        "Supported interactions",
+        "Target exact XPath and same-origin frames",
+        "Handle dialogs explicitly",
+        "Inspect only this session's history",
+        "JavaScript is an explicit capability",
+        "Inspect a target without inventing a selector",
+        "Run an ordered bounded batch",
+        "Emulate only what the session permits"
+      ]
+    },
+    {
+      "title": "Operator runtime",
+      "url": "https://cockroachbrowser.com/docs/operator-runtime/",
+      "kind": "documentation",
+      "summary": "Cockroach Browser includes the control surfaces needed to operate one local browser or a reviewed pool of authenticated workers while keeping every session owner, action, and artifact explicit.",
+      "keywords": [
+        "Inspect browser and daemon state",
+        "Follow the activity stream",
+        "See how a session moved",
+        "Share control without sharing profiles",
+        "Route across authenticated workers",
+        "Clear retained runtime state deliberately"
+      ]
+    },
+    {
+      "title": "Capture and evidence",
+      "url": "https://cockroachbrowser.com/docs/capture/",
+      "kind": "documentation",
+      "summary": "Cockroach Browser records bounded artifacts and hash-chained receipts so a team can connect what the page showed, what the agent requested, what policy decided, and what changed.",
+      "keywords": [
+        "Evidence types",
+        "Capture the pixels and the cited page state together",
+        "Add temporary review annotations",
+        "Receipts form a chain",
+        "Capture only what the workflow needs",
+        "Carry evidence into memory"
+      ]
+    },
+    {
+      "title": "Network boundary",
+      "url": "https://cockroachbrowser.com/docs/network/",
+      "kind": "documentation",
+      "summary": "Every navigation and subresource request is checked against the session's explicit origin policy. Public adapters block loopback and private-network targets by default.",
+      "keywords": [
+        "Start from an allowlist",
+        "Private networks require an owned deployment decision",
+        "Proxies are supplied, not discovered",
+        "Intercept only exact-origin requests",
+        "Put byte ceilings around fixtures",
+        "Inspect and export redacted observations",
+        "Remote workers require TLS"
+      ]
+    },
+    {
+      "title": "Files and downloads",
+      "url": "https://cockroachbrowser.com/docs/files/",
+      "kind": "documentation",
+      "summary": "Uploads and downloads are separate effects with separate policy switches and size limits. Paths come from the host or an approved action, never from page text alone.",
+      "keywords": [
+        "Uploads",
+        "Downloads",
+        "PDF output",
+        "Storage state is not a normal file"
+      ]
+    },
+    {
+      "title": "Audits and comparisons",
+      "url": "https://cockroachbrowser.com/docs/audits/",
+      "kind": "documentation",
+      "summary": "Run accessibility, performance, broken asset, console, and page-security observations against the same authorized session used by the agent.",
+      "keywords": [
+        "Run selected audits",
+        "Accessibility observations",
+        "Performance and page security",
+        "Visual comparison"
+      ]
+    },
+    {
+      "title": "Jobs and retries",
+      "url": "https://cockroachbrowser.com/docs/jobs/",
+      "kind": "documentation",
+      "summary": "The local job queue stores action plans, checkpoints, attempts, status, and failure state in deployment-owned JSON.",
+      "keywords": [
+        "Queue a finite plan",
+        "Retry only safe observations",
+        "Use idempotency above the browser",
+        "Durability scope"
+      ]
+    },
+    {
+      "title": "MCP",
+      "url": "https://cockroachbrowser.com/docs/mcp/",
+      "kind": "documentation",
+      "summary": "The native stdio server exposes health, capabilities, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
+      "keywords": [
+        "Configure the local server",
+        "Observation-first tools",
+        "Keep lifecycle authority outside the model",
+        "Route consequential work through Maqam"
+      ]
+    },
+    {
+      "title": "Signed lifecycle webhooks",
+      "url": "https://cockroachbrowser.com/docs/webhooks/",
+      "kind": "documentation",
+      "summary": "Deliver sanitized browser lifecycle events to explicit HTTPS endpoints through a local durable outbox with stable delivery IDs, HMAC-SHA256 signatures, bounded retries, dead letters, and a verifiable receipt chain.",
+      "keywords": [
+        "Configure one endpoint and an opaque key reference",
+        "Keep publish and drain as separate authorities",
+        "Know exactly which events leave the process",
+        "Verify the signature before parsing or dispatching",
+        "Deduplicate stable delivery IDs",
+        "Retry transient failures and inspect terminal outcomes",
+        "Recover interrupted local writes and verify integrity",
+        "Keep every queue finite",
+        "Preserve the network and challenge boundary",
+        "Understand the durability promise"
+      ]
+    },
+    {
+      "title": "Maqam integration",
+      "url": "https://cockroachbrowser.com/docs/maqam/",
+      "kind": "documentation",
+      "summary": "For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.",
+      "keywords": [
+        "Separate the authorities",
+        "Observe and preview",
+        "Apply or submit once",
+        "Register every additional effect as an exact tool",
+        "Do not expose the managed session directly"
+      ]
+    },
+    {
+      "title": "Qarinah integration",
+      "url": "https://cockroachbrowser.com/docs/qarinah/",
+      "kind": "documentation",
+      "summary": "Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.",
+      "keywords": [
+        "Record metadata, not browser secrets",
+        "Keep memory read-only with respect to the browser",
+        "Link a causal receipt chain when it exists",
+        "Cross-tool context"
+      ]
+    },
+    {
+      "title": "Cockroach Crawler integration",
+      "url": "https://cockroachbrowser.com/docs/crawler/",
+      "kind": "documentation",
+      "summary": "Cockroach Crawler maps and extracts public web content at bounded scale. Cockroach Browser handles stateful rendering, semantic interactions, screenshots, audits, and user-authorized sessions.",
+      "keywords": [
+        "Choose the right engine",
+        "Handoff explicit URLs and finite budgets",
+        "Normalize the evidence",
+        "Avoid duplicate work"
+      ]
+    },
+    {
+      "title": "ProductLoop OS",
+      "url": "https://cockroachbrowser.com/docs/productloop/",
+      "kind": "documentation",
+      "summary": "A host-owned ProductLoop adapter can consume Cockroach Browser's structural capability snapshot while Maqam, Qarinah, Cockroach Crawler, ProductLoop, and the browser retain distinct contracts and records.",
+      "keywords": [
+        "Read the structural capability snapshot",
+        "Use Maqam as the gateway",
+        "Keep ledgers distinct",
+        "Current status"
+      ]
+    },
+    {
+      "title": "Security",
+      "url": "https://cockroachbrowser.com/docs/security/",
+      "kind": "documentation",
+      "summary": "Cockroach Browser is built around explicit sessions, explicit origins, separate effects, finite budgets, authenticated transport, evidence receipts, and challenge handoff.",
+      "keywords": [
+        "Threat boundary",
+        "Challenges move to an authorized operator path",
+        "Governed high-authority controls",
+        "Exact approval for consequential actions",
+        "Deployment checklist"
+      ]
+    },
+    {
+      "title": "Deployment",
+      "url": "https://cockroachbrowser.com/docs/deployment/",
+      "kind": "documentation",
+      "summary": "Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.",
+      "keywords": [
+        "Local daemon",
+        "Container",
+        "Remote worker",
+        "OpenAPI, metrics, and activity",
+        "Team and worker operation",
+        "Release verification"
+      ]
+    },
+    {
+      "title": "Capability matrix",
+      "url": "https://cockroachbrowser.com/docs/capabilities/",
+      "kind": "documentation",
+      "summary": "94 source-derived capabilities with available, adapter, and planned status.",
+      "keywords": [
+        "Authorized browser sessions",
+        "Headless Chromium",
+        "Headed Chromium",
+        "Attach over CDP",
+        "Custom Chromium executable",
+        "Cross-platform browser discovery",
+        "Explicit browser providers",
+        "Reviewed unpacked extensions",
+        "Named isolated profiles",
+        "Runtime-owned persistent browser profiles",
+        "Explicit storage-state import",
+        "Explicit storage-state export",
+        "Encrypted state checkpoints",
+        "Policy-gated clipboard",
+        "User-supplied proxy",
+        "Locale and timezone",
+        "Device and network emulation",
+        "Tabs and popups",
+        "Exclusive tab locks",
+        "Navigation",
+        "Snapshot-scoped page references",
+        "Explicit XPath targets",
+        "Semantic snapshots",
+        "Click and double-click",
+        "Form interaction",
+        "Hover and focus",
+        "Bounded scrolling",
+        "Low-level mouse actions",
+        "Low-level keyboard actions",
+        "Drag and drop",
+        "Page-state waits",
+        "Open Shadow DOM access",
+        "Same-origin iframe access",
+        "Same-origin frame targeting",
+        "Explicit dialog handling",
+        "Bounded browser history",
+        "Navigation graph",
+        "Policy-gated JavaScript",
+        "Bounded element inspection",
+        "Ordered action batches",
+        "File upload",
+        "Controlled downloads",
+        "Screenshots",
+        "Paired visual and semantic capture",
+        "Temporary page annotations",
+        "PDF capture",
+        "Playwright traces",
+        "HAR capture",
+        "Session video",
+        "Console records",
+        "Explicit runtime clearing",
+        "Network records",
+        "Network inspection",
+        "Network export",
+        "Hash-chained receipts",
+        "Text and HTML extraction",
+        "Accessibility audit",
+        "Page performance observations",
+        "Broken asset audit",
+        "Console error audit",
+        "Page security observations",
+        "Visual comparison",
+        "Challenge detection",
+        "Human challenge handoff",
+        "Authorized challenge resolver",
+        "Origin allowlists",
+        "Private-network blocking",
+        "Effect-level policy",
+        "Finite budgets",
+        "Policy-bounded network routes",
+        "Exact action approvals",
+        "Secret references",
+        "Command-line interface",
+        "Shell completions",
+        "Per-user daemon autostart",
+        "One-command bootstrap",
+        "TypeScript SDK",
+        "Authenticated HTTP API",
+        "OpenAPI discovery",
+        "Prometheus metrics",
+        "Observation-first MCP server",
+        "Docker runtime",
+        "Local dashboard",
+        "Authenticated remote workers",
+        "Multi-worker orchestration",
+        "Configurable activity stream",
+        "Durable local jobs",
+        "Doctor and daemon health checks",
+        "Maqam governance",
+        "Qarinah memory",
+        "Cockroach Crawler handoff",
+        "ProductLoop capability snapshot",
+        "Signed lifecycle webhooks",
+        "Team session control"
+      ]
+    },
+    {
+      "title": "Technical paper",
+      "url": "https://cockroachbrowser.com/paper/",
+      "kind": "research",
+      "summary": "Implementation-backed Cockroach Browser 0.3.0 technical white paper.",
+      "keywords": [
+        "white paper",
+        "browser authority",
+        "evidence",
+        "governance"
+      ]
+    }
+  ]
+}

@@ -37,6 +37,7 @@ try {
   watchConsole(desktop);
   for (const [path, name] of [
     ["/", "home"],
+    ["/alternatives/", "alternatives"],
     ["/docs/capabilities/", "capabilities"],
     ["/docs/getting-started/", "getting-started"]
   ]) {
@@ -45,6 +46,13 @@ try {
     await desktop.screenshot({ path: screenshot, fullPage: true });
     screenshots.push(screenshot);
   }
+  await desktop.goto(`${origin}/alternatives/`, { waitUntil: "networkidle" });
+  await desktop.locator("[data-alt-search]").fill("recovery loops");
+  const visibleAlternatives = await desktop.locator("[data-alternative]:visible").count();
+  const countLabel = await desktop.locator("[data-alt-count]").textContent();
+  if (visibleAlternatives !== 1 || countLabel?.trim() !== "1 alternative shown") {
+    throw new Error(`Alternative search returned ${visibleAlternatives} rows with label ${countLabel}`);
+  }
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   watchConsole(mobile);
@@ -52,6 +60,10 @@ try {
   const mobileScreenshot = resolve(tmpdir(), "cockroach-browser-mobile.png");
   await mobile.screenshot({ path: mobileScreenshot, fullPage: true });
   screenshots.push(mobileScreenshot);
+  await inspect(mobile, "/alternatives/", { expectNoHorizontalOverflow: true });
+  const mobileAlternativesScreenshot = resolve(tmpdir(), "cockroach-browser-alternatives-mobile.png");
+  await mobile.screenshot({ path: mobileAlternativesScreenshot, fullPage: true });
+  screenshots.push(mobileAlternativesScreenshot);
 } finally {
   await browser?.close();
   await new Promise((resolveClose) => server.close(resolveClose));
@@ -61,7 +73,7 @@ if (consoleErrors.length) {
   throw new Error(`Browser console errors:\n${consoleErrors.map((message) => `- ${message}`).join("\n")}`);
 }
 
-process.stdout.write(`Browser smoke test passed for 4 viewports.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
+process.stdout.write(`Browser smoke test passed for 6 viewports and the alternatives search.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
 
 async function inspect(page, path, { expectNoHorizontalOverflow = false } = {}) {
   const response = await page.goto(`${origin}${path}`, { waitUntil: "networkidle" });

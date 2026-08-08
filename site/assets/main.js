@@ -54,6 +54,45 @@ filterButtons.forEach((button) => {
 
 capabilitySearch?.addEventListener("input", filterCapabilities);
 
+const alternativeRows = [...document.querySelectorAll("[data-alternative]")];
+const alternativeFilters = [...document.querySelectorAll("[data-alt-filter]")];
+const alternativeSearch = document.querySelector("[data-alt-search]");
+const alternativeCount = document.querySelector("[data-alt-count]");
+const alternativeEmpty = document.querySelector("[data-alt-empty]");
+let activeAlternativeFilter = "all";
+
+function filterAlternatives() {
+  const query = alternativeSearch instanceof HTMLInputElement
+    ? alternativeSearch.value.trim().toLowerCase()
+    : "";
+  let shown = 0;
+  alternativeRows.forEach((row) => {
+    const category = row.getAttribute("data-category");
+    const haystack = row.textContent?.toLowerCase() ?? "";
+    const visible =
+      (activeAlternativeFilter === "all" || category === activeAlternativeFilter) &&
+      (!query || haystack.includes(query));
+    row.hidden = !visible;
+    if (visible) shown += 1;
+  });
+  if (alternativeCount) {
+    alternativeCount.textContent = `${shown} ${shown === 1 ? "alternative" : "alternatives"} shown`;
+  }
+  if (alternativeEmpty) alternativeEmpty.hidden = shown !== 0;
+}
+
+alternativeFilters.forEach((button) => {
+  button.addEventListener("click", () => {
+    activeAlternativeFilter = button.getAttribute("data-alt-filter") ?? "all";
+    alternativeFilters.forEach((candidate) => {
+      candidate.setAttribute("aria-pressed", String(candidate === button));
+    });
+    filterAlternatives();
+  });
+});
+
+alternativeSearch?.addEventListener("input", filterAlternatives);
+
 const terminalOutput = document.querySelector("[data-terminal-output]");
 if (terminalOutput) {
   const lines = [
