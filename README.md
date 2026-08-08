@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
-  <a href="https://cockroachbrowser.com/docs/capabilities/">93-capability registry</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">94-capability registry</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
 </p>
 
@@ -42,10 +42,11 @@ Current release line: **0.3.0**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 93 entries, with 87 available and 6 adapter-backed
+- Capability registry: 94 entries, with 88 available and 6 adapter-backed
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 - Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
-- DOI: [10.5281/zenodo.21701792](https://doi.org/10.5281/zenodo.21701792)
+- Published paper v1.1 DOI: [10.5281/zenodo.21850760](https://doi.org/10.5281/zenodo.21850760)
+- Paper series DOI: [10.5281/zenodo.21701791](https://doi.org/10.5281/zenodo.21701791)
 
 Verify the npm version, provenance, Git commit, and matching GitHub release before production use.
 

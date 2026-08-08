@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use Cockroach Browser, cite the software release and the technical paper."
+title: "Cockroach Browser"
+type: software
+authors:
+  - family-names: "N B"
+    given-names: "Ajnas"
+    alias: "AjnasNB"
+version: 0.3.0
+date-released: 2026-07-31
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/AjnasNB/cockroach-browser"
+url: "https://cockroachbrowser.com"
+preferred-citation:
+  type: report
+  title: "Cockroach Browser: A Local-First Browser Runtime for AI Agents"
+  authors:
+    - family-names: "N B"
+      given-names: "Ajnas"
+      alias: "AjnasNB"
+  version: "1.1"
+  year: 2026
+  publisher:
+    name: Zenodo
+  doi: "10.5281/zenodo.21850760"
+  url: "https://doi.org/10.5281/zenodo.21850760"
+  license: CC-BY-4.0

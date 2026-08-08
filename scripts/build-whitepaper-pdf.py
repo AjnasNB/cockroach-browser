@@ -20,8 +20,6 @@ from reportlab.platypus import (
     Frame,
     HRFlowable,
     Image,
-    ListFlowable,
-    ListItem,
     NextPageTemplate,
     PageBreak,
     PageTemplate,
@@ -36,8 +34,9 @@ from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "whitepaper.md"
-OUTPUT = ROOT / "output" / "pdf" / "Cockroach-Browser-Technical-White-Paper-v1.0.pdf"
+OUTPUT = ROOT / "output" / "pdf" / "Cockroach-Browser-Technical-White-Paper-v1.1.pdf"
 PUBLIC_COPY = ROOT / "docs" / OUTPUT.name
+SITE_COPY = ROOT / "site" / "paper" / OUTPUT.name
 LOGO = ROOT / "site" / "assets" / "logo.png"
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
@@ -143,7 +142,7 @@ class PaperTemplate(BaseDocTemplate):
             topMargin=TOP,
             bottomMargin=BOTTOM,
             title="Cockroach Browser: A Local-First Browser Runtime for AI Agents",
-            author="Ajnas NB",
+            author="Ajnas N B",
             subject="A local-first, authenticated browser runtime for AI agents",
             creator="Cockroach Browser white-paper build",
             pageCompression=1,
@@ -171,7 +170,7 @@ class PaperTemplate(BaseDocTemplate):
         canvas.setFillColor(colors.HexColor("#91A49E"))
         canvas.setFont(MONO, 7.2)
         canvas.drawString(LEFT, 10 * mm, "COCKROACH BROWSER / TECHNICAL PAPER")
-        canvas.drawRightString(PAGE_WIDTH - RIGHT, 10 * mm, "JULY 2026")
+        canvas.drawRightString(PAGE_WIDTH - RIGHT, 10 * mm, "AUGUST 2026")
         canvas.restoreState()
 
     @staticmethod
@@ -191,7 +190,7 @@ class PaperTemplate(BaseDocTemplate):
         canvas.setStrokeColor(RULE)
         canvas.line(LEFT, 13 * mm, PAGE_WIDTH - RIGHT, 13 * mm)
         canvas.setFont(BODY, 7.2)
-        canvas.drawString(LEFT, 8 * mm, "Ajnas NB - Technical white paper v1.0")
+        canvas.drawString(LEFT, 8 * mm, "Ajnas N B - Technical white paper v1.1")
         canvas.drawRightString(PAGE_WIDTH - RIGHT, 8 * mm, str(doc.page))
         canvas.restoreState()
 
@@ -326,18 +325,27 @@ def parse_markdown(text: str) -> list:
                 story.append(numbered)
                 story.append(Spacer(1, 2.5 * mm))
             else:
-                story.append(ListFlowable(
+                bulleted = Table(
                     [
-                        ListItem(Paragraph(inline(item), STYLES["body"]),
-                                 leftIndent=4 * mm)
+                        [
+                            Paragraph("&#8226;", STYLES["body"]),
+                            Paragraph(inline(item), STYLES["body"]),
+                        ]
                         for item in item_values
                     ],
-                    bulletType="bullet",
-                    leftIndent=6 * mm,
-                    bulletFontName=BODY,
-                    bulletFontSize=8,
-                    spaceAfter=2.5 * mm,
-                ))
+                    colWidths=[5 * mm, WIDTH - 5 * mm],
+                    hAlign="LEFT",
+                    splitByRow=True,
+                )
+                bulleted.setStyle(TableStyle([
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8 * mm),
+                ]))
+                story.append(bulleted)
+                story.append(Spacer(1, 1.7 * mm))
             continue
         if not line.strip():
             flush()
@@ -358,7 +366,7 @@ def cover_story() -> list:
         Spacer(1, 19 * mm),
         logo,
         Spacer(1, 10 * mm),
-        Paragraph("COCKROACH BROWSER / VERSION 0.2.1", STYLES["cover-kicker"]),
+        Paragraph("COCKROACH BROWSER / VERSION 0.3.0", STYLES["cover-kicker"]),
         Paragraph("A local-first browser runtime for AI agents", STYLES["cover-title"]),
         Paragraph(
             "The browser runtime your AI agents can use without inheriting your whole machine.",
@@ -367,13 +375,14 @@ def cover_story() -> list:
         HRFlowable(width="100%", thickness=0.8, color=colors.HexColor("#24433C")),
         Spacer(1, 8 * mm),
         Paragraph(
-            "<b>Author:</b> Ajnas NB<br/>"
-            "<b>Paper version:</b> 1.0<br/>"
-            "<b>Date:</b> July 2026<br/>"
+            "<b>Author:</b> Ajnas N B<br/>"
+            "<b>Paper version:</b> 1.1<br/>"
+            "<b>Date:</b> August 2026<br/>"
+            "<b>Concept DOI:</b> 10.5281/zenodo.21701791<br/>"
             "<b>Software:</b> AGPL-3.0-or-later<br/>"
             "<b>Paper:</b> Creative Commons Attribution 4.0 International<br/>"
             "<b>Status:</b> Implementation-backed technical white paper. "
-            "The paper has not undergone independent peer review.",
+            "The paper has not undergone independent peer review or independent security certification.",
             STYLES["cover-meta"],
         ),
         NextPageTemplate("Body"),
@@ -385,11 +394,11 @@ def toc_story() -> list:
     toc = TableOfContents()
     toc.levelStyles = [
         ParagraphStyle(
-            "TOC1", fontName=BOLD, fontSize=10, leading=15,
-            textColor=INK, leftIndent=0, firstLineIndent=0, spaceBefore=2,
+            "TOC1", fontName=BOLD, fontSize=8.8, leading=11.2,
+            textColor=INK, leftIndent=0, firstLineIndent=0, spaceBefore=0.5,
         ),
         ParagraphStyle(
-            "TOC2", fontName=BODY, fontSize=8.5, leading=13,
+            "TOC2", fontName=BODY, fontSize=7.4, leading=9.4,
             textColor=MUTED, leftIndent=8 * mm, firstLineIndent=0,
         ),
     ]
@@ -414,7 +423,8 @@ def build() -> None:
     story = cover_story() + toc_story() + parse_markdown(text[start:])
     PaperTemplate(str(OUTPUT)).multiBuild(story)
     shutil.copyfile(OUTPUT, PUBLIC_COPY)
-    print(PUBLIC_COPY)
+    shutil.copyfile(OUTPUT, SITE_COPY)
+    print(OUTPUT)
 
 
 if __name__ == "__main__":

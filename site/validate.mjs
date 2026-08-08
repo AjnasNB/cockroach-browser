@@ -20,6 +20,19 @@ for (const file of htmlFiles) {
   if (!/<link rel="canonical" href="https:\/\/cockroachbrowser\.com\/[^"]*">/.test(source)) {
     failures.push(`${display(file)} is missing a canonical URL`);
   }
+  if (!/<script type="application\/ld\+json">[^<]+<\/script>/.test(source)) {
+    failures.push(`${display(file)} is missing JSON-LD`);
+  }
+  if (!/<link rel="alternate" hreflang="en" href="https:\/\/cockroachbrowser\.com\/[^"]*">/.test(source)) {
+    failures.push(`${display(file)} is missing English hreflang`);
+  }
+  for (const match of source.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)) {
+    try {
+      JSON.parse(match[1]);
+    } catch (error) {
+      failures.push(`${display(file)} contains invalid JSON-LD: ${error.message}`);
+    }
+  }
   for (const match of source.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
     const target = match[1];
     if (isExternalOrFragment(target)) continue;
