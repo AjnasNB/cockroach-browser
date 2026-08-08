@@ -17,6 +17,225 @@ export const comparison = {
     "This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories."
 };
 
+export const ecosystem = {
+  checkedOn: "2026-08-09",
+  title: "Open-source toolkit for governed AI agents",
+  description:
+    "A source-linked map of Qarinah, Maqam, Cockroach Browser, Cockroach Crawler, and adjacent open-source agent, browser, web, extraction, and document tools.",
+  methodology:
+    "This page maps documented product centers and composition boundaries from official project sources. It does not publish a shared performance benchmark, security ranking, production-capacity result, or universal winner.",
+  projects: [
+    {
+      id: "qarinah",
+      name: "Qarinah",
+      category: "memory",
+      categoryLabel: "Project memory",
+      nativeFocus:
+        "Local-first, evidence-linked project memory and compact cited handoffs for coding agents.",
+      chooseWhen:
+        "The agent needs durable local project history with explicit provenance and disclosure controls.",
+      relationship:
+        "Qarinah can provide cited project context before a browser task. It does not control browser execution or approve a side effect.",
+      sourceLabel: "Qarinah source",
+      source: "https://github.com/AjnasNB/qarinah"
+    },
+    {
+      id: "maqam",
+      name: "Maqam",
+      category: "governance",
+      categoryLabel: "Action governance",
+      nativeFocus:
+        "A compact TypeScript boundary for policy, exact-input approval, one-use dispatch, execution, and receipts.",
+      chooseWhen:
+        "A selected registered action must remain bound to the input that was reviewed and consumed once.",
+      relationship:
+        "Cockroach Browser ships a Maqam adapter for consequential browser actions. Maqam remains a separate authority and is not part of the browser engine.",
+      sourceLabel: "Maqam source",
+      source: "https://github.com/AjnasNB/maqam"
+    },
+    {
+      id: "cockroach-browser",
+      name: "Cockroach Browser",
+      category: "browser-runtime",
+      categoryLabel: "Browser authority and evidence",
+      nativeFocus:
+        "A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts.",
+      chooseWhen:
+        "A host agent needs explicit session authority and browser evidence above a maintained automation primitive.",
+      relationship:
+        "Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.",
+      sourceLabel: "Cockroach Browser source",
+      source: "https://github.com/AjnasNB/cockroach-browser"
+    },
+    {
+      id: "cockroach-crawler",
+      name: "Cockroach Crawler",
+      category: "web-acquisition",
+      categoryLabel: "Bounded web acquisition",
+      nativeFocus:
+        "Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits.",
+      chooseWhen:
+        "The workflow needs bounded public-web evidence rather than a stateful browser interaction session.",
+      relationship:
+        "Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.",
+      sourceLabel: "Cockroach Crawler source",
+      source: "https://github.com/AjnasNB/cockroach-crawler"
+    },
+    {
+      id: "playwright",
+      name: "Playwright",
+      category: "browser-primitive",
+      categoryLabel: "Browser automation primitive",
+      nativeFocus:
+        "Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools.",
+      chooseWhen:
+        "The application should own direct browser calls and the surrounding policy, service, and evidence design.",
+      relationship:
+        "Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.",
+      sourceLabel: "Playwright documentation",
+      source: "https://playwright.dev/"
+    },
+    {
+      id: "puppeteer",
+      name: "Puppeteer",
+      category: "browser-primitive",
+      categoryLabel: "Browser automation primitive",
+      nativeFocus:
+        "A JavaScript API for controlling Chrome and Firefox through browser protocols.",
+      chooseWhen:
+        "The job needs direct JavaScript browser automation without adopting an agent session runtime.",
+      relationship:
+        "Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.",
+      sourceLabel: "Puppeteer documentation",
+      source: "https://pptr.dev/"
+    },
+    {
+      id: "browser-use",
+      name: "Browser Use",
+      category: "browser-agent",
+      categoryLabel: "AI browser framework",
+      nativeFocus:
+        "An open-source Python framework for model-directed agents that interact with websites.",
+      chooseWhen:
+        "The product needs an autonomous browser agent, model integration, and high-level task execution.",
+      relationship:
+        "Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.",
+      sourceLabel: "Browser Use source",
+      source: "https://github.com/browser-use/browser-use"
+    },
+    {
+      id: "stagehand",
+      name: "Stagehand",
+      category: "browser-agent",
+      categoryLabel: "AI browser framework",
+      nativeFocus:
+        "Open-source AI browser automation that combines code with model-powered observation, action, and extraction.",
+      chooseWhen:
+        "The workflow needs natural-language browser methods and a framework for AI-assisted interaction.",
+      relationship:
+        "Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.",
+      sourceLabel: "Stagehand documentation",
+      source: "https://www.stagehand.dev/"
+    },
+    {
+      id: "firecrawl",
+      name: "Firecrawl",
+      category: "web-acquisition",
+      categoryLabel: "Managed web acquisition",
+      nativeFocus:
+        "A web API and open-source project for search, scrape, crawl, map, and browser interaction.",
+      chooseWhen:
+        "Managed web acquisition, hosted operations, and an API-centered product are primary requirements.",
+      relationship:
+        "Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.",
+      sourceLabel: "Firecrawl documentation",
+      source: "https://docs.firecrawl.dev/introduction"
+    },
+    {
+      id: "trafilatura",
+      name: "Trafilatura",
+      category: "extraction",
+      categoryLabel: "Main-content extraction",
+      nativeFocus:
+        "Web text, metadata, comments, discovery, and structured output with configurable extraction.",
+      chooseWhen:
+        "Main-content extraction from HTML is the central problem rather than browser interaction or agent authority.",
+      relationship:
+        "Cockroach Crawler's opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0. Cockroach Browser does not replace an extraction specialist.",
+      sourceLabel: "Trafilatura documentation",
+      source: "https://trafilatura.readthedocs.io/en/latest/"
+    },
+    {
+      id: "docling",
+      name: "Docling",
+      category: "document",
+      categoryLabel: "Document conversion",
+      nativeFocus:
+        "Conversion of PDFs, office documents, images, HTML, and Markdown into a structured document representation.",
+      chooseWhen:
+        "Layout, tables, images, OCR, or complex document structure is the main ingestion problem.",
+      relationship:
+        "Docling is a document specialist. Cockroach Browser can acquire a file through an authorized session, but it does not claim Docling's conversion scope.",
+      sourceLabel: "Docling documentation",
+      source: "https://docling-project.github.io/docling/"
+    },
+    {
+      id: "langgraph",
+      name: "LangGraph",
+      category: "orchestration",
+      categoryLabel: "Agent orchestration",
+      nativeFocus:
+        "A low-level runtime for long-running, stateful agents with durable execution, streaming, and human involvement.",
+      chooseWhen:
+        "Durable workflow state, graph composition, pause and resume, and recovery are central.",
+      relationship:
+        "LangGraph can orchestrate a browser tool. Cockroach Browser does not replace its workflow state or agent runtime.",
+      sourceLabel: "LangGraph documentation",
+      source: "https://docs.langchain.com/oss/javascript/langgraph/overview"
+    },
+    {
+      id: "openai-agents-sdk",
+      name: "OpenAI Agents SDK",
+      category: "orchestration",
+      categoryLabel: "Agent runtime",
+      nativeFocus:
+        "A TypeScript SDK for agent loops, tools, handoffs, guardrails, sessions, tracing, and human involvement.",
+      chooseWhen:
+        "The primary job is building and running text, sandbox, or voice agents with a compact set of primitives.",
+      relationship:
+        "The SDK can call Cockroach Browser as a tool. Cockroach Browser does not replace its model loop, handoffs, sessions, or tracing.",
+      sourceLabel: "OpenAI Agents SDK documentation",
+      source: "https://openai.github.io/openai-agents-js/"
+    }
+  ],
+  questions: [
+    [
+      "Do these projects form one automatic control plane?",
+      "No. They are independent projects with different contracts. A deployment must explicitly connect selected layers and still own identity, secrets, isolation, storage, and operations."
+    ],
+    [
+      "Does Cockroach Browser replace Playwright?",
+      "No. Cockroach Browser uses playwright-core and adds an operator-owned authority, evidence, and integration boundary above Playwright."
+    ],
+    [
+      "Is Cockroach Crawler's quality extractor independent of Trafilatura?",
+      "No. The opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0 and adds crawling, rendering, policy, structured extraction, and evidence around that backend."
+    ],
+    [
+      "Where do LangGraph and the OpenAI Agents SDK fit?",
+      "They are agent runtime and orchestration choices. They can call governed browser or crawler tools, but neither is replaced by the memory, approval, or evidence layers."
+    ],
+    [
+      "When should a team use Firecrawl or Docling?",
+      "Consider Firecrawl when managed web acquisition is central. Consider Docling when document conversion, layout, tables, images, or complex PDF structure is the main problem. Test the exact workload before choosing."
+    ],
+    [
+      "Is this a best-tools ranking?",
+      "No. It is a category and architecture map built from official product sources. It contains no matched cross-project benchmark."
+    ]
+  ]
+};
+
 export const alternatives = [
   {
     id: "playwright",

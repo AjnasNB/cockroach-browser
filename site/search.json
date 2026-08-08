@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedOn": "2026-08-08",
+  "checkedOn": "2026-08-09",
   "documents": [
     {
       "title": "Cockroach Browser",
@@ -31,6 +31,170 @@
         "Stagehand",
         "Browserbase",
         "Browserless"
+      ]
+    },
+    {
+      "title": "Open-source toolkit for governed AI agents",
+      "url": "https://cockroachbrowser.com/ecosystem/",
+      "kind": "ecosystem",
+      "summary": "A source-linked map of Qarinah, Maqam, Cockroach Browser, Cockroach Crawler, and adjacent open-source agent, browser, web, extraction, and document tools.",
+      "keywords": [
+        "Qarinah",
+        "Maqam",
+        "Cockroach Browser",
+        "Cockroach Crawler",
+        "Playwright",
+        "Puppeteer",
+        "Browser Use",
+        "Stagehand",
+        "Firecrawl",
+        "Trafilatura",
+        "Docling",
+        "LangGraph",
+        "OpenAI Agents SDK"
+      ]
+    },
+    {
+      "title": "Qarinah in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#qarinah",
+      "kind": "ecosystem-project",
+      "summary": "Local-first, evidence-linked project memory and compact cited handoffs for coding agents. Qarinah can provide cited project context before a browser task. It does not control browser execution or approve a side effect.",
+      "keywords": [
+        "Qarinah",
+        "Project memory",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Maqam in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#maqam",
+      "kind": "ecosystem-project",
+      "summary": "A compact TypeScript boundary for policy, exact-input approval, one-use dispatch, execution, and receipts. Cockroach Browser ships a Maqam adapter for consequential browser actions. Maqam remains a separate authority and is not part of the browser engine.",
+      "keywords": [
+        "Maqam",
+        "Action governance",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Cockroach Browser in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#cockroach-browser",
+      "kind": "ecosystem-project",
+      "summary": "A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts. Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.",
+      "keywords": [
+        "Cockroach Browser",
+        "Browser authority and evidence",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Cockroach Crawler in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#cockroach-crawler",
+      "kind": "ecosystem-project",
+      "summary": "Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits. Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.",
+      "keywords": [
+        "Cockroach Crawler",
+        "Bounded web acquisition",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Playwright in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#playwright",
+      "kind": "ecosystem-project",
+      "summary": "Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools. Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.",
+      "keywords": [
+        "Playwright",
+        "Browser automation primitive",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Puppeteer in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#puppeteer",
+      "kind": "ecosystem-project",
+      "summary": "A JavaScript API for controlling Chrome and Firefox through browser protocols. Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.",
+      "keywords": [
+        "Puppeteer",
+        "Browser automation primitive",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Browser Use in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#browser-use",
+      "kind": "ecosystem-project",
+      "summary": "An open-source Python framework for model-directed agents that interact with websites. Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.",
+      "keywords": [
+        "Browser Use",
+        "AI browser framework",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Stagehand in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#stagehand",
+      "kind": "ecosystem-project",
+      "summary": "Open-source AI browser automation that combines code with model-powered observation, action, and extraction. Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.",
+      "keywords": [
+        "Stagehand",
+        "AI browser framework",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Firecrawl in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#firecrawl",
+      "kind": "ecosystem-project",
+      "summary": "A web API and open-source project for search, scrape, crawl, map, and browser interaction. Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.",
+      "keywords": [
+        "Firecrawl",
+        "Managed web acquisition",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Trafilatura in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#trafilatura",
+      "kind": "ecosystem-project",
+      "summary": "Web text, metadata, comments, discovery, and structured output with configurable extraction. Cockroach Crawler's opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0. Cockroach Browser does not replace an extraction specialist.",
+      "keywords": [
+        "Trafilatura",
+        "Main-content extraction",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "Docling in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#docling",
+      "kind": "ecosystem-project",
+      "summary": "Conversion of PDFs, office documents, images, HTML, and Markdown into a structured document representation. Docling is a document specialist. Cockroach Browser can acquire a file through an authorized session, but it does not claim Docling's conversion scope.",
+      "keywords": [
+        "Docling",
+        "Document conversion",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "LangGraph in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#langgraph",
+      "kind": "ecosystem-project",
+      "summary": "A low-level runtime for long-running, stateful agents with durable execution, streaming, and human involvement. LangGraph can orchestrate a browser tool. Cockroach Browser does not replace its workflow state or agent runtime.",
+      "keywords": [
+        "LangGraph",
+        "Agent orchestration",
+        "governed AI agents"
+      ]
+    },
+    {
+      "title": "OpenAI Agents SDK in the governed-agent ecosystem",
+      "url": "https://cockroachbrowser.com/ecosystem/#openai-agents-sdk",
+      "kind": "ecosystem-project",
+      "summary": "A TypeScript SDK for agent loops, tools, handoffs, guardrails, sessions, tracing, and human involvement. The SDK can call Cockroach Browser as a tool. Cockroach Browser does not replace its model loop, handoffs, sessions, or tracing.",
+      "keywords": [
+        "OpenAI Agents SDK",
+        "Agent runtime",
+        "governed AI agents"
       ]
     },
     {

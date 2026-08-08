@@ -4,6 +4,7 @@ import {
   alternatives,
   comparison,
   comparisonQuestions,
+  ecosystem,
   homepage,
   navGroups,
   pages,
@@ -56,6 +57,7 @@ await writePage("docs/capabilities/index.html", capabilityPage());
 await writeRootDoc("capabilities.md", capabilityMarkdown());
 await writeRootDoc("README.md", docsReadme());
 await writePage("alternatives/index.html", alternativesPage());
+await writePage("ecosystem/index.html", ecosystemPage());
 await writePage("dashboard/index.html", publicDashboard());
 await writePage("paper/index.html", publicationPage());
 await mkdir(resolve(root, "paper"), { recursive: true });
@@ -78,6 +80,7 @@ Repository: ${site.repository}
 npm: ${site.npm}
 Technical paper: ${site.origin}/paper/
 Alternatives and product-layer comparison: ${site.origin}/alternatives/
+Open-source governed-agent ecosystem: ${site.origin}/ecosystem/
 
 ## Documentation
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](${site.origin}/docs/${slug}/)`).join("\n")}
@@ -86,6 +89,11 @@ ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}]
 ${comparison.methodology}
 
 ${alternatives.map((entry) => `- [${entry.name}](${site.origin}/alternatives/#${entry.id}): ${entry.nativeFocus}`).join("\n")}
+
+## Open-source governed-agent ecosystem
+${ecosystem.methodology}
+
+${ecosystem.projects.map((entry) => `- [${entry.name}](${site.origin}/ecosystem/#${entry.id}): ${entry.nativeFocus} ${entry.relationship}`).join("\n")}
 
 ## Security boundary
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
@@ -98,7 +106,7 @@ Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses
 );
 await writePage(
   "llms-full.txt",
-  `# ${site.name} documentation\n\n## Alternatives and comparison method\n\n${comparison.methodology}\n\n${alternatives.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n${pages.map((page) => [
+  `# ${site.name} documentation\n\n## Governed-agent ecosystem\n\n${ecosystem.methodology}\n\n${ecosystem.projects.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n## Alternatives and comparison method\n\n${comparison.methodology}\n\n${alternatives.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n${pages.map((page) => [
     `## ${page.title}`,
     page.lede,
     ...page.sections.map((section) => `### ${section.title}\n${stripHtml(section.body)}`)
@@ -124,10 +132,11 @@ await writePage(
 /dashboard /dashboard/ 301
 /paper /paper/ 301
 /alternatives /alternatives/ 301
+/ecosystem /ecosystem/ 301
 `
 );
 
-process.stdout.write(`Built ${pages.length + 7} HTML pages and ${capabilities.length} capability records.\n`);
+process.stdout.write(`Built ${pages.length + 8} HTML pages and ${capabilities.length} capability records.\n`);
 
 function parseCapabilities(source) {
   const pattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
@@ -230,6 +239,7 @@ function header(active = "") {
       <a href="/docs/" ${active === "docs" ? 'aria-current="page"' : ""}>Docs</a>
       <a href="/docs/capabilities/">Capabilities</a>
       <a href="/alternatives/" ${active === "alternatives" ? 'aria-current="page"' : ""}>Alternatives</a>
+      <a href="/ecosystem/" ${active === "ecosystem" ? 'aria-current="page"' : ""}>Ecosystem</a>
       <a href="/dashboard/" ${active === "dashboard" ? 'aria-current="page"' : ""}>Dashboard</a>
       <a href="/paper/" ${active === "paper" ? 'aria-current="page"' : ""}>Paper</a>
       <a href="${site.repository}">GitHub</a>
@@ -250,6 +260,7 @@ function footer() {
     <div class="footer-links">
       <a href="/docs/security/">Security</a>
       <a href="/alternatives/">Alternatives</a>
+      <a href="/ecosystem/">Ecosystem</a>
       <a href="/paper/">Technical paper</a>
       <a href="${site.repository}">Source</a>
       <a href="${site.npm}">npm</a>
@@ -680,6 +691,170 @@ ${header("alternatives")}
 ${footer()}`;
 }
 
+function ecosystemPage() {
+  const canonical = `${site.origin}/ecosystem/`;
+  const byId = new Map(ecosystem.projects.map((entry) => [entry.id, entry]));
+  const localIds = ["qarinah", "maqam", "cockroach-browser", "cockroach-crawler"];
+  const lanes = [
+    ["memory-governance", "Memory and action governance", ["qarinah", "maqam"]],
+    ["orchestration", "Agent runtime and orchestration", ["openai-agents-sdk", "langgraph"]],
+    ["browser", "Browser primitives and agent frameworks", ["playwright", "puppeteer", "cockroach-browser", "browser-use", "stagehand"]],
+    ["acquisition", "Web acquisition, extraction, and documents", ["cockroach-crawler", "firecrawl", "trafilatura", "docling"]]
+  ];
+  const localProjects = localIds.map((id, index) => {
+    const entry = byId.get(id);
+    return `<article id="${entry.id}" class="ecosystem-core-entry">
+      <span>${String(index + 1).padStart(2, "0")} / ${escapeHtml(entry.categoryLabel)}</span>
+      <h3>${escapeHtml(entry.name)}</h3>
+      <p>${escapeHtml(entry.nativeFocus)}</p>
+      <p class="ecosystem-relationship">${escapeHtml(entry.relationship)}</p>
+      <a class="source-link" href="${escapeAttr(entry.source)}">${escapeHtml(entry.sourceLabel)}</a>
+    </article>`;
+  }).join("");
+  const laneMarkup = lanes.map(([id, title, projectIds], laneIndex) => `<section class="ecosystem-lane" aria-labelledby="lane-${id}">
+    <header><span>${String(laneIndex + 1).padStart(2, "0")}</span><h3 id="lane-${id}">${escapeHtml(title)}</h3></header>
+    <div>${projectIds.map((projectId) => {
+      const entry = byId.get(projectId);
+      return `<article id="${localIds.includes(entry.id) ? `map-${entry.id}` : entry.id}" data-ecosystem-project>
+        <div><span>${escapeHtml(entry.categoryLabel)}</span><h4>${escapeHtml(entry.name)}</h4></div>
+        <p>${escapeHtml(entry.nativeFocus)}</p>
+        <p><strong>Choose it when:</strong> ${escapeHtml(entry.chooseWhen)}</p>
+        <p><strong>Relationship:</strong> ${escapeHtml(entry.relationship)}</p>
+        <a class="source-link" href="${escapeAttr(entry.source)}">${escapeHtml(entry.sourceLabel)}</a>
+      </article>`;
+    }).join("")}</div>
+  </section>`).join("");
+  return `${baseHead({
+    title: ecosystem.title,
+    description: ecosystem.description,
+    canonical,
+    type: "article",
+    schemas: [
+      {
+        "@type": "Article",
+        "@id": `${canonical}#article`,
+        headline: ecosystem.title,
+        description: ecosystem.description,
+        datePublished: ecosystem.checkedOn,
+        dateModified: ecosystem.checkedOn,
+        inLanguage: "en",
+        author: { "@type": "Person", name: "Ajnas N B" },
+        publisher: { "@type": "Organization", name: site.name, url: site.origin },
+        mainEntityOfPage: canonical
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonical}#projects`,
+        name: "Open-source projects for governed AI agent systems",
+        numberOfItems: ecosystem.projects.length,
+        itemListOrder: "https://schema.org/ItemListUnordered",
+        itemListElement: ecosystem.projects.map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "SoftwareApplication",
+            name: entry.name,
+            applicationCategory: entry.categoryLabel,
+            description: entry.nativeFocus,
+            url: entry.source
+          }
+        }))
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${canonical}#faq`,
+        mainEntity: ecosystem.questions.map(([name, answer]) => ({
+          "@type": "Question",
+          name,
+          acceptedAnswer: { "@type": "Answer", text: answer }
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Product", item: `${site.origin}/` },
+          { "@type": "ListItem", position: 2, name: "Ecosystem", item: canonical }
+        ]
+      }
+    ]
+  })}
+<body>
+${header("ecosystem")}
+<main id="main" class="ecosystem-page">
+  <section class="shell ecosystem-hero">
+    <div>
+      <nav class="article-breadcrumbs" aria-label="Breadcrumb"><a href="/">Cockroach Browser</a><span aria-hidden="true">/</span><span>Ecosystem</span></nav>
+      <p class="eyebrow">Open-source toolkit for governed AI agents</p>
+      <h1>The agent is a system. Keep every layer named.</h1>
+      <p class="hero-copy">A useful agent may need orchestration, project memory, approval, browser execution, web acquisition, main-content extraction, and document conversion. These projects solve different jobs. The safe composition starts by naming each boundary.</p>
+      <div class="article-byline"><span>By Ajnas N B</span><span>Reviewed ${ecosystem.checkedOn}</span><span>${ecosystem.projects.length} official project sources</span></div>
+      <div class="hero-actions"><a class="button button--primary" href="#local-toolkit">Map the local toolkit</a><a class="button" href="#project-map">Inspect every layer</a></div>
+    </div>
+    <aside class="ecosystem-boundary" aria-label="How to read the ecosystem map">
+      <span>Read this first</span>
+      <h2>No shared benchmark. No universal winner.</h2>
+      <p>${escapeHtml(ecosystem.methodology)}</p>
+      <dl>
+        <div><dt>Memory</dt><dd>Project context and provenance</dd></div>
+        <div><dt>Action</dt><dd>Policy, approval, and receipts</dd></div>
+        <div><dt>Browser</dt><dd>Stateful interaction and evidence</dd></div>
+        <div><dt>Web</dt><dd>Acquisition, extraction, and documents</dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="section" id="short-answer">
+    <div class="shell ecosystem-short-answer">
+      <div><p class="eyebrow">Short answer</p><h2>No package owns the whole agent.</h2></div>
+      <div><p>Qarinah compiles cited project memory. Maqam governs selected registered actions. Cockroach Browser runs permitted browser work above Playwright. Cockroach Crawler acquires bounded web evidence. LangGraph or the OpenAI Agents SDK can orchestrate these layers, but installation alone does not connect or secure them.</p><p>The deployment still owns identity, credentials, process isolation, durable storage, model choice, network placement, and any route that bypasses a registered authority.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="local-toolkit">
+    <div class="shell">
+      <div class="section-head"><h2>Four local responsibilities. Four reviewable boundaries.</h2><p>Use the packages separately or connect selected interfaces in a host-owned deployment.</p></div>
+      <div class="ecosystem-core">${localProjects}</div>
+    </div>
+  </section>
+
+  <section class="section" id="project-map">
+    <div class="shell">
+      <div class="section-head"><h2>Thirteen projects, grouped by product center.</h2><p>Every entry names its primary job, a practical selection condition, its relationship to Cockroach Browser, and a link controlled by the project.</p></div>
+      <div class="ecosystem-lanes">${laneMarkup}</div>
+    </div>
+  </section>
+
+  <section class="section" id="composition">
+    <div class="shell ecosystem-composition">
+      <div><p class="eyebrow">One explicit route</p><h2>The host connects the pipeline and preserves every handoff.</h2><p>This is an architecture example, not an automatic bundled pipeline.</p></div>
+      <ol>
+        <li><span>01</span><div><strong>Plan</strong><p>LangGraph, the OpenAI Agents SDK, or another runtime chooses a task and tool call.</p></div></li>
+        <li><span>02</span><div><strong>Contextualize</strong><p>Qarinah can supply compact cited project context when the task needs local history.</p></div></li>
+        <li><span>03</span><div><strong>Authorize</strong><p>Maqam can gate a selected registered effect with policy and exact-input approval.</p></div></li>
+        <li><span>04</span><div><strong>Execute</strong><p>Cockroach Browser handles permitted interaction, or Cockroach Crawler reads permitted web resources.</p></div></li>
+        <li><span>05</span><div><strong>Transform</strong><p>The host may use Trafilatura-backed extraction, Docling, Firecrawl, or another explicit specialist route.</p></div></li>
+        <li><span>06</span><div><strong>Return proof</strong><p>Browser evidence, source records, execution receipts, and cited context return to the agent runtime.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" id="method">
+    <div class="shell ecosystem-method">
+      <div><p class="eyebrow">Method and limits</p><h2>Official sources, one review date, no hidden benchmark.</h2></div>
+      <div><p>Descriptions were reviewed against the linked official sites, documentation, or source repositories on 9 August 2026. External projects change independently. Verify the current license, release, hosted-service terms, security model, and exact integration before adoption.</p><p>This page maps product centers and composition boundaries. It does not establish comparative security, reliability, task success, legal compliance, production capacity, or a universal choice.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="shell">
+      <div class="section-head"><h2>Direct answers before you compose the stack.</h2><p>The FAQ stays visible to operators, search engines, and agent readers.</p></div>
+      <div class="answer-grid ecosystem-faq">${ecosystem.questions.map(([question, answer]) => `<article><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join("")}</div>
+    </div>
+  </section>
+</main>
+${footer()}`;
+}
+
 function publicDashboard() {
   return `${baseHead({
     title: "Local dashboard",
@@ -845,10 +1020,10 @@ function stripHtml(value) {
 }
 
 function sitemap() {
-  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/dashboard/", "/paper/"];
+  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/ecosystem/", "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>2026-08-08</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
+${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>${path === "/ecosystem/" ? ecosystem.checkedOn : "2026-08-08"}</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
 </urlset>
 `;
 }
@@ -856,7 +1031,7 @@ ${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>2026-08-0
 function searchIndex() {
   return {
     version: 1,
-    checkedOn: comparison.checkedOn,
+    checkedOn: ecosystem.checkedOn,
     documents: [
       {
         title: site.name,
@@ -872,6 +1047,20 @@ function searchIndex() {
         summary: comparison.description,
         keywords: alternatives.map((entry) => entry.name)
       },
+      {
+        title: ecosystem.title,
+        url: `${site.origin}/ecosystem/`,
+        kind: "ecosystem",
+        summary: ecosystem.description,
+        keywords: ecosystem.projects.map((entry) => entry.name)
+      },
+      ...ecosystem.projects.map((entry) => ({
+        title: `${entry.name} in the governed-agent ecosystem`,
+        url: `${site.origin}/ecosystem/#${entry.id}`,
+        kind: "ecosystem-project",
+        summary: `${entry.nativeFocus} ${entry.relationship}`,
+        keywords: [entry.name, entry.categoryLabel, "governed AI agents"]
+      })),
       ...alternatives.map((entry) => ({
         title: `${site.name} and ${entry.name}`,
         url: `${site.origin}/alternatives/#${entry.id}`,
