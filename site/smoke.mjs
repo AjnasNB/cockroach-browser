@@ -38,6 +38,7 @@ try {
   for (const [path, name] of [
     ["/", "home"],
     ["/alternatives/", "alternatives"],
+    ["/ecosystem/", "ecosystem"],
     ["/docs/capabilities/", "capabilities"],
     ["/docs/getting-started/", "getting-started"]
   ]) {
@@ -64,6 +65,10 @@ try {
   const mobileAlternativesScreenshot = resolve(tmpdir(), "cockroach-browser-alternatives-mobile.png");
   await mobile.screenshot({ path: mobileAlternativesScreenshot, fullPage: true });
   screenshots.push(mobileAlternativesScreenshot);
+  await inspect(mobile, "/ecosystem/", { expectNoHorizontalOverflow: true });
+  const mobileEcosystemScreenshot = resolve(tmpdir(), "cockroach-browser-ecosystem-mobile.png");
+  await mobile.screenshot({ path: mobileEcosystemScreenshot, fullPage: true });
+  screenshots.push(mobileEcosystemScreenshot);
 } finally {
   await browser?.close();
   await new Promise((resolveClose) => server.close(resolveClose));
@@ -73,7 +78,7 @@ if (consoleErrors.length) {
   throw new Error(`Browser console errors:\n${consoleErrors.map((message) => `- ${message}`).join("\n")}`);
 }
 
-process.stdout.write(`Browser smoke test passed for 6 viewports and the alternatives search.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
+process.stdout.write(`Browser smoke test passed for 8 viewports and the alternatives search.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
 
 async function inspect(page, path, { expectNoHorizontalOverflow = false } = {}) {
   const response = await page.goto(`${origin}${path}`, { waitUntil: "networkidle" });
@@ -82,12 +87,24 @@ async function inspect(page, path, { expectNoHorizontalOverflow = false } = {}) 
     title: document.title,
     h1: document.querySelector("h1")?.textContent?.trim(),
     imageFailures: [...document.images].filter((image) => !image.complete || image.naturalWidth === 0).length,
-    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    overflowSources: [...document.querySelectorAll("body *")]
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          element: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ""}${[...element.classList].map((name) => `.${name}`).join("")}`,
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width)
+        };
+      })
+      .filter(({ left, right }) => left < -1 || right > document.documentElement.clientWidth + 1)
+      .slice(0, 8)
   }));
   if (!state.title || !state.h1) throw new Error(`${path} is missing a title or h1`);
   if (state.imageFailures) throw new Error(`${path} contains ${state.imageFailures} failed images`);
   if (expectNoHorizontalOverflow && state.overflow > 1) {
-    throw new Error(`${path} overflows the mobile viewport by ${state.overflow}px`);
+    throw new Error(`${path} overflows the mobile viewport by ${state.overflow}px: ${JSON.stringify(state.overflowSources)}`);
   }
 }
 

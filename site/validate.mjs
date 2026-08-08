@@ -1,6 +1,6 @@
 import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, relative, resolve } from "node:path";
-import { alternatives, comparison } from "./content.mjs";
+import { alternatives, comparison, ecosystem } from "./content.mjs";
 
 const siteRoot = resolve(import.meta.dirname);
 const sourceRoot = resolve(siteRoot, "..");
@@ -95,6 +95,53 @@ if (!alternativesPage.includes("data-alt-search")) {
   failures.push("alternatives page is missing its local comparison search");
 }
 
+const ecosystemPage = await readFile(resolve(siteRoot, "ecosystem", "index.html"), "utf8");
+const renderedEcosystemProjects = [...ecosystemPage.matchAll(/\bdata-ecosystem-project\b/g)].length;
+if (renderedEcosystemProjects !== ecosystem.projects.length) {
+  failures.push(
+    `ecosystem page renders ${renderedEcosystemProjects} project records but source data contains ${ecosystem.projects.length}`
+  );
+}
+for (const entry of ecosystem.projects) {
+  if (!ecosystemPage.includes(`id="${entry.id}"`)) {
+    failures.push(`ecosystem page is missing the canonical ${entry.name} anchor`);
+  }
+  if (!ecosystemPage.includes(`href="${entry.source}"`)) {
+    failures.push(`ecosystem page is missing the official ${entry.name} source`);
+  }
+}
+if (!ecosystemPage.includes('<link rel="canonical" href="https://cockroachbrowser.com/ecosystem/">')) {
+  failures.push("ecosystem page is missing its canonical URL");
+}
+if (!ecosystemPage.includes("No shared benchmark. No universal winner.")) {
+  failures.push("ecosystem page is missing the no-shared-benchmark boundary");
+}
+if (!ecosystemPage.includes("By Ajnas N B")) {
+  failures.push("ecosystem page is missing its visible author byline");
+}
+if (!ecosystemPage.includes("Cockroach Browser uses playwright-core")) {
+  failures.push("ecosystem page is missing the Playwright dependency disclosure");
+}
+if (!ecosystemPage.includes("exact trafilatura@0.2.0")) {
+  failures.push("ecosystem page is missing the exact Trafilatura backend disclosure");
+}
+if (!ecosystemPage.includes(`Reviewed ${ecosystem.checkedOn}`)) {
+  failures.push("ecosystem page is missing its evidence review date");
+}
+for (const schemaType of ["Article", "ItemList", "FAQPage", "BreadcrumbList"]) {
+  if (!ecosystemPage.includes(`\"@type\":\"${schemaType}\"`)) {
+    failures.push(`ecosystem page is missing ${schemaType} structured data`);
+  }
+}
+for (const [question] of ecosystem.questions) {
+  if (!ecosystemPage.includes(`<h3>${question}</h3>`)) {
+    failures.push(`ecosystem page is missing visible FAQ question: ${question}`);
+  }
+}
+if (!sitemap.includes(`<loc>${ecosystemUrl()}</loc><lastmod>${ecosystem.checkedOn}</lastmod>`)) {
+  failures.push("sitemap is missing the dated ecosystem page");
+}
+
 let searchIndex;
 try {
   searchIndex = JSON.parse(await readFile(resolve(siteRoot, "search.json"), "utf8"));
@@ -112,12 +159,40 @@ if (searchIndex) {
         failures.push(`search.json is missing ${entry.name}`);
       }
     }
+    if (!searchIndex.documents.some((entry) => entry.url === ecosystemUrl())) {
+      failures.push("search.json is missing the ecosystem page");
+    }
+    for (const entry of ecosystem.projects) {
+      const url = `${ecosystemUrl()}#${entry.id}`;
+      if (!searchIndex.documents.some((document) => document.url === url)) {
+        failures.push(`search.json is missing ecosystem project ${entry.name}`);
+      }
+    }
   }
 }
 
 const llms = await readFile(resolve(siteRoot, "llms.txt"), "utf8");
 if (!llms.includes(`${siteUrl()}/alternatives/`)) {
   failures.push("llms.txt is missing the alternatives page");
+}
+if (!llms.includes(ecosystemUrl())) {
+  failures.push("llms.txt is missing the ecosystem page");
+}
+if (!llms.includes("uses playwright-core")) {
+  failures.push("llms.txt is missing the Playwright dependency disclosure");
+}
+if (!llms.includes("trafilatura@0.2.0")) {
+  failures.push("llms.txt is missing the Trafilatura backend disclosure");
+}
+
+const llmsFull = await readFile(resolve(siteRoot, "llms-full.txt"), "utf8");
+if (!llmsFull.includes("## Governed-agent ecosystem")) {
+  failures.push("llms-full.txt is missing the ecosystem section");
+}
+for (const entry of ecosystem.projects) {
+  if (!llmsFull.includes(`### ${entry.name}`) || !llmsFull.includes(entry.source)) {
+    failures.push(`llms-full.txt is missing ecosystem details for ${entry.name}`);
+  }
 }
 
 for (const required of [
@@ -213,4 +288,8 @@ function siteUrl() {
 
 function comparisonUrl() {
   return `${siteUrl()}/alternatives/`;
+}
+
+function ecosystemUrl() {
+  return `${siteUrl()}/ecosystem/`;
 }
