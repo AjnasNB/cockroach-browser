@@ -22,5 +22,6 @@ preferred-citation:
   year: 2026
   publisher:
     name: Zenodo
-  url: "https://doi.org/10.5281/zenodo.21701791"
+  doi: "10.5281/zenodo.21850760"
+  url: "https://doi.org/10.5281/zenodo.21850760"
   license: CC-BY-4.0

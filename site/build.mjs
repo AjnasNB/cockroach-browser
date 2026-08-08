@@ -549,7 +549,8 @@ function publicationPage() {
       version: "1.1",
       license: "https://creativecommons.org/licenses/by/4.0/",
       url: `${site.origin}/paper/`,
-      sameAs: "https://doi.org/10.5281/zenodo.21701791",
+      identifier: "https://doi.org/10.5281/zenodo.21850760",
+      sameAs: "https://doi.org/10.5281/zenodo.21850760",
       about: { "@id": `${site.origin}/#software` }
     }]
   })}
@@ -565,7 +566,7 @@ ${header("paper")}
       <p class="lede">Ajnas N B &middot; August 2026 &middot; Cockroach Browser 0.3.0</p>
       <div class="hero-actions">
         <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">Download the PDF</a>
-        <a class="button" href="https://doi.org/10.5281/zenodo.21701791">Cite the paper series</a>
+        <a class="button" href="https://doi.org/10.5281/zenodo.21850760">Cite published v1.1</a>
         <a class="button" href="${site.repository}/blob/main/docs/whitepaper.md">Read the source</a>
       </div>
     </header>
@@ -585,7 +586,7 @@ ${header("paper")}
       <span class="section-number">Status</span>
       <h2>Implementation-backed and open for technical review.</h2>
       <p>This is an implementation-backed technical white paper for Cockroach Browser 0.3.0. The paper has not undergone independent peer review or independent security certification.</p>
-      <p>Persistent paper-series record: <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>. Version 1.0 remains preserved at <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
+      <p>Published v1.1: <a href="https://doi.org/10.5281/zenodo.21850760">doi:10.5281/zenodo.21850760</a>. Persistent paper series: <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>. Version 1.0 remains preserved at <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
   </article>
