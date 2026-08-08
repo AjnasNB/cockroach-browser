@@ -1,5 +1,90 @@
 # Cockroach Browser documentation
 
+## Alternatives and comparison method
+
+This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories.
+
+### Playwright
+Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.
+
+Choose it when: You want a general-purpose automation library and will design the agent policy, service boundary, and evidence model around it.
+
+Relationship to Cockroach Browser: Cockroach Browser uses playwright-core underneath its runtime. The comparison is therefore package layer versus underlying primitive, not a claim that Cockroach Browser replaces or outperforms Playwright.
+
+Official source: https://playwright.dev/docs/intro
+
+### Puppeteer
+A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
+
+Choose it when: You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.
+
+Relationship to Cockroach Browser: Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.
+
+Official source: https://pptr.dev/guides/what-is-puppeteer
+
+### Selenium
+WebDriver-based browser automation with local or remote execution and broad language and browser support.
+
+Choose it when: You need the WebDriver ecosystem, multiple implementation languages, established test tooling, or a Selenium Grid deployment.
+
+Relationship to Cockroach Browser: Cockroach Browser is a TypeScript and Node.js runtime centered on agent sessions, local authority, and evidence. That is a narrower product shape than Selenium's general WebDriver ecosystem.
+
+Official source: https://www.selenium.dev/documentation/webdriver/
+
+### Playwright MCP
+MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.
+
+Choose it when: Your agent needs a maintained MCP surface for browser control and you will provide the surrounding trust and authorization boundary.
+
+Relationship to Cockroach Browser: The official project states that Playwright MCP is not a security boundary. Cockroach Browser's distinct focus is an explicit session policy, finite budgets, authenticated local transport, evidence records, and optional Maqam approval hooks.
+
+Official source: https://github.com/microsoft/playwright-mcp
+
+### Chrome DevTools MCP
+Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.
+
+Choose it when: The job is browser debugging or performance analysis and direct access to Chrome DevTools is the primary requirement.
+
+Relationship to Cockroach Browser: Cockroach Browser emphasizes bounded operational sessions and proof of actions. Chrome DevTools MCP emphasizes Chrome inspection and diagnostics; its official documentation warns that connected MCP clients can inspect and modify browser data.
+
+Official source: https://github.com/ChromeDevTools/chrome-devtools-mcp
+
+### Browser Use
+A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.
+
+Choose it when: You want an autonomous browser agent, model integration, and high-level task execution rather than only a browser execution service.
+
+Relationship to Cockroach Browser: Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.
+
+Official source: https://github.com/browser-use/browser-use
+
+### Stagehand
+Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
+
+Choose it when: You want AI-assisted page actions and extraction with a choice of local browsers or Browserbase infrastructure.
+
+Relationship to Cockroach Browser: Cockroach Browser keeps model choice and planning outside the runtime. Its native concern is what one admitted session may do and which evidence and receipts remain afterward.
+
+Official source: https://docs.stagehand.dev/v3/first-steps/introduction
+
+### Browserbase
+Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
+
+Choose it when: You need managed browser capacity, remote session infrastructure, live inspection, or scale without operating the browser fleet yourself.
+
+Relationship to Cockroach Browser: Cockroach Browser defaults to a local or operator-managed runtime. Browserbase provides hosted infrastructure. These deployment choices can address different parts of one architecture.
+
+Official source: https://docs.browserbase.com/platform/browser/getting-started/create-browser-session
+
+### Browserless
+Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
+
+Choose it when: You need a remote browser endpoint, browser APIs, or a self-hostable browser service with infrastructure features.
+
+Relationship to Cockroach Browser: Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.
+
+Official source: https://docs.browserless.io/overview/intro
+
 ## Getting started
 
 Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.

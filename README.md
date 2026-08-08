@@ -13,6 +13,7 @@
 <p align="center">
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
   <a href="https://cockroachbrowser.com/docs/capabilities/">94-capability registry</a> -
+  <a href="https://cockroachbrowser.com/alternatives/">Alternatives by product layer</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
 </p>
 
@@ -716,6 +717,7 @@ Read the complete [security policy](./SECURITY.md) before exposing the runtime t
 - [ProductLoop OS](./docs/productloop.md)
 - [Deployment](./docs/deployment.md)
 - [Capability matrix](./docs/capabilities.md)
+- [Alternatives and product-layer comparison](https://cockroachbrowser.com/alternatives/)
 - [Security](./docs/security.md)
 - [Local dashboard](http://127.0.0.1:43110/dashboard/) - served by `cockroach-browser serve`
 

@@ -6,6 +6,7 @@ Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
 npm: https://www.npmjs.com/package/cockroach-browser
 Technical paper: https://cockroachbrowser.com/paper/
+Alternatives and product-layer comparison: https://cockroachbrowser.com/alternatives/
 
 ## Documentation
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
@@ -27,6 +28,19 @@ Technical paper: https://cockroachbrowser.com/paper/
 - [Security](https://cockroachbrowser.com/docs/security/)
 - [Deployment](https://cockroachbrowser.com/docs/deployment/)
 - [Capability matrix](https://cockroachbrowser.com/docs/capabilities/)
+
+## Alternatives and product layers
+This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories.
+
+- [Playwright](https://cockroachbrowser.com/alternatives/#playwright): Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.
+- [Puppeteer](https://cockroachbrowser.com/alternatives/#puppeteer): A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
+- [Selenium](https://cockroachbrowser.com/alternatives/#selenium): WebDriver-based browser automation with local or remote execution and broad language and browser support.
+- [Playwright MCP](https://cockroachbrowser.com/alternatives/#playwright-mcp): MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.
+- [Chrome DevTools MCP](https://cockroachbrowser.com/alternatives/#chrome-devtools-mcp): Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.
+- [Browser Use](https://cockroachbrowser.com/alternatives/#browser-use): A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.
+- [Stagehand](https://cockroachbrowser.com/alternatives/#stagehand): Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
+- [Browserbase](https://cockroachbrowser.com/alternatives/#browserbase): Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
+- [Browserless](https://cockroachbrowser.com/alternatives/#browserless): Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
 
 ## Security boundary
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.

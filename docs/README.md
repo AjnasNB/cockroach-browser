@@ -25,6 +25,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Security](./security.md)
 - [Deployment](./deployment.md)
 - [Capability matrix](./capabilities.md)
+- [Alternatives and product-layer comparison](https://cockroachbrowser.com/alternatives/)
 - [Technical white paper](./whitepaper.md)
 
 ## Product boundaries

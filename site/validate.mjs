@@ -1,5 +1,6 @@
 import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, relative, resolve } from "node:path";
+import { alternatives, comparison } from "./content.mjs";
 
 const siteRoot = resolve(import.meta.dirname);
 const sourceRoot = resolve(siteRoot, "..");
@@ -66,9 +67,63 @@ for (const match of sitemap.matchAll(/<loc>https:\/\/cockroachbrowser\.com([^<]*
   if (!(await exists(diskTarget))) failures.push(`sitemap references missing ${target}`);
 }
 
+const alternativesPage = await readFile(resolve(siteRoot, "alternatives", "index.html"), "utf8");
+const renderedAlternatives = [...alternativesPage.matchAll(/\bdata-alternative\b/g)].length;
+if (renderedAlternatives !== alternatives.length) {
+  failures.push(`alternatives page renders ${renderedAlternatives} records but source data contains ${alternatives.length}`);
+}
+for (const entry of alternatives) {
+  if (!alternativesPage.includes(`id="${entry.id}"`)) {
+    failures.push(`alternatives page is missing ${entry.name} row`);
+  }
+  if (!alternativesPage.includes(`href="${entry.source}"`)) {
+    failures.push(`alternatives page is missing the official ${entry.name} source`);
+  }
+}
+if (!alternativesPage.includes("No shared benchmark. No universal winner.")) {
+  failures.push("alternatives page is missing the no-shared-benchmark boundary");
+}
+if (!alternativesPage.includes(`checked ${comparison.checkedOn}`)) {
+  failures.push("alternatives page is missing its evidence review date");
+}
+for (const schemaType of ["ItemList", "FAQPage", "BreadcrumbList"]) {
+  if (!alternativesPage.includes(`\"@type\":\"${schemaType}\"`)) {
+    failures.push(`alternatives page is missing ${schemaType} structured data`);
+  }
+}
+if (!alternativesPage.includes("data-alt-search")) {
+  failures.push("alternatives page is missing its local comparison search");
+}
+
+let searchIndex;
+try {
+  searchIndex = JSON.parse(await readFile(resolve(siteRoot, "search.json"), "utf8"));
+} catch (error) {
+  failures.push(`search.json is invalid: ${error.message}`);
+}
+if (searchIndex) {
+  if (!Array.isArray(searchIndex.documents)) failures.push("search.json is missing its documents array");
+  else {
+    const comparisonDocument = searchIndex.documents.find((entry) => entry.url === `${comparisonUrl()}`);
+    if (!comparisonDocument) failures.push("search.json is missing the alternatives page");
+    for (const entry of alternatives) {
+      const url = `${comparisonUrl()}#${entry.id}`;
+      if (!searchIndex.documents.some((document) => document.url === url)) {
+        failures.push(`search.json is missing ${entry.name}`);
+      }
+    }
+  }
+}
+
+const llms = await readFile(resolve(siteRoot, "llms.txt"), "utf8");
+if (!llms.includes(`${siteUrl()}/alternatives/`)) {
+  failures.push("llms.txt is missing the alternatives page");
+}
+
 for (const required of [
   "robots.txt",
   "sitemap.xml",
+  "search.json",
   "llms.txt",
   "llms-full.txt",
   "_headers",
@@ -150,4 +205,12 @@ async function exists(file) {
 
 function display(file) {
   return relative(sourceRoot, file).replaceAll("\\", "/");
+}
+
+function siteUrl() {
+  return "https://cockroachbrowser.com";
+}
+
+function comparisonUrl() {
+  return `${siteUrl()}/alternatives/`;
 }

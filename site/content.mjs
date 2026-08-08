@@ -8,6 +8,167 @@ export const site = {
     "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence."
 };
 
+export const comparison = {
+  checkedOn: "2026-08-08",
+  title: "Cockroach Browser alternatives",
+  description:
+    "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+  methodology:
+    "This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories."
+};
+
+export const alternatives = [
+  {
+    id: "playwright",
+    name: "Playwright",
+    category: "primitive",
+    categoryLabel: "Automation primitive",
+    nativeFocus:
+      "Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.",
+    chooseWhen:
+      "You want a general-purpose automation library and will design the agent policy, service boundary, and evidence model around it.",
+    relationship:
+      "Cockroach Browser uses playwright-core underneath its runtime. The comparison is therefore package layer versus underlying primitive, not a claim that Cockroach Browser replaces or outperforms Playwright.",
+    sourceLabel: "Playwright documentation",
+    source: "https://playwright.dev/docs/intro"
+  },
+  {
+    id: "puppeteer",
+    name: "Puppeteer",
+    category: "primitive",
+    categoryLabel: "Automation primitive",
+    nativeFocus:
+      "A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.",
+    chooseWhen:
+      "You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.",
+    relationship:
+      "Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.",
+    sourceLabel: "Puppeteer documentation",
+    source: "https://pptr.dev/guides/what-is-puppeteer"
+  },
+  {
+    id: "selenium",
+    name: "Selenium",
+    category: "primitive",
+    categoryLabel: "Automation primitive",
+    nativeFocus:
+      "WebDriver-based browser automation with local or remote execution and broad language and browser support.",
+    chooseWhen:
+      "You need the WebDriver ecosystem, multiple implementation languages, established test tooling, or a Selenium Grid deployment.",
+    relationship:
+      "Cockroach Browser is a TypeScript and Node.js runtime centered on agent sessions, local authority, and evidence. That is a narrower product shape than Selenium's general WebDriver ecosystem.",
+    sourceLabel: "Selenium WebDriver documentation",
+    source: "https://www.selenium.dev/documentation/webdriver/"
+  },
+  {
+    id: "playwright-mcp",
+    name: "Playwright MCP",
+    category: "mcp",
+    categoryLabel: "MCP control server",
+    nativeFocus:
+      "MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.",
+    chooseWhen:
+      "Your agent needs a maintained MCP surface for browser control and you will provide the surrounding trust and authorization boundary.",
+    relationship:
+      "The official project states that Playwright MCP is not a security boundary. Cockroach Browser's distinct focus is an explicit session policy, finite budgets, authenticated local transport, evidence records, and optional Maqam approval hooks.",
+    sourceLabel: "Playwright MCP repository",
+    source: "https://github.com/microsoft/playwright-mcp"
+  },
+  {
+    id: "chrome-devtools-mcp",
+    name: "Chrome DevTools MCP",
+    category: "mcp",
+    categoryLabel: "MCP control server",
+    nativeFocus:
+      "Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.",
+    chooseWhen:
+      "The job is browser debugging or performance analysis and direct access to Chrome DevTools is the primary requirement.",
+    relationship:
+      "Cockroach Browser emphasizes bounded operational sessions and proof of actions. Chrome DevTools MCP emphasizes Chrome inspection and diagnostics; its official documentation warns that connected MCP clients can inspect and modify browser data.",
+    sourceLabel: "Chrome DevTools MCP repository",
+    source: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
+  },
+  {
+    id: "browser-use",
+    name: "Browser Use",
+    category: "agent",
+    categoryLabel: "Agent framework",
+    nativeFocus:
+      "A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.",
+    chooseWhen:
+      "You want an autonomous browser agent, model integration, and high-level task execution rather than only a browser execution service.",
+    relationship:
+      "Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.",
+    sourceLabel: "Browser Use repository",
+    source: "https://github.com/browser-use/browser-use"
+  },
+  {
+    id: "stagehand",
+    name: "Stagehand",
+    category: "agent",
+    categoryLabel: "Agent framework",
+    nativeFocus:
+      "Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.",
+    chooseWhen:
+      "You want AI-assisted page actions and extraction with a choice of local browsers or Browserbase infrastructure.",
+    relationship:
+      "Cockroach Browser keeps model choice and planning outside the runtime. Its native concern is what one admitted session may do and which evidence and receipts remain afterward.",
+    sourceLabel: "Stagehand documentation",
+    source: "https://docs.stagehand.dev/v3/first-steps/introduction"
+  },
+  {
+    id: "browserbase",
+    name: "Browserbase",
+    category: "infrastructure",
+    categoryLabel: "Hosted infrastructure",
+    nativeFocus:
+      "Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.",
+    chooseWhen:
+      "You need managed browser capacity, remote session infrastructure, live inspection, or scale without operating the browser fleet yourself.",
+    relationship:
+      "Cockroach Browser defaults to a local or operator-managed runtime. Browserbase provides hosted infrastructure. These deployment choices can address different parts of one architecture.",
+    sourceLabel: "Browserbase documentation",
+    source: "https://docs.browserbase.com/platform/browser/getting-started/create-browser-session"
+  },
+  {
+    id: "browserless",
+    name: "Browserless",
+    category: "infrastructure",
+    categoryLabel: "Hosted or self-hosted infrastructure",
+    nativeFocus:
+      "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.",
+    chooseWhen:
+      "You need a remote browser endpoint, browser APIs, or a self-hostable browser service with infrastructure features.",
+    relationship:
+      "Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.",
+    sourceLabel: "Browserless documentation",
+    source: "https://docs.browserless.io/overview/intro"
+  }
+];
+
+export const comparisonQuestions = [
+  [
+    "Is Cockroach Browser better than Playwright or Puppeteer?",
+    "That is not a useful universal comparison. Playwright and Puppeteer are browser automation primitives. Cockroach Browser uses playwright-core and adds an agent-oriented session, policy, transport, and evidence layer. Choose the layer your architecture needs."
+  ],
+  [
+    "Does Cockroach Browser replace Playwright MCP or Chrome DevTools MCP?",
+    "No. Those projects expose browser control or debugging through MCP. Cockroach Browser also ships MCP, but its product focus is bounded session authority, finite budgets, evidence, receipt chains, and optional governance adapters."
+  ],
+  [
+    "Is Cockroach Browser an autonomous browser agent?",
+    "No. It does not choose an LLM, plan a task, or claim autonomous task-success results. Browser Use and Stagehand cover that agent-framework layer. Cockroach Browser is an execution and evidence runtime for a host agent."
+  ],
+  [
+    "Does Cockroach Browser replace Browserbase or Browserless?",
+    "No. Browserbase and Browserless provide hosted or self-hosted browser infrastructure. Cockroach Browser defaults to local-first execution and explicit session authority. A deployment can need one, the other, or separately reviewed layers of both."
+  ],
+  [
+    "What is Cockroach Browser's distinct product boundary?",
+    "Its implemented boundary combines explicit origins, allowed actions and effects, finite budgets, authenticated local transport, semantic snapshots, evidence artifacts, and hash-linked receipts. The public comparison does not turn those features into an independent security certification."
+  ]
+];
+
 export const navGroups = [
   {
     title: "Start",
