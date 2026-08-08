@@ -43,7 +43,7 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - CLI commands for browser discovery, navigation graphs, activity, ordered
   batches, persistent profile lifecycle, and file-backed team authorization
 - dashboard views for runtime-owned profiles and the bounded activity stream
-- complete operator-runtime documentation and a 93-entry source-derived
+- complete operator-runtime documentation and a 94-entry source-derived
   capability registry
 
 ### Security

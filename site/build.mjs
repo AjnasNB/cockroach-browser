@@ -15,6 +15,29 @@ const capabilityCounts = capabilities.reduce(
 );
 let codeBlockIndex = 0;
 
+const homepageQuestions = [
+  [
+    "What is Cockroach Browser?",
+    "Cockroach Browser is a local-first TypeScript runtime that gives AI agents an authorized Chromium session, semantic page references, real interactions, and verifiable browser evidence."
+  ],
+  [
+    "Does Cockroach Browser use my normal browser profile?",
+    "No. It uses an explicit isolated profile, an operator-selected runtime-owned persistent profile, imported storage state, or an exact CDP endpoint. It never scans ambient browser profiles."
+  ],
+  [
+    "Can it bypass CAPTCHAs or access controls?",
+    "No. Login, consent, CAPTCHA, and access challenges pause automation for a human or a separately authorized resolver. The runtime does not include a bypass engine."
+  ],
+  [
+    "How is Cockroach Browser different from Cockroach Crawler?",
+    "Cockroach Crawler maps and extracts bounded public sources at breadth. Cockroach Browser handles stateful rendering, interaction, user-authorized sessions, and browser evidence."
+  ],
+  [
+    "How are consequential actions governed?",
+    "Every session has explicit origins, actions, effects, and budgets. A host can additionally route consequential actions through Maqam for policy, exact one-use approval, replay rejection, and governance receipts."
+  ]
+];
+
 await writePage("index.html", homePage());
 await writePage("docs/index.html", docsIndex());
 for (const page of pages) {
@@ -113,8 +136,9 @@ async function writeRootDoc(path, content) {
   await writeFile(target, content, "utf8");
 }
 
-function baseHead({ title, description, canonical, type = "website" }) {
+function baseHead({ title, description, canonical, type = "website", robots = "index,follow", schemas = [] }) {
   const pageTitle = title === site.name ? title : `${title} | ${site.name}`;
+  const schema = structuredData({ canonical, description, pageTitle, type, schemas });
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -122,8 +146,12 @@ function baseHead({ title, description, canonical, type = "website" }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(pageTitle)}</title>
   <meta name="description" content="${escapeAttr(description)}">
+  <meta name="author" content="Ajnas N B">
+  <meta name="robots" content="${robots}">
   <meta name="theme-color" content="#050a0d">
   <link rel="canonical" href="${canonical}">
+  <link rel="alternate" hreflang="en" href="${canonical}">
+  <link rel="alternate" hreflang="x-default" href="${canonical}">
   <link rel="icon" href="/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="${type}">
@@ -134,11 +162,40 @@ function baseHead({ title, description, canonical, type = "website" }) {
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1250">
   <meta property="og:image:height" content="1250">
+  <meta property="og:image:alt" content="Cockroach Browser globe and cockroach mark">
+  <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${escapeAttr(pageTitle)}">
   <meta name="twitter:description" content="${escapeAttr(description)}">
   <meta name="twitter:image" content="${site.origin}/assets/logo.png">
+  <meta name="twitter:image:alt" content="Cockroach Browser globe and cockroach mark">
+  <script type="application/ld+json">${schema}</script>
 </head>`;
+}
+
+function structuredData({ canonical, description, pageTitle, type, schemas }) {
+  const graph = [
+    {
+      "@type": "WebSite",
+      "@id": `${site.origin}/#website`,
+      name: site.name,
+      url: site.origin,
+      description: site.description,
+      inLanguage: "en"
+    },
+    {
+      "@type": type === "article" ? "TechArticle" : "WebPage",
+      "@id": `${canonical}#webpage`,
+      name: pageTitle,
+      headline: pageTitle,
+      description,
+      url: canonical,
+      inLanguage: "en",
+      isPartOf: { "@id": `${site.origin}/#website` }
+    },
+    ...schemas
+  ];
+  return JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replaceAll("<", "\\u003c");
 }
 
 function header(active = "") {
@@ -194,13 +251,57 @@ function homePage() {
   return `${baseHead({
     title: site.name,
     description: site.description,
-    canonical: `${site.origin}/`
+    canonical: `${site.origin}/`,
+    schemas: [
+      {
+        "@type": "SoftwareApplication",
+        "@id": `${site.origin}/#software`,
+        name: site.name,
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Windows, macOS, Linux",
+        softwareVersion: site.version,
+        description: site.description,
+        url: site.origin,
+        downloadUrl: site.npm,
+        codeRepository: site.repository,
+        license: "https://spdx.org/licenses/AGPL-3.0-or-later.html",
+        isAccessibleForFree: true,
+        featureList: [
+          "Authorized Chromium sessions",
+          "Snapshot-scoped semantic page references",
+          "Browser actions with finite policy budgets",
+          "Screenshots, PDFs, traces, and paired evidence",
+          "Authenticated local daemon and MCP server",
+          "Maqam governance integration"
+        ]
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": `${site.origin}/#source`,
+        name: `${site.name} source code`,
+        codeRepository: site.repository,
+        programmingLanguage: "TypeScript",
+        runtimePlatform: "Node.js 22, 24, or 26",
+        license: "https://spdx.org/licenses/AGPL-3.0-or-later.html",
+        isPartOf: { "@id": `${site.origin}/#software` }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${site.origin}/#faq`,
+        mainEntity: homepageQuestions.map(([name, text]) => ({
+          "@type": "Question",
+          name,
+          acceptedAnswer: { "@type": "Answer", text }
+        }))
+      }
+    ]
   })}
 <body>
 ${header("home")}
 <main id="main">
   <section class="shell hero">
     <div class="hero-copy-column">
+      <img class="hero-mark" src="/assets/logo.png" alt="Cockroach Browser cockroach and globe mark" width="180" height="180">
       <p class="eyebrow">Lightweight browser runtime for AI agents</p>
       <h1>${homepage.title}</h1>
       <p class="hero-copy">${homepage.lede}</p>
@@ -208,15 +309,28 @@ ${header("home")}
         <a class="button button--primary" href="/docs/operator-install/">Install once. Use everywhere.</a>
         <a class="button" href="/docs/capabilities/">Inspect every capability</a>
       </div>
+      <div class="hero-boundary" aria-label="Default authority boundary">
+        <span>Explicit origins</span><span>Finite budgets</span><span>Challenge stop</span><span>Hash-linked evidence</span>
+      </div>
     </div>
+  </section>
+  <section class="shell hero-runtime-section" aria-label="Local runtime preview">
     <div class="hero-runtime">
-      <img class="hero-mark" src="/assets/logo.png" alt="Cockroach Browser cockroach and globe mark" width="320" height="320">
       <div class="terminal" aria-label="Cockroach Browser terminal example">
         <pre data-terminal-output><span class="prompt">$</span> npm i -g cockroach-browser
 <span class="prompt">$</span> cockroach-browser bootstrap
 <span class="prompt">$</span> cockroach-browser doctor</pre>
         <div class="terminal-status"><span>Loopback</span><span>Token auth</span><span>Evidence on</span></div>
       </div>
+    </div>
+  </section>
+  <section class="section" id="answers">
+    <div class="shell">
+      <div class="section-head">
+        <h2>Direct answers for operators and agents.</h2>
+        <p>These are the product boundaries that matter before a browser-capable agent receives a session.</p>
+      </div>
+      <div class="answer-grid">${homepageQuestions.map(([question, answer]) => `<article><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join("")}</div>
     </div>
   </section>
   <section class="shell proof-strip" aria-label="Product surface">${proof}</section>
@@ -304,7 +418,28 @@ ${section.body}${section.code ? `\n${codeBlock(section.code, section.label ?? "e
   return `${baseHead({
     title: page.title,
     description: page.lede,
-    canonical: `${site.origin}/docs/${page.slug}/`
+    canonical: `${site.origin}/docs/${page.slug}/`,
+    type: "article",
+    schemas: [
+      {
+        "@type": "TechArticle",
+        "@id": `${site.origin}/docs/${page.slug}/#article`,
+        headline: page.title,
+        description: page.lede,
+        url: `${site.origin}/docs/${page.slug}/`,
+        inLanguage: "en",
+        author: { "@type": "Person", name: "Ajnas N B" },
+        about: { "@id": `${site.origin}/#software` }
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Product", item: `${site.origin}/` },
+          { "@type": "ListItem", position: 2, name: "Documentation", item: `${site.origin}/docs/` },
+          { "@type": "ListItem", position: 3, name: page.title, item: `${site.origin}/docs/${page.slug}/` }
+        ]
+      }
+    ]
   })}
 <body>
 ${header("docs")}
@@ -404,7 +539,19 @@ function publicationPage() {
     title: "Technical paper",
     description: "Implementation-backed technical white paper for Cockroach Browser 0.2.1.",
     canonical: `${site.origin}/paper/`,
-    type: "article"
+    type: "article",
+    schemas: [{
+      "@type": "ScholarlyArticle",
+      "@id": `${site.origin}/paper/#article`,
+      headline: "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
+      author: { "@type": "Person", name: "Ajnas N B" },
+      datePublished: "2026-07-30",
+      version: "1.0",
+      license: "https://creativecommons.org/licenses/by/4.0/",
+      url: `${site.origin}/paper/`,
+      sameAs: "https://doi.org/10.5281/zenodo.21701791",
+      about: { "@id": `${site.origin}/#software` }
+    }]
   })}
 <body>
 ${header("paper")}
@@ -451,7 +598,8 @@ function notFound() {
   return `${baseHead({
     title: "Page not found",
     description: "The requested Cockroach Browser documentation page does not exist.",
-    canonical: `${site.origin}/404.html`
+    canonical: `${site.origin}/404.html`,
+    robots: "noindex,follow"
   })}
 <body>
 ${header("")}
@@ -517,7 +665,7 @@ function sitemap() {
   const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
+${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>2026-08-08</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
 </urlset>
 `;
 }
