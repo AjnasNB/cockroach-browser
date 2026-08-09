@@ -69,8 +69,9 @@
     "test:source": "npm test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:package": "node scripts/check-package.mjs",
+    "check:glama": "node scripts/check-glama.mjs",
     "check:site": "node scripts/check-site.mjs",
-    "check": "npm run typecheck && npm run build && npm test && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
+    "check": "npm run typecheck && npm run build && npm test && npm run check:package && npm run check:glama && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
     "prepack": "npm run clean && npm run build && npm run check:package",
     "prepublishOnly": "npm run check"
   },

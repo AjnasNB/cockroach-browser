@@ -29,6 +29,10 @@ Start the authenticated daemon first. Load its token into the MCP process throug
 
 The MCP surface provides browser_capabilities, browser_health, browser_sessions, browser_snapshot, browser_audit, browser_capture, browser_network, and browser_propose_action. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.
 
+## Reproduce the Glama build
+
+Glama must inspect the stdio MCP process, not the authenticated HTTP daemon packaged by the root Dockerfile. Select Dockerfile.glama with the repository root as the build context in Glama's Dockerfile admin page. The root glama.json identifies the authorized maintainer. Schema inspection requires no secret because all eight tools are registered before a daemon client is configured; reproduce it with npm run build followed by npm run check:glama. Calls that read browser sessions still require COCKROACH_BROWSER_TOKEN and, when the daemon is not at the default loopback URL, COCKROACH_BROWSER_URL.
+
 ## Keep lifecycle authority outside the model
 
 Session creation, profile import, login, secret resolution, remote binding, and raw action dispatch stay with the host. This prevents a model from expanding its own origins, credentials, browser state, or resource ceilings.
