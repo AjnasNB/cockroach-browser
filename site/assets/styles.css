@@ -1151,6 +1151,48 @@ button:active,
   color: var(--accent);
 }
 
+.launch-recognition {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.launch-recognition > span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+}
+
+.fazier-badge {
+  display: inline-flex;
+  min-height: 55px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.55rem;
+  background: #ffffff;
+}
+
+.fazier-badge img {
+  display: block;
+  width: 120px;
+  height: auto;
+}
+
+.fazier-badge:hover {
+  border-color: var(--accent);
+}
+
+.fazier-badge:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .dashboard-shell {
   display: grid;
   min-height: calc(100dvh - 72px);
@@ -1803,6 +1845,11 @@ button:active,
   }
 
   .footer-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .launch-recognition {
     align-items: flex-start;
     flex-direction: column;
   }

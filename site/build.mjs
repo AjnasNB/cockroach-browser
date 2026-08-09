@@ -118,7 +118,7 @@ await writePage(
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:43110 https://127.0.0.1:43110; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://fazier.com; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:43110 https://127.0.0.1:43110; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY
 
@@ -265,6 +265,10 @@ function footer() {
       <a href="${site.repository}">Source</a>
       <a href="${site.npm}">npm</a>
     </div>
+  </div>
+  <div class="shell launch-recognition" aria-label="Launch directories">
+    <span>Find ${site.name} on</span>
+    <a class="fazier-badge" href="https://fazier.com/launches/cockroachbrowser.com" target="_blank" rel="noopener noreferrer"><img src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&amp;theme=light" width="120" alt="Fazier badge"></a>
   </div>
 </footer>
 <script src="/assets/main.js" defer></script>
@@ -630,7 +634,7 @@ ${header("alternatives")}
         <p>A product can be excellent at its own layer and still be the wrong answer for a different layer. These routes keep the comparison concrete.</p>
       </div>
       <div class="decision-map">
-        <article><span>01 / direct code</span><h3>Pick an automation primitive.</h3><p>Use Playwright, Puppeteer, or Selenium when your application should own browser calls and you are prepared to design the surrounding service and trust model.</p></article>
+        <article><span>01 / direct code</span><h3>Pick an automation primitive.</h3><p>Use a direct browser-automation library when your application should own browser calls and you are prepared to design the surrounding service and trust model.</p></article>
         <article><span>02 / agent tools</span><h3>Pick an MCP control server.</h3><p>Use Playwright MCP for structured browser tools or Chrome DevTools MCP when debugging and performance inspection are central.</p></article>
         <article><span>03 / autonomous work</span><h3>Pick an agent framework.</h3><p>Use Browser Use or Stagehand when model-directed planning, natural-language actions, and high-level task execution are the product requirement.</p></article>
         <article><span>04 / remote capacity</span><h3>Pick browser infrastructure.</h3><p>Use Browserbase or Browserless when browser fleet operations, remote sessions, proxy features, or managed capacity are the main constraint.</p></article>
@@ -642,7 +646,7 @@ ${header("alternatives")}
   <section class="section" id="comparison">
     <div class="shell comparison-shell">
       <div class="section-head">
-        <h2>Nine alternatives, grouped by layer.</h2>
+        <h2>${alternatives.length} alternatives, grouped by layer.</h2>
         <p>Search by product, capability, deployment, or boundary. Every source link points to documentation controlled by the compared project.</p>
       </div>
       <div class="comparison-toolbar" aria-label="Alternative filters">
@@ -698,7 +702,7 @@ function ecosystemPage() {
   const lanes = [
     ["memory-governance", "Memory and action governance", ["qarinah", "maqam"]],
     ["orchestration", "Agent runtime and orchestration", ["openai-agents-sdk", "langgraph"]],
-    ["browser", "Browser primitives and agent frameworks", ["playwright", "puppeteer", "cockroach-browser", "browser-use", "stagehand"]],
+    ["browser", "Browser primitives and agent frameworks", ["playwright", "cockroach-browser", "browser-use", "stagehand"]],
     ["acquisition", "Web acquisition, extraction, and documents", ["cockroach-crawler", "firecrawl", "trafilatura", "docling"]]
   ];
   const localProjects = localIds.map((id, index) => {
