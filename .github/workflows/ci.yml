@@ -35,6 +35,15 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm run check:package
+      - run: npm run check:glama
+      - name: Build the Glama stdio image
+        if: matrix.node == 24
+        run: docker build --file Dockerfile.glama --tag cockroach-browser-glama:ci .
+      - name: Inspect the Glama image over MCP stdio
+        if: matrix.node == 24
+        run: npm run check:glama
+        env:
+          COCKROACH_BROWSER_GLAMA_IMAGE: cockroach-browser-glama:ci
       - run: npm run check:site
       - run: npm audit --omit=dev
 

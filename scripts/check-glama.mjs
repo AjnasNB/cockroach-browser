@@ -32,10 +32,16 @@ const expectedTools = [
   "browser_sessions",
   "browser_snapshot"
 ];
+const image = process.env.COCKROACH_BROWSER_GLAMA_IMAGE?.trim();
+if (image && !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,255}$/.test(image)) {
+  throw new Error("COCKROACH_BROWSER_GLAMA_IMAGE is not a valid local image reference");
+}
 const stderr = [];
 const transport = new StdioClientTransport({
-  command: process.execPath,
-  args: [resolve(root, "dist", "cli.js"), "mcp"],
+  command: image ? "docker" : process.execPath,
+  args: image
+    ? ["run", "--rm", "--interactive", image]
+    : [resolve(root, "dist", "cli.js"), "mcp"],
   cwd: root,
   stderr: "pipe"
 });
@@ -59,6 +65,7 @@ try {
 
   process.stdout.write(`${JSON.stringify({
     ok: true,
+    mode: image ? "container" : "local-process",
     server: client.getServerVersion(),
     tools: expectedTools
   }, null, 2)}\n`);
