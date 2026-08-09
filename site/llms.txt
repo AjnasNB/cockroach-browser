@@ -9,6 +9,12 @@ Technical paper: https://cockroachbrowser.com/paper/
 Alternatives and product-layer comparison: https://cockroachbrowser.com/alternatives/
 Open-source governed-agent ecosystem: https://cockroachbrowser.com/ecosystem/
 
+## Product routes
+- [What is Cockroach Browser?](https://cockroachbrowser.com/what-is-cockroach-browser/)
+- [Features and capabilities](https://cockroachbrowser.com/docs/capabilities/)
+- [Install and get started](https://cockroachbrowser.com/docs/getting-started/)
+- [Complete documentation](https://cockroachbrowser.com/docs/)
+
 ## Documentation
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
 - [Operator install](https://cockroachbrowser.com/docs/operator-install/)

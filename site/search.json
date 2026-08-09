@@ -17,6 +17,19 @@
       ]
     },
     {
+      "title": "What is Cockroach Browser?",
+      "url": "https://cockroachbrowser.com/what-is-cockroach-browser/",
+      "kind": "product-definition",
+      "summary": "A local-first TypeScript runtime for explicitly authorized Chromium sessions, semantic page references, real interactions, and verifiable browser evidence.",
+      "keywords": [
+        "Cockroach Browser",
+        "browser runtime",
+        "authorized browser sessions",
+        "semantic page references",
+        "browser evidence"
+      ]
+    },
+    {
       "title": "Cockroach Browser alternatives",
       "url": "https://cockroachbrowser.com/alternatives/",
       "kind": "comparison",

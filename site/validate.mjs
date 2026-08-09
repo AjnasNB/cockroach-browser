@@ -48,6 +48,7 @@ const capabilitySource = await readFile(resolve(sourceRoot, "src/capabilities.ts
 const capabilityPattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
 const registry = [...capabilitySource.matchAll(capabilityPattern)];
 const capabilityPage = await readFile(resolve(siteRoot, "docs/capabilities/index.html"), "utf8");
+const whatIsPage = await readFile(resolve(siteRoot, "what-is-cockroach-browser/index.html"), "utf8");
 const renderedCapabilities = [...capabilityPage.matchAll(/\bdata-capability\b/g)].length;
 if (renderedCapabilities !== registry.length) {
   failures.push(`capability page renders ${renderedCapabilities} records but registry contains ${registry.length}`);
@@ -58,6 +59,28 @@ for (const status of ["available", "adapter", "planned"]) {
   if (rendered !== expected) {
     failures.push(`${status} capability count is ${rendered}, expected ${expected}`);
   }
+}
+for (const schemaType of ["CollectionPage", "ItemList", "BreadcrumbList"]) {
+  if (!capabilityPage.includes(`\"@type\":\"${schemaType}\"`)) {
+    failures.push(`capability page is missing ${schemaType} structured data`);
+  }
+}
+if (!capabilityPage.includes(`\"numberOfItems\":${registry.length}`)) {
+  failures.push("capability page structured-data count does not match the registry");
+}
+for (const requiredDefinition of [
+  "A local-first browser execution and evidence runtime for AI agents.",
+  "Explicit browser authority",
+  "Semantic page references",
+  "Real browser interaction",
+  "Evidence and receipts",
+  "Daemon, SDK, and MCP",
+  "What it does not claim."
+]) {
+  if (!whatIsPage.includes(requiredDefinition)) failures.push(`what-is page is missing ${requiredDefinition}`);
+}
+for (const schemaType of ["AboutPage", "SoftwareApplication", "BreadcrumbList"]) {
+  if (!whatIsPage.includes(`\"@type\":\"${schemaType}\"`)) failures.push(`what-is page is missing ${schemaType} structured data`);
 }
 
 const sitemap = await readFile(resolve(siteRoot, "sitemap.xml"), "utf8");
@@ -162,6 +185,9 @@ if (searchIndex) {
     if (!searchIndex.documents.some((entry) => entry.url === ecosystemUrl())) {
       failures.push("search.json is missing the ecosystem page");
     }
+    if (!searchIndex.documents.some((entry) => entry.url === `${siteUrl()}/what-is-cockroach-browser/`)) {
+      failures.push("search.json is missing the product-definition page");
+    }
     for (const entry of ecosystem.projects) {
       const url = `${ecosystemUrl()}#${entry.id}`;
       if (!searchIndex.documents.some((document) => document.url === url)) {
@@ -177,6 +203,9 @@ if (!llms.includes(`${siteUrl()}/alternatives/`)) {
 }
 if (!llms.includes(ecosystemUrl())) {
   failures.push("llms.txt is missing the ecosystem page");
+}
+for (const route of ["what-is-cockroach-browser/", "docs/capabilities/", "docs/getting-started/", "docs/"]) {
+  if (!llms.includes(`${siteUrl()}/${route}`)) failures.push(`llms.txt is missing ${route}`);
 }
 if (!llms.includes("uses playwright-core")) {
   failures.push("llms.txt is missing the Playwright dependency disclosure");
