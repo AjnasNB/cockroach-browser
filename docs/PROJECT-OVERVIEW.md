@@ -33,7 +33,7 @@ through sessions and authority selected by the operator.
 
 Cockroach Browser is useful when local operation, isolated profiles,
 observation-first interaction, and evidence capture matter. It is not a
-complete replacement for every Puppeteer or Playwright API, a hosted browser
+complete replacement for every browser-automation library API, a hosted browser
 fleet, or an access-control bypass. It does not bundle CAPTCHA bypass or covert
 fingerprint evasion, and its controls cannot make an unauthorized workflow
 authorized.
