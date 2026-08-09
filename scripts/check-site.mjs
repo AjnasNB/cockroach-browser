@@ -34,10 +34,27 @@ for (const file of htmlFiles) {
   if (/replace[-_ ]me|lorem ipsum|todo:/i.test(html)) {
     failures.push(`${label}: contains placeholder copy`);
   }
+  if (html.includes('class="footer"')) {
+    for (const launchDirectoryMarkup of [
+      'href="https://fazier.com/launches/cockroachbrowser.com"',
+      'target="_blank" rel="noopener noreferrer"',
+      'src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&amp;theme=light"',
+      'width="120" alt="Fazier badge"'
+    ]) {
+      if (!html.includes(launchDirectoryMarkup)) {
+        failures.push(`${label}: launch recognition is missing ${launchDirectoryMarkup}`);
+      }
+    }
+  }
   for (const reference of references(html)) {
     const target = internalTarget(siteRoot, file, reference);
     if (target && !(await exists(target))) failures.push(`${label}: broken internal reference ${reference}`);
   }
+}
+
+const headers = await readFile(resolve(siteRoot, "_headers"), "utf8");
+if (!headers.includes("img-src 'self' data: https://fazier.com")) {
+  failures.push("_headers: Fazier badge image origin is not permitted by the content security policy");
 }
 
 if (failures.length > 0) {

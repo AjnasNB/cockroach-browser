@@ -118,7 +118,7 @@ await writePage(
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:43110 https://127.0.0.1:43110; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://fazier.com; style-src 'self'; script-src 'self'; connect-src 'self' http://127.0.0.1:43110 https://127.0.0.1:43110; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY
 
@@ -265,6 +265,10 @@ function footer() {
       <a href="${site.repository}">Source</a>
       <a href="${site.npm}">npm</a>
     </div>
+  </div>
+  <div class="shell launch-recognition" aria-label="Launch directories">
+    <span>Find ${site.name} on</span>
+    <a class="fazier-badge" href="https://fazier.com/launches/cockroachbrowser.com" target="_blank" rel="noopener noreferrer"><img src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&amp;theme=light" width="120" alt="Fazier badge"></a>
   </div>
 </footer>
 <script src="/assets/main.js" defer></script>
