@@ -34,14 +34,13 @@ Open-source governed-agent ecosystem: https://cockroachbrowser.com/ecosystem/
 This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories.
 
 - [Playwright](https://cockroachbrowser.com/alternatives/#playwright): Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.
-- [Puppeteer](https://cockroachbrowser.com/alternatives/#puppeteer): A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
 - [Selenium](https://cockroachbrowser.com/alternatives/#selenium): WebDriver-based browser automation with local or remote execution and broad language and browser support.
 - [Playwright MCP](https://cockroachbrowser.com/alternatives/#playwright-mcp): MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.
 - [Chrome DevTools MCP](https://cockroachbrowser.com/alternatives/#chrome-devtools-mcp): Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.
 - [Browser Use](https://cockroachbrowser.com/alternatives/#browser-use): A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.
 - [Stagehand](https://cockroachbrowser.com/alternatives/#stagehand): Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
 - [Browserbase](https://cockroachbrowser.com/alternatives/#browserbase): Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
-- [Browserless](https://cockroachbrowser.com/alternatives/#browserless): Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
+- [Browserless](https://cockroachbrowser.com/alternatives/#browserless): Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for browser automation, scraping, screenshots, and PDFs.
 
 ## Open-source governed-agent ecosystem
 This page maps documented product centers and composition boundaries from official project sources. It does not publish a shared performance benchmark, security ranking, production-capacity result, or universal winner.
@@ -51,7 +50,6 @@ This page maps documented product centers and composition boundaries from offici
 - [Cockroach Browser](https://cockroachbrowser.com/ecosystem/#cockroach-browser): A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts. Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.
 - [Cockroach Crawler](https://cockroachbrowser.com/ecosystem/#cockroach-crawler): Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits. Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.
 - [Playwright](https://cockroachbrowser.com/ecosystem/#playwright): Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools. Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.
-- [Puppeteer](https://cockroachbrowser.com/ecosystem/#puppeteer): A JavaScript API for controlling Chrome and Firefox through browser protocols. Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.
 - [Browser Use](https://cockroachbrowser.com/ecosystem/#browser-use): An open-source Python framework for model-directed agents that interact with websites. Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.
 - [Stagehand](https://cockroachbrowser.com/ecosystem/#stagehand): Open-source AI browser automation that combines code with model-powered observation, action, and extraction. Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.
 - [Firecrawl](https://cockroachbrowser.com/ecosystem/#firecrawl): A web API and open-source project for search, scrape, crawl, map, and browser interaction. Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.

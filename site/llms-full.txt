@@ -49,15 +49,6 @@ Relationship to Cockroach Browser: Cockroach Browser depends on playwright-core 
 
 Official source: https://playwright.dev/
 
-### Puppeteer
-A JavaScript API for controlling Chrome and Firefox through browser protocols.
-
-Choose it when: The job needs direct JavaScript browser automation without adopting an agent session runtime.
-
-Relationship to Cockroach Browser: Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.
-
-Official source: https://pptr.dev/
-
 ### Browser Use
 An open-source Python framework for model-directed agents that interact with websites.
 
@@ -134,15 +125,6 @@ Relationship to Cockroach Browser: Cockroach Browser uses playwright-core undern
 
 Official source: https://playwright.dev/docs/intro
 
-### Puppeteer
-A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
-
-Choose it when: You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.
-
-Relationship to Cockroach Browser: Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.
-
-Official source: https://pptr.dev/guides/what-is-puppeteer
-
 ### Selenium
 WebDriver-based browser automation with local or remote execution and broad language and browser support.
 
@@ -198,7 +180,7 @@ Relationship to Cockroach Browser: Cockroach Browser defaults to a local or oper
 Official source: https://docs.browserbase.com/platform/browser/getting-started/create-browser-session
 
 ### Browserless
-Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
+Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for browser automation, scraping, screenshots, and PDFs.
 
 Choose it when: You need a remote browser endpoint, browser APIs, or a self-hostable browser service with infrastructure features.
 
