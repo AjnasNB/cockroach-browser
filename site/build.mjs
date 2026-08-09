@@ -8,6 +8,7 @@ import {
   homepage,
   navGroups,
   pages,
+  puppeteerComparison,
   site
 } from "./content.mjs";
 
@@ -80,6 +81,7 @@ Repository: ${site.repository}
 npm: ${site.npm}
 Technical paper: ${site.origin}/paper/
 Alternatives and product-layer comparison: ${site.origin}/alternatives/
+Puppeteer layer comparison: ${site.origin}/alternatives/#puppeteer-comparison
 Open-source governed-agent ecosystem: ${site.origin}/ecosystem/
 
 ## Documentation
@@ -89,6 +91,13 @@ ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}]
 ${comparison.methodology}
 
 ${alternatives.map((entry) => `- [${entry.name}](${site.origin}/alternatives/#${entry.id}): ${entry.nativeFocus}`).join("\n")}
+
+### Puppeteer layer comparison
+${puppeteerComparison.reviewedVersions}
+
+${puppeteerComparison.benchmarkBoundary}
+
+${puppeteerComparison.parityBoundary}
 
 ## Open-source governed-agent ecosystem
 ${ecosystem.methodology}
@@ -106,7 +115,7 @@ Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses
 );
 await writePage(
   "llms-full.txt",
-  `# ${site.name} documentation\n\n## Governed-agent ecosystem\n\n${ecosystem.methodology}\n\n${ecosystem.projects.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n## Alternatives and comparison method\n\n${comparison.methodology}\n\n${alternatives.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n${pages.map((page) => [
+  `# ${site.name} documentation\n\n## Governed-agent ecosystem\n\n${ecosystem.methodology}\n\n${ecosystem.projects.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n## Alternatives and comparison method\n\n${comparison.methodology}\n\n${alternatives.map((entry) => `### ${entry.name}\n${entry.nativeFocus}\n\nChoose it when: ${entry.chooseWhen}\n\nRelationship to Cockroach Browser: ${entry.relationship}\n\nOfficial source: ${entry.source}`).join("\n\n")}\n\n## ${puppeteerComparison.title}\n\n${puppeteerComparison.reviewedVersions}\n\n${puppeteerComparison.layers.map((entry) => `### ${entry.layer}\nPuppeteer: ${entry.puppeteer}\n\nCockroach Browser: ${entry.browser}\n\nCockroach Crawler: ${entry.crawler}`).join("\n\n")}\n\n${puppeteerComparison.benchmarkBoundary}\n\n${puppeteerComparison.parityBoundary}\n\nOfficial sources:\n${puppeteerComparison.sources.map(([label, url]) => `- ${label}: ${url}`).join("\n")}\n\n${pages.map((page) => [
     `## ${page.title}`,
     page.lede,
     ...page.sections.map((section) => `### ${section.title}\n${stripHtml(section.body)}`)
@@ -547,6 +556,15 @@ function alternativesPage() {
     const count = alternatives.filter((entry) => entry.category === category).length;
     return `<button type="button" data-alt-filter="${category}" aria-pressed="false">${escapeHtml(label)} ${count}</button>`;
   }).join("");
+  const puppeteerRows = puppeteerComparison.layers.map((entry) => `<tr>
+    <th scope="row">${escapeHtml(entry.layer)}</th>
+    <td>${escapeHtml(entry.puppeteer)}</td>
+    <td>${escapeHtml(entry.browser)}</td>
+    <td>${escapeHtml(entry.crawler)}</td>
+  </tr>`).join("");
+  const puppeteerSources = puppeteerComparison.sources.map(([label, url]) =>
+    `<a class="source-link" href="${escapeAttr(url)}">${escapeHtml(label)}</a>`
+  ).join(" - ");
   const canonical = `${site.origin}/alternatives/`;
   return `${baseHead({
     title: "Cockroach Browser alternatives by product layer",
@@ -576,6 +594,22 @@ function alternativesPage() {
             applicationCategory: entry.categoryLabel,
             description: entry.nativeFocus,
             url: entry.source
+          }
+        }))
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonical}#puppeteer-comparison-data`,
+        name: puppeteerComparison.title,
+        numberOfItems: puppeteerComparison.layers.length,
+        itemListOrder: "https://schema.org/ItemListOrderAscending",
+        itemListElement: puppeteerComparison.layers.map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "DefinedTerm",
+            name: entry.layer,
+            description: `Puppeteer: ${entry.puppeteer} Cockroach Browser: ${entry.browser} Cockroach Crawler: ${entry.crawler}`
           }
         }))
       },
@@ -636,6 +670,25 @@ ${header("alternatives")}
         <article><span>04 / remote capacity</span><h3>Pick browser infrastructure.</h3><p>Use Browserbase or Browserless when browser fleet operations, remote sessions, proxy features, or managed capacity are the main constraint.</p></article>
         <article><span>05 / bounded execution</span><h3>Pick Cockroach Browser.</h3><p>Use Cockroach Browser when the host agent needs one explicit session policy, authenticated local transport, bounded actions, evidence artifacts, and receipt-linked outcomes.</p></article>
       </div>
+    </div>
+  </section>
+
+  <section class="section" id="puppeteer-comparison">
+    <div class="shell comparison-shell">
+      <div class="section-head">
+        <h2>${escapeHtml(puppeteerComparison.title)}</h2>
+        <p>${escapeHtml(puppeteerComparison.description)} ${escapeHtml(puppeteerComparison.reviewedVersions)}</p>
+      </div>
+      <div class="comparison-table-wrap" tabindex="0" role="region" aria-label="Cockroach Browser and Cockroach Crawler compared with Puppeteer by product layer">
+        <table class="comparison-table">
+          <caption>Documented product surfaces by layer. This is a scope and fit comparison, not a performance ranking.</caption>
+          <thead><tr><th scope="col">Layer</th><th scope="col">Puppeteer</th><th scope="col">Cockroach Browser</th><th scope="col">Cockroach Crawler</th></tr></thead>
+          <tbody>${puppeteerRows}</tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>No shared benchmark</strong><p>${escapeHtml(puppeteerComparison.benchmarkBoundary)}</p></div>
+      <div class="callout"><strong>No full API or protocol parity claim</strong><p>${escapeHtml(puppeteerComparison.parityBoundary)}</p></div>
+      <p>${puppeteerSources}</p>
     </div>
   </section>
 
@@ -1023,7 +1076,7 @@ function sitemap() {
   const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/ecosystem/", "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>${path === "/ecosystem/" ? ecosystem.checkedOn : "2026-08-08"}</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
+${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>${path === "/ecosystem/" ? ecosystem.checkedOn : path === "/alternatives/" ? comparison.checkedOn : "2026-08-08"}</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
 </urlset>
 `;
 }
@@ -1046,6 +1099,13 @@ function searchIndex() {
         kind: "comparison",
         summary: comparison.description,
         keywords: alternatives.map((entry) => entry.name)
+      },
+      {
+        title: puppeteerComparison.title,
+        url: `${site.origin}/alternatives/#puppeteer-comparison`,
+        kind: "layer-comparison",
+        summary: `${puppeteerComparison.description} ${puppeteerComparison.benchmarkBoundary} ${puppeteerComparison.parityBoundary}`,
+        keywords: ["Puppeteer", "Cockroach Browser", "Cockroach Crawler", "browser automation", "crawler"]
       },
       {
         title: ecosystem.title,

@@ -9,7 +9,7 @@ export const site = {
 };
 
 export const comparison = {
-  checkedOn: "2026-08-08",
+  checkedOn: "2026-08-09",
   title: "Cockroach Browser alternatives",
   description:
     "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
@@ -365,6 +365,85 @@ export const alternatives = [
   }
 ];
 
+export const puppeteerComparison = {
+  title: "Cockroach Browser and Cockroach Crawler vs Puppeteer",
+  description:
+    "A layer-by-layer comparison of Puppeteer's browser-automation API, Cockroach Browser's governed Chromium runtime, and Cockroach Crawler's bounded web-acquisition and extraction surface.",
+  reviewedVersions:
+    "Reviewed 9 August 2026 against Puppeteer 25.5.0, Cockroach Browser 0.3.0, and the Cockroach Crawler 0.7.0-rc.1 source surface.",
+  benchmarkBoundary:
+    "There is no shared benchmark for these three product layers. Cockroach Crawler extraction scores measure main-content extraction and do not compare browser automation, API coverage, task success, reliability, performance, or security.",
+  parityBoundary:
+    "Cockroach Browser does not claim full Puppeteer API or protocol parity. Its current public surface is Chromium-only and does not expose Firefox or WebDriver BiDi, public raw CDP, coverage or heap tooling, worker or target control, runtime extension lifecycle, request or response or function waits, or full request mutation.",
+  layers: [
+    {
+      layer: "Product center",
+      puppeteer:
+        "A general-purpose JavaScript browser-automation library for Chrome and Firefox over CDP or WebDriver BiDi.",
+      browser:
+        "A Playwright-based, operator-controlled Chromium runtime for agent sessions, policy, evidence, and receipts.",
+      crawler:
+        "A crawler and extraction package with robots, sitemaps, traversal, normalized evidence, and optional browser rendering."
+    },
+    {
+      layer: "Launch and sessions",
+      puppeteer:
+        "Launch or connect to supported browsers and work directly with browser contexts, pages, and profiles.",
+      browser:
+        "Launch Chromium, use persistent profiles, or attach over CDP inside an admitted session with origins, actions, effects, and budgets.",
+      crawler:
+        "Use an optional Chromium renderer or an injected trusted browser host as one acquisition stage, not as a general browser API."
+    },
+    {
+      layer: "Page interaction",
+      puppeteer:
+        "Rich Page, Frame, Locator, handle, input, and wait APIs for application-owned automation and testing.",
+      browser:
+        "Tabs, navigation, CSS and XPath selectors, semantic snapshot refs, forms, mouse, keyboard, drag, dialogs, and bounded waits.",
+      crawler:
+        "Configured render hooks, click, scroll, and final capture for acquisition workflows; not an interactive page-automation surface."
+    },
+    {
+      layer: "Frames and network",
+      puppeteer:
+        "General frame APIs plus request interception that can abort, continue, or respond to requests.",
+      browser:
+        "Same-origin frame snapshots and bounded exact-origin routes that abort or return static responses; no general request mutation surface.",
+      crawler:
+        "Origin, DNS, redirect, robots, request, byte, depth, and duration policy around HTTP acquisition and optional rendering."
+    },
+    {
+      layer: "Artifacts and diagnostics",
+      puppeteer:
+        "Screenshots, PDFs, tracing, CDP sessions, coverage, and heap-oriented debugging primitives.",
+      browser:
+        "Screenshots, PDFs, traces, HAR, video, evidence records, and hash-linked receipts; no public raw CDP, coverage, or heap API.",
+      crawler:
+        "HTML, text, Markdown, JSON or JSONL, links, hashes, provenance, failures, plus optional screenshots and PDFs as source evidence."
+    },
+    {
+      layer: "Strong fit",
+      puppeteer:
+        "Choose Puppeteer for direct, general-purpose Chrome or Firefox automation and low-level browser debugging.",
+      browser:
+        "Choose Cockroach Browser when an agent needs explicit authority, finite budgets, local daemon or MCP access, evidence, and receipts.",
+      crawler:
+        "Choose Cockroach Crawler when the job is bounded discovery, traversal, extraction, and provenance, with rendering only where needed."
+    }
+  ],
+  sources: [
+    ["Puppeteer: what is Puppeteer", "https://pptr.dev/guides/what-is-puppeteer"],
+    ["Puppeteer Page API", "https://pptr.dev/api/puppeteer.page"],
+    ["Puppeteer request interception", "https://pptr.dev/api/puppeteer.page.setrequestinterception"],
+    ["Puppeteer CDP session", "https://pptr.dev/api/puppeteer.cdpsession"],
+    ["Puppeteer 25.5.0 release", "https://github.com/puppeteer/puppeteer/releases/tag/puppeteer-v25.5.0"],
+    ["Cockroach Browser capability status", "https://cockroachbrowser.com/docs/capabilities/"],
+    ["Cockroach Browser source", "https://github.com/AjnasNB/cockroach-browser"],
+    ["Cockroach Crawler browser guide", "https://cockroachcrawler.com/docs/browser/"],
+    ["Cockroach Crawler source", "https://github.com/AjnasNB/cockroach-crawler"]
+  ]
+};
+
 export const comparisonQuestions = [
   [
     "Is Cockroach Browser better than Playwright or Puppeteer?",
@@ -385,6 +464,14 @@ export const comparisonQuestions = [
   [
     "What is Cockroach Browser's distinct product boundary?",
     "Its implemented boundary combines explicit origins, allowed actions and effects, finite budgets, authenticated local transport, semantic snapshots, evidence artifacts, and hash-linked receipts. The public comparison does not turn those features into an independent security certification."
+  ],
+  [
+    "Does Cockroach Browser provide full Puppeteer API or protocol parity?",
+    "No. Cockroach Browser exposes a narrower Chromium-only agent runtime above playwright-core. It does not currently expose Firefox or WebDriver BiDi, public raw CDP, coverage or heap tooling, worker or target control, runtime extension lifecycle, request or response or function waits, or full request mutation."
+  ],
+  [
+    "Do Cockroach Crawler extraction benchmarks compare it with Puppeteer?",
+    "No. Crawler extraction scores measure main-content extraction. Puppeteer is a browser-automation primitive, and there is no shared browser-automation benchmark on this page."
   ]
 ];
 

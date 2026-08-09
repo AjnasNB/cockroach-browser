@@ -1,6 +1,6 @@
 import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, relative, resolve } from "node:path";
-import { alternatives, comparison, ecosystem } from "./content.mjs";
+import { alternatives, comparison, ecosystem, puppeteerComparison } from "./content.mjs";
 
 const siteRoot = resolve(import.meta.dirname);
 const sourceRoot = resolve(siteRoot, "..");
@@ -94,6 +94,23 @@ for (const schemaType of ["ItemList", "FAQPage", "BreadcrumbList"]) {
 if (!alternativesPage.includes("data-alt-search")) {
   failures.push("alternatives page is missing its local comparison search");
 }
+if (!alternativesPage.includes('id="puppeteer-comparison"')) {
+  failures.push("alternatives page is missing the authoritative Puppeteer comparison anchor");
+}
+for (const entry of puppeteerComparison.layers) {
+  for (const text of [entry.layer, entry.puppeteer, entry.browser, entry.crawler]) {
+    if (!alternativesPage.includes(text)) failures.push(`Puppeteer comparison is missing: ${text}`);
+  }
+}
+for (const [label, url] of puppeteerComparison.sources) {
+  if (!alternativesPage.includes(`href="${url}"`)) failures.push(`Puppeteer comparison is missing official source: ${label}`);
+}
+for (const boundary of [puppeteerComparison.benchmarkBoundary, puppeteerComparison.parityBoundary]) {
+  if (!alternativesPage.includes(boundary)) failures.push(`Puppeteer comparison is missing boundary: ${boundary}`);
+}
+if (!alternativesPage.includes('"@id":"https://cockroachbrowser.com/alternatives/#puppeteer-comparison-data"')) {
+  failures.push("alternatives page is missing structured data for the Puppeteer layer comparison");
+}
 
 const ecosystemPage = await readFile(resolve(siteRoot, "ecosystem", "index.html"), "utf8");
 const renderedEcosystemProjects = [...ecosystemPage.matchAll(/\bdata-ecosystem-project\b/g)].length;
@@ -153,6 +170,8 @@ if (searchIndex) {
   else {
     const comparisonDocument = searchIndex.documents.find((entry) => entry.url === `${comparisonUrl()}`);
     if (!comparisonDocument) failures.push("search.json is missing the alternatives page");
+    const puppeteerDocument = searchIndex.documents.find((entry) => entry.url === `${comparisonUrl()}#puppeteer-comparison`);
+    if (!puppeteerDocument) failures.push("search.json is missing the Puppeteer layer comparison");
     for (const entry of alternatives) {
       const url = `${comparisonUrl()}#${entry.id}`;
       if (!searchIndex.documents.some((document) => document.url === url)) {
@@ -175,6 +194,9 @@ const llms = await readFile(resolve(siteRoot, "llms.txt"), "utf8");
 if (!llms.includes(`${siteUrl()}/alternatives/`)) {
   failures.push("llms.txt is missing the alternatives page");
 }
+if (!llms.includes(`${siteUrl()}/alternatives/#puppeteer-comparison`)) {
+  failures.push("llms.txt is missing the Puppeteer layer comparison");
+}
 if (!llms.includes(ecosystemUrl())) {
   failures.push("llms.txt is missing the ecosystem page");
 }
@@ -193,6 +215,12 @@ for (const entry of ecosystem.projects) {
   if (!llmsFull.includes(`### ${entry.name}`) || !llmsFull.includes(entry.source)) {
     failures.push(`llms-full.txt is missing ecosystem details for ${entry.name}`);
   }
+}
+for (const required of [puppeteerComparison.title, puppeteerComparison.benchmarkBoundary, puppeteerComparison.parityBoundary]) {
+  if (!llmsFull.includes(required)) failures.push(`llms-full.txt is missing Puppeteer comparison detail: ${required}`);
+}
+if (!sitemap.includes(`<loc>${comparisonUrl()}</loc><lastmod>${comparison.checkedOn}</lastmod>`)) {
+  failures.push("sitemap is missing the dated alternatives page");
 }
 
 for (const required of [

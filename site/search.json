@@ -34,6 +34,19 @@
       ]
     },
     {
+      "title": "Cockroach Browser and Cockroach Crawler vs Puppeteer",
+      "url": "https://cockroachbrowser.com/alternatives/#puppeteer-comparison",
+      "kind": "layer-comparison",
+      "summary": "A layer-by-layer comparison of Puppeteer's browser-automation API, Cockroach Browser's governed Chromium runtime, and Cockroach Crawler's bounded web-acquisition and extraction surface. There is no shared benchmark for these three product layers. Cockroach Crawler extraction scores measure main-content extraction and do not compare browser automation, API coverage, task success, reliability, performance, or security. Cockroach Browser does not claim full Puppeteer API or protocol parity. Its current public surface is Chromium-only and does not expose Firefox or WebDriver BiDi, public raw CDP, coverage or heap tooling, worker or target control, runtime extension lifecycle, request or response or function waits, or full request mutation.",
+      "keywords": [
+        "Puppeteer",
+        "Cockroach Browser",
+        "Cockroach Crawler",
+        "browser automation",
+        "crawler"
+      ]
+    },
+    {
       "title": "Open-source toolkit for governed AI agents",
       "url": "https://cockroachbrowser.com/ecosystem/",
       "kind": "ecosystem",

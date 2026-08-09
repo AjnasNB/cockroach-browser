@@ -7,6 +7,7 @@ Repository: https://github.com/AjnasNB/cockroach-browser
 npm: https://www.npmjs.com/package/cockroach-browser
 Technical paper: https://cockroachbrowser.com/paper/
 Alternatives and product-layer comparison: https://cockroachbrowser.com/alternatives/
+Puppeteer layer comparison: https://cockroachbrowser.com/alternatives/#puppeteer-comparison
 Open-source governed-agent ecosystem: https://cockroachbrowser.com/ecosystem/
 
 ## Documentation
@@ -42,6 +43,13 @@ This comparison uses each project's official documentation and describes product
 - [Stagehand](https://cockroachbrowser.com/alternatives/#stagehand): Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
 - [Browserbase](https://cockroachbrowser.com/alternatives/#browserbase): Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
 - [Browserless](https://cockroachbrowser.com/alternatives/#browserless): Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
+
+### Puppeteer layer comparison
+Reviewed 9 August 2026 against Puppeteer 25.5.0, Cockroach Browser 0.3.0, and the Cockroach Crawler 0.7.0-rc.1 source surface.
+
+There is no shared benchmark for these three product layers. Cockroach Crawler extraction scores measure main-content extraction and do not compare browser automation, API coverage, task success, reliability, performance, or security.
+
+Cockroach Browser does not claim full Puppeteer API or protocol parity. Its current public surface is Chromium-only and does not expose Firefox or WebDriver BiDi, public raw CDP, coverage or heap tooling, worker or target control, runtime extension lifecycle, request or response or function waits, or full request mutation.
 
 ## Open-source governed-agent ecosystem
 This page maps documented product centers and composition boundaries from official project sources. It does not publish a shared performance benchmark, security ranking, production-capacity result, or universal winner.
