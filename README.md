@@ -79,6 +79,7 @@ Completion generation writes to standard output and never edits your shell profi
 ```bash
 cockroach-browser completion bash
 cockroach-browser completion zsh
+cockroach-browser completion fish
 cockroach-browser completion powershell
 ```
 
@@ -319,7 +320,7 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 | `cockroach-browser bootstrap [--check-only]` | Initialize the data root, install Chromium only when missing, and probe an authenticated loopback daemon |
 | `cockroach-browser setup` | Alias for `bootstrap` |
 | `cockroach-browser doctor [--root DIR]` | Check Node, Chromium, data-root, and per-user service readiness |
-| `cockroach-browser completion <bash\|zsh\|powershell>` | Print a completion script without modifying shell configuration |
+| `cockroach-browser completion <bash\|zsh\|fish\|powershell>` | Print a completion script without modifying shell configuration |
 | `cockroach-browser service install --confirm-local-owner` | Install an owner-scoped loopback autostart definition; macOS and Linux activate immediately, while Windows starts at next login |
 | `cockroach-browser service status` | Show the exact per-user definition path and fixed daemon command |
 | `cockroach-browser service uninstall --confirm-local-owner` | Disable and remove only the generated per-user definition |
@@ -393,7 +394,7 @@ Adapter-backed security surfaces:
 
 ### Deployment
 
-CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; authenticated OpenAPI and Prometheus surfaces; native stdio MCP; Docker; local dashboard; authenticated remote workers and a capacity-aware worker pool; bounded activity polling and server-sent events; crash-resumable local jobs; doctor and health checks.
+CLI; generated bash, zsh, Fish, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; authenticated OpenAPI and Prometheus surfaces; native stdio MCP; Docker; local dashboard; authenticated remote workers and a capacity-aware worker pool; bounded activity polling and server-sent events; crash-resumable local jobs; doctor and health checks.
 
 ### Integrations
 

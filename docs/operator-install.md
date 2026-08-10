@@ -27,6 +27,9 @@ cockroach-browser completion bash > ~/.local/share/bash-completion/completions/c
 # Zsh
 cockroach-browser completion zsh > ~/.zfunc/_cockroach-browser
 
+# Fish
+cockroach-browser completion fish > ~/.config/fish/completions/cockroach-browser.fish
+
 # PowerShell (inspect before adding it to your profile)
 cockroach-browser completion powershell
 ```
