@@ -25,4 +25,4 @@ The ProductLoop integration in 0.3.0 is a structural capability snapshot for a h
 
 ## Release status
 
-This manual targets Cockroach Browser 0.3.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.4.0-rc.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

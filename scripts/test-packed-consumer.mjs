@@ -20,6 +20,7 @@ try {
     `${JSON.stringify({ private: true, type: "module" }, null, 2)}\n`
   );
   runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", `./${archive}`], temporary);
+  runNpm(["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-dev", "@types/node@24"], temporary);
   await writeFile(
     join(temporary, "consumer.mjs"),
     `import { CAPABILITIES, BrowserClient } from "cockroach-browser";
@@ -28,6 +29,15 @@ import { createQarinahContextRecorder } from "cockroach-browser/qarinah";
 import { createCrawlerHandoff } from "cockroach-browser/crawler";
 import { productLoopBrowserCapabilitySnapshot } from "cockroach-browser/productloop";
 import { shellCompletion } from "cockroach-browser/operator-install";
+import { RAW_BROWSER_ENGINES, chromium, firefox, webkit } from "cockroach-browser/automation";
+import puppeteer from "cockroach-browser/puppeteer";
+import { test as playwrightTest, expect as playwrightExpect } from "cockroach-browser/test";
+import { BidiSession } from "cockroach-browser/bidi";
+import { WebDriverClient } from "cockroach-browser/mobile";
+import { BrowserAgent } from "cockroach-browser/agent";
+import { OpenAICompatibleModelGateway } from "cockroach-browser/model-gateway";
+import { BrowserFleet, LocalBrowserFleetProvider } from "cockroach-browser/fleet";
+import { createRawCdpSession } from "cockroach-browser/cdp";
 import memorySchema from "cockroach-browser/schemas/browser-memory.schema.json" with { type: "json" };
 import server from "cockroach-browser/server.json" with { type: "json" };
 if (CAPABILITIES.length < 73) throw new Error("operator capabilities missing");
@@ -37,6 +47,13 @@ if (typeof createQarinahContextRecorder !== "function") throw new Error("Qarinah
 if (typeof createCrawlerHandoff !== "function") throw new Error("crawler adapter missing");
 if (typeof productLoopBrowserCapabilitySnapshot !== "function") throw new Error("ProductLoop snapshot missing");
 if (!shellCompletion("bash").includes("bootstrap")) throw new Error("operator installer export missing");
+if (RAW_BROWSER_ENGINES.join(",") !== "chromium,firefox,webkit") throw new Error("raw engine exports missing");
+if (![chromium, firefox, webkit].every((engine) => typeof engine.launch === "function")) throw new Error("Playwright engines missing");
+if (typeof puppeteer.launch !== "function") throw new Error("Puppeteer surface missing");
+if (typeof playwrightTest !== "function" || typeof playwrightExpect !== "function") throw new Error("Playwright Test surface missing");
+for (const exported of [BidiSession, WebDriverClient, BrowserAgent, OpenAICompatibleModelGateway, BrowserFleet, LocalBrowserFleetProvider, createRawCdpSession]) {
+  if (typeof exported !== "function") throw new Error("expanded platform export missing");
+}
 if (memorySchema.properties?.schemaVersion?.const !== "cockroach.browser-memory.v1") throw new Error("memory schema mismatch");
 if (server.name !== "io.github.AjnasNB/cockroach-browser") throw new Error("MCP identity mismatch");
 process.stdout.write(JSON.stringify({ ok: true, capabilities: CAPABILITIES.length }) + "\\n");
@@ -44,6 +61,30 @@ process.stdout.write(JSON.stringify({ ok: true, capabilities: CAPABILITIES.lengt
   );
   const result = run(process.execPath, ["consumer.mjs"], temporary);
   process.stdout.write(result.stdout);
+  await writeFile(
+    join(temporary, "consumer.mts"),
+    `import type { Browser, BrowserContext, Page, Locator, JSHandle, ElementHandle, Worker, WebSocketRoute, CDPSession } from "cockroach-browser/automation";
+import type { Browser as PuppeteerBrowser, Page as PuppeteerPage, Target, WebWorker } from "cockroach-browser/puppeteer";
+import { expect, test } from "cockroach-browser/test";
+declare const browser: Browser;
+declare const context: BrowserContext;
+declare const page: Page;
+declare const locator: Locator;
+declare const jsHandle: JSHandle;
+declare const element: ElementHandle;
+declare const worker: Worker;
+declare const socket: WebSocketRoute;
+declare const cdp: CDPSession;
+declare const pBrowser: PuppeteerBrowser;
+declare const pPage: PuppeteerPage;
+declare const target: Target;
+declare const webWorker: WebWorker;
+void [browser, context, page, locator, jsHandle, element, worker, socket, cdp, pBrowser, pPage, target, webWorker];
+test("consumer", async () => { await expect(locator).toBeVisible(); });
+`
+  );
+  const tsc = resolve(root, "node_modules", "typescript", "bin", "tsc");
+  run(process.execPath, [tsc, "--noEmit", "--strict", "--target", "ESNext", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--types", "node", "consumer.mts"], temporary);
 } finally {
   const relation = temporary.startsWith(resolve(tmpdir())) && temporary.includes("cockroach-browser-consumer-");
   if (!relation) throw new Error(`Refusing to remove unexpected path: ${temporary}`);

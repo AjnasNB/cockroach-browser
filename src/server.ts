@@ -131,7 +131,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, {
           ok: true,
           name: "cockroach-browser",
-          version: "0.3.0",
+          version: "0.4.0-rc.1",
           sessions: (await runtime.sessions()).length,
           evidence: await runtime.evidence.verify()
         });
@@ -612,7 +612,7 @@ async function drainJobs(queue: JobQueue): Promise<void> {
 function openApiDocument(): Record<string, unknown> {
   return {
     openapi: "3.1.0",
-    info: { title: "Cockroach Browser local daemon", version: "0.3.0" },
+    info: { title: "Cockroach Browser local daemon", version: "0.4.0-rc.1" },
     servers: [{ url: "http://127.0.0.1:43110" }],
     components: {
       securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } }

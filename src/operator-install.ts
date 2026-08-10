@@ -536,7 +536,7 @@ Register-ArgumentCompleter -Native -CommandName cockroach-browser -ScriptBlock {
 
 function completionDescription(command: typeof COMMANDS[number]): string {
   const descriptions: Record<typeof COMMANDS[number], string> = {
-    bootstrap: "Initialize, install Chromium when needed, and probe the localhost daemon",
+    bootstrap: "Initialize, install Chromium, Firefox, and WebKit when needed, and probe the localhost daemon",
     setup: "Alias for bootstrap",
     doctor: "Inspect local readiness",
     completion: "Generate a shell completion script",

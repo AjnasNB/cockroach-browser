@@ -38,8 +38,8 @@ jobs:
       - run: npm run check:site
       - run: npm audit --omit=dev
 
-  chromium:
-    name: Chromium boundary smoke test
+  browser-platform:
+    name: Chromium, Firefox, WebKit, and Puppeteer platform tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -51,11 +51,15 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npx playwright-core install --with-deps chromium
+      - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run build:test
-      - run: node --test --test-reporter=spec .test-dist/test/browser-smoke.test.js
+      - run: xvfb-run -a node --test --test-concurrency=1 --test-reporter=spec .test-dist/test/browser-smoke.test.js .test-dist/test/platform-expansion.test.js .test-dist/test/raw-platform-e2e.test.js
         env:
           COCKROACH_BROWSER_E2E: "1"
+          COCKROACH_BROWSER_MULTI_ENGINE_E2E: "1"
+          COCKROACH_BROWSER_FULL_PLATFORM_E2E: "1"
+          COCKROACH_BROWSER_HEADED_E2E: "1"
+          COCKROACH_BROWSER_PUPPETEER_NO_SANDBOX: "1"
 
   packed-consumer:
     name: Packed npm consumer
@@ -72,6 +76,42 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run build
       - run: node scripts/test-packed-consumer.mjs
+
+  language-sdks:
+    name: Python, Java, .NET, Ruby, and Go SDKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.x"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - name: Compile Python SDK
+        run: python -m compileall -q sdks/python/cockroach_browser
+      - name: Compile Java SDK
+        run: mvn --batch-mode --file sdks/java/pom.xml package
+      - name: Build .NET SDK
+        run: dotnet build sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj --configuration Release --nologo
+      - name: Check Ruby SDK
+        run: ruby -c sdks/ruby/lib/cockroach_browser.rb
+      - name: Test Go SDK
+        working-directory: sdks/go
+        run: go test ./...
 
   container:
     name: Hardened container smoke test
@@ -91,6 +131,7 @@ jobs:
             --publish 127.0.0.1:43110:43111 \
             --read-only \
             --tmpfs /tmp:rw,noexec,nosuid,size=256m \
+            --shm-size 512m \
             --cap-drop ALL \
             --security-opt no-new-privileges:true \
             --mount type=volume,source=cockroach-browser-ci-data,target=/data \
@@ -109,6 +150,20 @@ jobs:
           done
           docker logs cockroach-browser-ci
           exit 1
+      - name: Verify all container browser engines
+        run: |
+          docker exec cockroach-browser-ci node --input-type=module -e '
+            import { chromium, firefox, webkit } from "playwright-core";
+            for (const [name, engine] of Object.entries({ chromium, firefox, webkit })) {
+              const browser = await engine.launch({ headless: true, timeout: 30_000 });
+              const context = await browser.newContext();
+              const page = await context.newPage();
+              await page.setContent(`<title>${name}</title><p>ready</p>`);
+              if (await page.title() !== name) throw new Error(`${name} container smoke failed`);
+              await context.close();
+              await browser.close();
+            }
+          '
       - name: Clean container resources
         if: always()
         run: |

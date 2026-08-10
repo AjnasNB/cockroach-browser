@@ -1,11 +1,11 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.3.0",
+  version: "0.4.0-rc.1",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence."
+    "Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence."
 };
 
 export const comparison = {
@@ -119,7 +119,7 @@ export const ecosystem = {
       chooseWhen:
         "The product needs an autonomous browser agent, model integration, and high-level task execution.",
       relationship:
-        "Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.",
+        "Cockroach Browser now includes an optional OpenAI-compatible gateway and finite-step planner, while Browser Use provides a broader Python agent framework and operated cloud platform.",
       sourceLabel: "Browser Use source",
       source: "https://github.com/browser-use/browser-use"
     },
@@ -266,6 +266,20 @@ export const alternatives = [
     source: "https://pptr.dev/supported-browsers"
   },
   {
+    id: "lightpanda",
+    name: "Lightpanda",
+    category: "primitive",
+    categoryLabel: "Alternative browser engine",
+    nativeFocus:
+      "A Zig headless browser designed for automation and AI workloads, with CDP compatibility, low resource use, and no graphical rendering.",
+    chooseWhen:
+      "You want a separate lightweight browser engine for supported automation workloads and accept its beta Web-platform and rendering boundaries.",
+    relationship:
+      "Cockroach Browser bundles Playwright Chromium, Firefox, and WebKit and can use an explicit operator-selected CDP endpoint. It does not bundle, fork, or claim execution proof for the Lightpanda engine.",
+    sourceLabel: "Lightpanda repository",
+    source: "https://github.com/lightpanda-io/browser"
+  },
+  {
     id: "selenium",
     name: "Selenium",
     category: "primitive",
@@ -331,7 +345,7 @@ export const alternatives = [
     chooseWhen:
       "You want an autonomous browser agent, model integration, and high-level task execution rather than only a browser execution service.",
     relationship:
-      "Cockroach Browser does not provide an LLM planner, managed browser cloud, or autonomous task-success claim. It supplies an execution and evidence runtime that a host agent can call.",
+      "Cockroach Browser includes a bounded model gateway and finite-step agent loop but does not operate Browser Use's managed cloud or claim universal autonomous task success.",
     sourceLabel: "Browser Use cloud quickstart",
     source: "https://docs.browser-use.com/cloud/quickstart"
   },
@@ -345,7 +359,7 @@ export const alternatives = [
     chooseWhen:
       "You want AI-assisted page actions and extraction with a choice of local browsers or Browserbase infrastructure.",
     relationship:
-      "Cockroach Browser keeps model choice and planning outside the runtime. Its native concern is what one admitted session may do and which evidence and receipts remain afterward.",
+      "Cockroach Browser exposes both direct code APIs and an optional model-directed loop. Its distinct contract keeps each bounded-runtime action and resulting evidence receipt explicit.",
     sourceLabel: "Stagehand documentation",
     source: "https://docs.stagehand.dev/v3/first-steps/introduction"
   },
@@ -392,6 +406,20 @@ export const alternatives = [
     source: "https://docs.browserless.io/overview/intro"
   },
   {
+    id: "hyperbrowser",
+    name: "Hyperbrowser and HyperAgent",
+    category: "infrastructure",
+    categoryLabel: "Hosted browser and agent infrastructure",
+    nativeFocus:
+      "Managed browser sessions with profiles, proxies, stealth options, CAPTCHA handling, recordings, live inspection, and a model-directed HyperAgent layer.",
+    chooseWhen:
+      "You need a managed Chrome fleet, provider-operated network and identity services, or a hosted agent rather than operating browsers yourself.",
+    relationship:
+      "Cockroach Browser ships a local three-engine fleet plus a provider-neutral managed-fleet contract. It does not operate Hyperbrowser's hosted capacity, proxy network, CAPTCHA service, or HyperAgent cloud.",
+    sourceLabel: "Hyperbrowser documentation",
+    source: "https://www.hyperbrowser.ai/docs/introduction"
+  },
+  {
     id: "steel",
     name: "Steel",
     category: "infrastructure",
@@ -401,7 +429,7 @@ export const alternatives = [
     chooseWhen:
       "You need a hosted browser API with managed session infrastructure, profile reuse, proxy services, or provider-operated challenge handling.",
     relationship:
-      "Cockroach Browser can run through operator-managed workers and accepts an explicit session proxy, but it does not provide Steel's hosted fleet, managed proxy network, or managed challenge service.",
+      "Cockroach Browser can run a local three-engine fleet and connect an operator-selected managed fleet with declared proxy and challenge modes. It does not operate Steel's hosted capacity or network.",
     sourceLabel: "Steel Sessions API overview",
     source: "https://docs.steel.dev/overview/sessions-api/overview"
   }
@@ -418,7 +446,7 @@ export const comparisonQuestions = [
   ],
   [
     "Is Cockroach Browser an autonomous browser agent?",
-    "No. It does not choose an LLM, plan a task, or claim autonomous task-success results. Browser Use and Stagehand cover that agent-framework layer. Cockroach Browser is an execution and evidence runtime for a host agent."
+    "It now includes an optional OpenAI-compatible gateway and finite-step planning loop over semantic snapshots and exact actions. It does not bundle model weights, operate a hosted cloud, or claim universal autonomous task-success results."
   ],
   [
     "Does Cockroach Browser replace Browserbase or Browserless?",
@@ -437,7 +465,7 @@ export const comparisonLayers = [
     examples: "Playwright, Puppeteer, Selenium",
     nativeFocus: "Direct browser APIs, browser objects, events, protocols, test tooling, and broad ecosystem compatibility.",
     chooseWhen: "Your application should own browser calls directly and your team will build the surrounding agent, service, policy, and evidence layers.",
-    browserFit: "Cockroach Browser uses playwright-core, narrows control to session actions and semantic references, and adds packaged local transport plus evidence records.",
+    browserFit: "Cockroach Browser exposes the pinned Playwright and Puppeteer APIs directly, and separately provides a bounded semantic action runtime, agent loop, local transport, fleet adapters, and evidence records.",
     sources: [
       ["Playwright browsers", "https://playwright.dev/docs/browsers"],
       ["Puppeteer supported browsers", "https://pptr.dev/supported-browsers"],
@@ -463,7 +491,7 @@ export const comparisonLayers = [
     examples: "Browser Use, Stagehand, Vercel Labs agent-browser",
     nativeFocus: "Model selection, natural-language browser operations, planning, extraction, recovery loops, and autonomous task execution.",
     chooseWhen: "The product needs an LLM-driven browser agent rather than only a browser runtime that an existing agent can call.",
-    browserFit: "Cockroach Browser deliberately does not bundle an LLM planner. A host agent calls its MCP, SDK, or HTTP surfaces and remains responsible for planning.",
+    browserFit: "Cockroach Browser includes a finite-step planner over its semantic runtime plus MCP, SDK, and HTTP surfaces. The operator still selects the model gateway, task authority, and external services.",
     sources: [
       ["Browser Use cloud quickstart", "https://docs.browser-use.com/cloud/quickstart"],
       ["Stagehand introduction", "https://docs.stagehand.dev/v3/first-steps/introduction"],
@@ -476,7 +504,7 @@ export const comparisonLayers = [
     examples: "Browserbase, Browserless, Steel",
     nativeFocus: "Managed browser capacity, remote connection endpoints, sessions, profiles, proxies, recordings, live inspection, and provider-operated infrastructure.",
     chooseWhen: "Elastic capacity, hosted operations, managed proxies, geographic placement, or browser fleet management is the main requirement.",
-    browserFit: "Cockroach Browser defaults to local or operator-managed workers. It has a worker pool, but it is not a hosted elastic browser cloud or managed proxy service.",
+    browserFit: "Cockroach Browser includes a local three-engine process fleet and an authenticated provider adapter for regions, proxy classes, challenge modes, and live-view URLs. It does not operate a hosted browser or proxy network.",
     sources: [
       ["Browserbase core features", "https://docs.browserbase.com/platform/browser/core-features/overview"],
       ["Browserless browser as a service", "https://docs.browserless.io/baas/start"],
@@ -487,46 +515,11 @@ export const comparisonLayers = [
 
 export const capabilityGaps = [
   {
-    area: "Browser engines",
-    shipped: "Bundled or discovered Chromium, Chrome, Edge, and Brave executables, plus explicit Chrome CDP attachment.",
-    gap: "No Firefox or WebKit session selection in Cockroach Browser 0.3.0.",
+    area: "Native Safari and mobile infrastructure",
+    shipped: "Installed Chromium, Firefox, and WebKit execution plus a raw W3C WebDriver/Appium client for operator-supplied iOS, Android, and Safari endpoints.",
+    gap: "No bundled macOS Safari host, iOS simulator, Android emulator, physical-device lab, or hosted mobile capacity.",
     sourceLabel: "Playwright browser coverage",
     source: "https://playwright.dev/docs/browsers"
-  },
-  {
-    area: "Protocol access",
-    shipped: "Attach to one operator-selected Chrome DevTools endpoint through the CDP provider.",
-    gap: "No public raw CDP session surface and no WebDriver BiDi API.",
-    sourceLabel: "Puppeteer CDP session API",
-    source: "https://pptr.dev/api/puppeteer.cdpsession"
-  },
-  {
-    area: "Handles, targets, and events",
-    shipped: "Snapshot-scoped semantic references, exact CSS or XPath targets, tabs, frames, and a bounded activity stream.",
-    gap: "No drop-in Page, Frame, ElementHandle, JSHandle, BrowserContext, Target, or complete browser event API.",
-    sourceLabel: "Puppeteer ElementHandle API",
-    source: "https://pptr.dev/api/puppeteer.elementhandle"
-  },
-  {
-    area: "Network and WebSockets",
-    shipped: "Bounded redacted request and response observations, JSON or HAR-compatible export, session-start HAR recording, and exact-origin abort or static fulfillment routes.",
-    gap: "No complete request-mutation lifecycle, raw protocol network domains, or WebSocket frame lifecycle API.",
-    sourceLabel: "Playwright network documentation",
-    source: "https://playwright.dev/docs/network"
-  },
-  {
-    area: "Tracing, video, and screencast",
-    shipped: "Trace start and stop actions, session video, screenshots, PDFs, and evidence indexing.",
-    gap: "No full library-compatible tracing object model, raw screencast stream, or hosted recording viewer.",
-    sourceLabel: "Playwright tracing API",
-    source: "https://playwright.dev/docs/api/class-tracing"
-  },
-  {
-    area: "Accessibility and diagnostics",
-    shipped: "Semantic snapshots plus bounded accessibility, performance, asset, console, security, and visual audits.",
-    gap: "No complete browser accessibility tree API, JavaScript coverage API, heap snapshot API, or full DevTools diagnostics surface.",
-    sourceLabel: "Chrome DevTools MCP",
-    source: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
   },
   {
     area: "Extensions",
@@ -537,31 +530,38 @@ export const capabilityGaps = [
   },
   {
     area: "Hosted scale",
-    shipped: "Local daemon, Docker image, authenticated remote workers, capacity-aware worker pool, and team session roles.",
-    gap: "No vendor-operated elastic browser fleet, managed regional capacity, live session viewer, usage billing, or hosted control plane.",
+    shipped: "Local daemon, Docker image, a working local three-engine process fleet, authenticated workers, and an exact REST provider contract for capacity, regions, proxy classes, challenges, and HTTPS live views.",
+    gap: "The open-source project does not itself operate elastic capacity, a customer control plane, billing, recordings storage, or an availability SLA.",
     sourceLabel: "Browserbase core features",
     source: "https://docs.browserbase.com/platform/browser/core-features/overview"
   },
   {
     area: "Proxy and identity services",
-    shipped: "One explicit operator-supplied proxy per session with credentials resolved through a host secret reference.",
-    gap: "No managed residential proxy network, automatic rotation, geographic routing catalog, or hosted identity service.",
+    shipped: "Explicit per-session proxies plus fleet requests for declared datacenter, residential, static-IP, or custom proxy classes and geography.",
+    gap: "No Cockroach-operated IP inventory, automatic rotation network, geographic availability catalog, or hosted identity service.",
     sourceLabel: "Steel proxy documentation",
     source: "https://docs.steel.dev/overview/stealth/proxies"
   },
   {
     area: "Stealth and access challenges",
-    shipped: "Challenge detection, pause, evidence, human handoff, and an optional host-authorized resolver callback.",
-    gap: "No covert fingerprint evasion, CAPTCHA bypass engine, or provider-operated challenge-solving service.",
+    shipped: "Challenge detection, pause, evidence, human handoff, a host-authorized resolver, and an exact provider-authorized challenge mode in the fleet contract.",
+    gap: "No covert fingerprint evasion or bundled CAPTCHA bypass engine. Any external challenge service remains operator-selected and must be authorized for the target.",
     sourceLabel: "Steel CAPTCHA documentation",
     source: "https://docs.steel.dev/overview/captchas-api/overview"
   },
   {
-    area: "Built-in LLM autonomy",
-    shipped: "MCP, TypeScript SDK, CLI, and authenticated HTTP surfaces that an external AI agent can call.",
-    gap: "No bundled model, prompt planner, autonomous recovery loop, or natural-language task-success benchmark.",
+    area: "Agent evaluation",
+    shipped: "A bounded OpenAI-compatible model gateway and finite-step browser agent over semantic snapshots, exact actions, receipts, MCP, SDK, and HTTP surfaces.",
+    gap: "No independently reproduced cross-product task-success benchmark, universal autonomous recovery claim, or bundled model weights.",
     sourceLabel: "Browser Use cloud quickstart",
     source: "https://docs.browser-use.com/cloud/quickstart"
+  },
+  {
+    area: "Language-native API depth",
+    shipped: "Complete TypeScript Playwright and Puppeteer contracts plus dependency-light Python, Java, .NET, Ruby, and Go daemon clients with generic route access.",
+    gap: "The non-TypeScript SDKs do not reimplement every browser object as a language-native class; they call the authenticated Cockroach Browser service.",
+    sourceLabel: "Selenium language bindings",
+    source: "https://www.selenium.dev/documentation/webdriver/"
   }
 ];
 
@@ -654,6 +654,7 @@ export const navGroups = [
     title: "Start",
     items: [
       ["Getting started", "getting-started"],
+      ["Full automation platform", "automation-platform"],
       ["Operator install", "operator-install"],
       ["Sessions and profiles", "sessions"]
     ]
@@ -797,7 +798,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.3.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.4.0-rc.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -895,13 +896,14 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.3.0 .
+  docker: `docker build -t cockroach-browser:0.4.0-rc.1 .
 docker run --rm \\
   --read-only \\
-  --tmpfs /tmp \\
+  --tmpfs /tmp:rw,noexec,nosuid,size=256m \\
+  --shm-size 512m \\
   --tmpfs /data \\
-  -p 127.0.0.1:43110:43110 \\
-  cockroach-browser:0.3.0`,
+  -p 127.0.0.1:43110:43111 \\
+  cockroach-browser:0.4.0-rc.1`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\
@@ -941,7 +943,66 @@ await browser.act(session.id, {
 npx cockroach-browser act \\
   --session "$SESSION_ID" \\
   --input ./action.json \\
-  --token-file .cockroach-browser/auth-token`
+  --token-file .cockroach-browser/auth-token`,
+  rawPlaywright: `import { chromium, firefox, webkit } from "cockroach-browser/automation";
+
+for (const engine of [chromium, firefox, webkit]) {
+  const browser = await engine.launch({ headless: true });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto("https://example.com/");
+  console.log(await page.title());
+  await browser.close();
+}`,
+  rawPuppeteer: `import puppeteer from "cockroach-browser/puppeteer";
+
+const browser = await puppeteer.connect({ browserWSEndpoint: process.env.BROWSER_WS_ENDPOINT });
+const page = await browser.newPage();
+const client = await page.createCDPSession();
+console.log(await client.send("Performance.getMetrics"));
+await browser.disconnect();`,
+  planner: `import { BrowserAgent } from "cockroach-browser/agent";
+import { OpenAICompatibleModelGateway } from "cockroach-browser/model-gateway";
+
+const gateway = new OpenAICompatibleModelGateway({
+  endpoint: process.env.MODEL_ENDPOINT,
+  model: process.env.MODEL_NAME,
+  apiKeyProvider: () => process.env.MODEL_API_KEY
+});
+const agent = new BrowserAgent({ runtime, gateway, maxSteps: 30 });
+const result = await agent.run({
+  sessionId: session.id,
+  task: "Inspect the release page and report the visible version"
+});`,
+  fleet: `import { BrowserFleet, LocalBrowserFleetProvider, HttpBrowserFleetProvider } from "cockroach-browser/fleet";
+
+const fleet = new BrowserFleet({
+  maxSessions: 8,
+  providers: [
+    new LocalBrowserFleetProvider({ maxSessions: 4 }),
+    new HttpBrowserFleetProvider({
+      id: "operator-cloud",
+      endpoint: "https://browser-provider.example/",
+      tokenProvider: readFleetToken,
+      capabilities: reviewedProviderCapabilities
+    })
+  ]
+});`,
+  mobile: `import { WebDriverClient } from "cockroach-browser/mobile";
+
+const client = new WebDriverClient({
+  endpoint: "https://appium.example/wd/hub",
+  headers: { authorization: "Bearer " + process.env.MOBILE_TOKEN }
+});
+const safari = await client.createSession({
+  alwaysMatch: {
+    platformName: "iOS",
+    browserName: "Safari",
+    "appium:deviceName": "reviewed-device"
+  }
+});
+await safari.navigate("https://example.com/");
+await safari.close();`
 };
 
 export const pages = [
@@ -950,12 +1011,12 @@ export const pages = [
     title: "Getting started",
     kicker: "Install once. Admit one origin. Keep every result.",
     lede:
-      "Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.",
+      "Cockroach Browser gives an AI agent real Chromium, Firefox, or WebKit execution without turning the browser into ambient authority. Start with a local daemon, embed the bounded runtime, or use the raw upstream APIs.",
     sections: [
       {
-        title: "Install the package and Chromium",
+        title: "Install the package and three browser engines",
         body:
-          "<p>The package supports maintained Node.js 22, 24, and 26 releases. <code>bootstrap</code> installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.</p>",
+          "<p>The package supports maintained Node.js 22, 24, and 26 releases. <code>bootstrap</code> installs Playwright 1.62.1 Chromium, Firefox, and WebKit builds only when an engine is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.</p>",
         code: snippets.install,
         label: "terminal"
       },
@@ -983,6 +1044,72 @@ export const pages = [
     ]
   },
   {
+    slug: "automation-platform",
+    title: "Full automation platform",
+    kicker: "Use the bounded runtime, exact upstream APIs, protocols, tests, agents, fleets, or mobile transport.",
+    lede:
+      "Cockroach Browser keeps its policy-evaluated agent runtime separate from unrestricted operator automation while shipping both in one versioned package.",
+    sections: [
+      {
+        title: "Run Chromium, Firefox, and WebKit through Playwright",
+        body:
+          "<p><code>cockroach-browser/automation</code> re-exports the complete pinned <code>playwright-core</code> package. Browser, context, page, frame, locator, handle, worker, request, response, route, WebSocket, tracing, HAR, clock, emulation, download, video, and protocol APIs retain their upstream contracts. This unrestricted operator surface does not inherit bounded-runtime origin or budget policy.</p>",
+        code: snippets.rawPlaywright,
+        label: "raw-playwright.mjs"
+      },
+      {
+        title: "Use every pinned Puppeteer Core export",
+        body:
+          "<p><code>cockroach-browser/puppeteer</code> is an exact default and named re-export of <code>puppeteer-core</code>. It includes Browser, BrowserContext, Page, Frame, Locator, ElementHandle, JSHandle, Target, WebWorker, CDPSession, coverage, tracing, heap, metrics, emulation, and screencast contracts. The generated API inventory records every public owner and member from the installed declarations.</p>",
+        code: snippets.rawPuppeteer,
+        label: "raw-puppeteer.mjs"
+      },
+      {
+        title: "Run tests and generate cross-language scripts",
+        body:
+          "<p><code>cockroach-browser/test</code> exposes Playwright Test fixtures and assertions. <code>cockroach-browser-test</code> runs the upstream test runner. <code>cockroach-browser-codegen</code> records JavaScript, TypeScript, Python, Java, or C# scripts. Projects, retries, reporters, snapshots, parallelism, trace, and multi-engine configuration remain upstream Playwright behavior.</p>",
+        code: `cockroach-browser-codegen --target=python https://example.com/
+cockroach-browser-test --project=chromium
+cockroach-browser-test --project=firefox
+cockroach-browser-test --project=webkit`,
+        label: "terminal"
+      },
+      {
+        title: "Use CDP, WebDriver BiDi, Safari, iOS, and Android endpoints",
+        body:
+          "<p>The CDP module creates raw sessions for Chromium pages and frames. The BiDi module sends arbitrary bounded commands and subscriptions to an operator-owned WebSocket. The mobile module is a raw W3C WebDriver/Appium transport for operator-supplied Safari, iOS, Android, and vendor endpoints. Cockroach Browser does not bundle a macOS Safari host, simulator, emulator, or device lab.</p>",
+        code: snippets.mobile,
+        label: "mobile-safari.mjs"
+      },
+      {
+        title: "Run the optional model gateway and finite-step agent",
+        body:
+          "<p>The OpenAI-compatible gateway resolves its API key in the trusted host, enforces request deadlines and response byte ceilings, and parses structured tool calls. The agent observes semantic snapshots, dispatches typed actions through <code>BrowserRuntime</code>, retains receipts, and stops at a configured step limit. A host can omit this layer and use any external planner.</p>",
+        code: snippets.planner,
+        label: "agent.mjs"
+      },
+      {
+        title: "Allocate local or provider-managed browser capacity",
+        body:
+          "<p>The local fleet launches real Chromium, Firefox, or WebKit browser servers with capacity and TTL enforcement. The HTTP provider adapter requires exact declared engines, regions, proxy classes, challenge modes, and live-view behavior. Residential/static IPs, provider challenge services, live viewers, and hosted capacity remain external infrastructure selected by the operator.</p>",
+        code: snippets.fleet,
+        label: "fleet.mjs"
+      },
+      {
+        title: "Call the authenticated daemon from six languages",
+        body:
+          "<p>TypeScript is the native embedded and daemon SDK. Dependency-light Python, Java, .NET/C#, Ruby, and Go clients expose health, capabilities, sessions, actions, batches, snapshots, and generic route access. These clients preserve server errors and caller-owned timeouts; they do not pretend to reimplement every upstream browser object in every language.</p>",
+        code: `# TypeScript: import { BrowserClient } from "cockroach-browser/client"
+# Python:     from cockroach_browser import BrowserClient
+# Java:       new io.cockroach.browser.Client(baseUrl, token, timeout)
+# .NET:       new CockroachBrowser.BrowserClient(httpClient, baseUrl, token)
+# Ruby:       CockroachBrowser::Client.new(base_url:, token:)
+# Go:         cockroachbrowser.NewClient(baseURL, token, httpClient)`,
+        label: "SDK surface"
+      }
+    ]
+  },
+  {
     slug: "operator-install",
     title: "Operator install",
     kicker: "One command to bootstrap. One explicit confirmation to start at login.",
@@ -992,7 +1119,7 @@ export const pages = [
       {
         title: "Bootstrap and probe the local runtime",
         body:
-          "<p><code>cockroach-browser bootstrap</code> checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify <code>/v1/health</code>. Use <code>--check-only</code> to prohibit a browser download.</p>",
+          "<p><code>cockroach-browser bootstrap</code> checks for Node.js 22, 24, or 26, installs pinned Chromium, Firefox, and WebKit builds only when an engine is absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify <code>/v1/health</code>. Use <code>--check-only</code> to prohibit browser downloads.</p>",
         code: `cockroach-browser bootstrap
 cockroach-browser bootstrap --check-only
 cockroach-browser doctor`,
@@ -1675,8 +1802,8 @@ cockroach-browser persistent-profile archive --name support-review`,
 ];
 
 export const homepage = {
-  title: "Browser automation for AI agents, from first snapshot to final evidence.",
+  title: "Cross-browser automation and browser agents, from raw protocol to final evidence.",
   lede:
-    "Run real Chromium locally with semantic page snapshots, forms, files, tabs, persistent profiles, screenshots, PDFs, traces, network tools, MCP, a TypeScript SDK, and an authenticated API.",
+    "Run Chromium, Firefox, and WebKit with complete Playwright and Puppeteer APIs, a built-in planner, semantic snapshots, files, profiles, network tools, mobile WebDriver, fleet adapters, six SDKs, MCP, and verifiable evidence.",
   proof: []
 };

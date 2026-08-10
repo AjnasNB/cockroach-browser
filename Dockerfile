@@ -13,13 +13,17 @@ FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
-    COCKROACH_BROWSER_ROOT=/data
+    COCKROACH_BROWSER_ROOT=/data \
+    HOME=/tmp/cockroach-browser-home \
+    XDG_CACHE_HOME=/tmp/cockroach-browser-cache \
+    XDG_CONFIG_HOME=/tmp/cockroach-browser-config \
+    XDG_RUNTIME_DIR=/tmp/cockroach-browser-runtime
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts \
-    && node node_modules/playwright-core/cli.js install --with-deps chromium
+    && node node_modules/playwright-core/cli.js install --with-deps chromium firefox webkit
 
 COPY --from=build /app/dist ./dist
 COPY server.json README.md SECURITY.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md ./

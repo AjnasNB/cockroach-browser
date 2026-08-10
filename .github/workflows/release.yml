@@ -12,7 +12,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     environment: npm-production
     steps:
       - uses: actions/checkout@v7.0.1
@@ -24,12 +24,68 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.24.x"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
       - name: Verify immutable release identity
         run: |
           node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME; if(tag !== 'v'+p.version) throw new Error('tag '+tag+' does not match package '+p.version)"
           git tag --points-at HEAD | grep -Fx "${GITHUB_REF_NAME}"
       - run: npm ci --ignore-scripts
-      - run: npm run check
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: xvfb-run -a npm run check
+        env:
+          COCKROACH_BROWSER_E2E: "1"
+          COCKROACH_BROWSER_MULTI_ENGINE_E2E: "1"
+          COCKROACH_BROWSER_FULL_PLATFORM_E2E: "1"
+          COCKROACH_BROWSER_HEADED_E2E: "1"
+          COCKROACH_BROWSER_PUPPETEER_NO_SANDBOX: "1"
+      - name: Verify all language SDKs
+        run: |
+          python -m compileall -q sdks/python/cockroach_browser
+          mvn --batch-mode --file sdks/java/pom.xml package
+          dotnet build sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj --configuration Release --nologo
+          ruby -c sdks/ruby/lib/cockroach_browser.rb
+          (cd sdks/go && go test ./...)
+      - name: Stage deterministic release assets
+        shell: bash
+        run: |
+          release_asset_dir="$RUNNER_TEMP/cockroach-browser-release-assets"
+          node scripts/stage-release-assets.mjs --out "$release_asset_dir"
+          echo "RELEASE_ASSET_DIR=$release_asset_dir" >> "$GITHUB_ENV"
+      - name: Select the immutable npm release channel
+        id: channel
+        shell: bash
+        run: |
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          stable_latest="$(npm view "$package_name" dist-tags.latest 2>/dev/null || true)"
+          if [[ "$package_version" == *-* ]]; then
+            if [ -z "$stable_latest" ] || [ "$stable_latest" = "$package_version" ]; then
+              echo "::error::A prerelease requires an existing, different stable latest version"
+              exit 1
+            fi
+            echo "npm_tag=next" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+            echo "stable_latest=$stable_latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "npm_tag=latest" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "stable_latest=$package_version" >> "$GITHUB_OUTPUT"
+          fi
       - name: Check for an existing immutable npm artifact
         id: registry
         shell: bash
@@ -67,7 +123,7 @@ jobs:
           fi
       - name: Publish to npm with provenance
         if: steps.registry.outputs.publish == 'true'
-        run: npm publish --access public --provenance
+        run: npm publish --access public --provenance --tag "${{ steps.channel.outputs.npm_tag }}"
       - name: Verify npm release identity
         shell: bash
         run: |
@@ -88,7 +144,18 @@ jobs:
                 echo "::error::npm exposes ${package_spec} from gitHead ${published_head}, not ${current_head}"
                 exit 1
               fi
+              selected_tag="$(npm view "$package_name" "dist-tags.${{ steps.channel.outputs.npm_tag }}")"
+              latest_tag="$(npm view "$package_name" dist-tags.latest)"
+              if [ "$selected_tag" != "$package_version" ]; then
+                echo "::error::npm ${{ steps.channel.outputs.npm_tag }} points to ${selected_tag}, not ${package_version}"
+                exit 1
+              fi
+              if [ "${{ steps.channel.outputs.prerelease }}" = "true" ] && [ "$latest_tag" != "${{ steps.channel.outputs.stable_latest }}" ]; then
+                echo "::error::npm latest moved from ${{ steps.channel.outputs.stable_latest }} to ${latest_tag} during prerelease publication"
+                exit 1
+              fi
               npm view "$package_spec" version dist.shasum dist.integrity dist.tarball gitHead
+              npm view "$package_name" dist-tags --json
               exit 0
             fi
             echo "Waiting for npm registry propagation (${attempt}/6)..."
@@ -104,5 +171,22 @@ jobs:
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "GitHub release ${GITHUB_REF_NAME} already exists."
           else
-            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "Cockroach Browser $GITHUB_REF_NAME"
+            prerelease_flag=()
+            if [ "${{ steps.channel.outputs.prerelease }}" = "true" ]; then
+              prerelease_flag+=(--prerelease)
+            fi
+            gh release create "$GITHUB_REF_NAME" \
+              --verify-tag \
+              --title "Cockroach Browser $GITHUB_REF_NAME" \
+              --notes-file "$RELEASE_ASSET_DIR/cockroach-browser-$(node -p "require('./package.json').version")-release-notes.md" \
+              "${prerelease_flag[@]}"
           fi
+          release_json="$(gh release view "$GITHUB_REF_NAME" --json isDraft,isPrerelease)"
+          node -e '
+            const release = JSON.parse(process.argv[1]);
+            const expected = process.argv[2] === "true";
+            if (release.isDraft || release.isPrerelease !== expected) {
+              throw new Error(`GitHub release state mismatch: ${JSON.stringify(release)}`);
+            }
+          ' "$release_json" "${{ steps.channel.outputs.prerelease }}"
+          gh release upload "$GITHUB_REF_NAME" "$RELEASE_ASSET_DIR"/* --clobber

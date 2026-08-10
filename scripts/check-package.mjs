@@ -48,11 +48,31 @@ const requiredSourceFiles = [
   "dist/client.js",
   "dist/operator-install.js",
   "dist/operator-install.d.ts",
+  "dist/raw-automation.js",
+  "dist/raw-automation.d.ts",
+  "dist/puppeteer.js",
+  "dist/puppeteer.d.ts",
+  "dist/test.js",
+  "dist/test.d.ts",
+  "dist/cdp.js",
+  "dist/bidi.js",
+  "dist/mobile.js",
+  "dist/model-gateway.js",
+  "dist/agent.js",
+  "dist/fleet.js",
+  "dist/codegen.js",
+  "dist/test-runner.js",
   "dist/integrations/maqam.js",
   "dist/integrations/qarinah.js",
   "dist/integrations/crawler.js",
   "dist/integrations/productloop.js",
-  "schemas/browser-memory.schema.json"
+  "schemas/browser-memory.schema.json",
+  "docs/compatibility/browser-api-surface.json",
+  "sdks/python/cockroach_browser/client.py",
+  "sdks/java/src/main/java/io/cockroach/browser/Client.java",
+  "sdks/dotnet/CockroachBrowser/BrowserClient.cs",
+  "sdks/ruby/lib/cockroach_browser.rb",
+  "sdks/go/cockroachbrowser/client.go"
 ];
 for (const path of requiredSourceFiles) await access(resolve(root, path));
 
@@ -67,11 +87,25 @@ assert(
   compose.includes(`image: ${packageJson.name}:${packageJson.version}`),
   "docker-compose image version is stale"
 );
+assert(compose.includes("shm_size: 512m"), "docker-compose must provide bounded shared memory for browser engines");
+const dockerfile = await readFile(resolve(root, "Dockerfile"), "utf8");
+for (const required of [
+  "HOME=/tmp/cockroach-browser-home",
+  "XDG_CACHE_HOME=/tmp/cockroach-browser-cache",
+  "XDG_CONFIG_HOME=/tmp/cockroach-browser-config",
+  "XDG_RUNTIME_DIR=/tmp/cockroach-browser-runtime"
+]) {
+  assert(dockerfile.includes(required), `Dockerfile is missing the ephemeral browser runtime path: ${required}`);
+}
+const ciWorkflow = await readFile(resolve(root, ".github/workflows/ci.yml"), "utf8");
+assert(ciWorkflow.includes("--shm-size 512m"), "container CI must retain bounded shared memory");
 const siteContent = await readFile(resolve(root, "site", "content.mjs"), "utf8");
 assert(
   siteContent.includes(`version: "${packageJson.version}"`),
   "website source version is stale"
 );
+assert(siteContent.includes("--shm-size 512m"), "website container example must preserve bounded shared memory");
+assert(siteContent.includes("127.0.0.1:43110:43111"), "website container example must publish the authenticated proxy port");
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 assert(
   readme.includes(`Current release line: **${packageJson.version}**`),
@@ -80,6 +114,10 @@ assert(
 
 const cli = await readFile(resolve(root, "dist/cli.js"), "utf8");
 assert(cli.startsWith("#!/usr/bin/env node"), "built CLI must preserve its Node shebang");
+const codegen = await readFile(resolve(root, "dist/codegen.js"), "utf8");
+const testRunner = await readFile(resolve(root, "dist/test-runner.js"), "utf8");
+assert(codegen.startsWith("#!/usr/bin/env node"), "codegen CLI must preserve its Node shebang");
+assert(testRunner.startsWith("#!/usr/bin/env node"), "test runner CLI must preserve its Node shebang");
 assert(
   cli.includes(`version: "${packageJson.version}"`),
   "built CLI version is stale"

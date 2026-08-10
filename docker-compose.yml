@@ -2,7 +2,7 @@ services:
   browser:
     build:
       context: .
-    image: cockroach-browser:0.3.0
+    image: cockroach-browser:0.4.0-rc.1
     ports:
       - "127.0.0.1:43110:43111"
     restart: unless-stopped
@@ -14,6 +14,7 @@ services:
       - no-new-privileges:true
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=256m
+    shm_size: 512m
     volumes:
       - browser-data:/data
     environment:

@@ -2,13 +2,13 @@
 
 Install once. Admit one origin. Keep every result.
 
-Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.
+Cockroach Browser gives an AI agent real Chromium, Firefox, or WebKit execution without turning the browser into ambient authority. Start with a local daemon, embed the bounded runtime, or use the raw upstream APIs.
 
 Public manual: https://cockroachbrowser.com/docs/getting-started/
 
-## Install the package and Chromium
+## Install the package and three browser engines
 
-The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
+The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Playwright 1.62.1 Chromium, Firefox, and WebKit builds only when an engine is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
 
 ```
 # Install once for the current computer account
@@ -85,4 +85,4 @@ await browser.close();
 
 ## Release status
 
-This manual targets Cockroach Browser 0.3.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.4.0-rc.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

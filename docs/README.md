@@ -1,12 +1,13 @@
 # Cockroach Browser documentation
 
-Cockroach Browser is a local-first browser runtime for AI agents with authorized Chromium sessions, snapshot-scoped semantic references, evidence capture, MCP, and Maqam policy hooks.
+Cockroach Browser is a local-first browser runtime for AI agents with Chromium, Firefox, and WebKit execution; complete pinned Playwright and Puppeteer exports; snapshot-scoped semantic references; evidence capture; an optional model gateway; six SDKs; and MCP.
 
 The public documentation lives at https://cockroachbrowser.com/docs/.
 
 ## Manuals
 
 - [Getting started](./getting-started.md)
+- [Full automation platform](./automation-platform.md)
 - [Operator install](./operator-install.md)
 - [Sessions and profiles](./sessions.md)
 - [Actions and semantic refs](./actions.md)
@@ -26,6 +27,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Deployment](./deployment.md)
 - [Capability matrix](./capabilities.md)
 - [Alternatives and product-layer comparison](https://cockroachbrowser.com/alternatives/)
+- [Complete Playwright and Puppeteer API inventory](https://cockroachbrowser.com/api-surface/)
 - [Technical white paper](./whitepaper.md)
 
 ## Product boundaries

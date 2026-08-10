@@ -60,6 +60,25 @@ const capabilitySource = await readFile(resolve(sourceRoot, "src/capabilities.ts
 const capabilityPattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
 const registry = [...capabilitySource.matchAll(capabilityPattern)];
 const capabilityPage = await readFile(resolve(siteRoot, "docs/capabilities/index.html"), "utf8");
+const apiSurfacePage = await readFile(resolve(siteRoot, "api-surface/index.html"), "utf8");
+const sourceApiSurface = JSON.parse(await readFile(resolve(sourceRoot, "docs/compatibility/browser-api-surface.json"), "utf8"));
+const publicApiSurface = JSON.parse(await readFile(resolve(siteRoot, "api/browser-api-surface.json"), "utf8"));
+if (JSON.stringify(publicApiSurface) !== JSON.stringify(sourceApiSurface)) {
+  failures.push("public browser API JSON does not exactly match the generated source inventory");
+}
+for (const pkg of sourceApiSurface.packages) {
+  for (const fact of [pkg.package, pkg.version, pkg.reexport, String(pkg.summary.owners), String(pkg.summary.groupedOwnerMembers), String(pkg.summary.ownerMemberSignatures)]) {
+    if (!apiSurfacePage.includes(fact)) failures.push(`API surface page is missing ${pkg.package} fact: ${fact}`);
+  }
+  for (const owner of pkg.owners) {
+    if (!apiSurfacePage.includes(`<code>${owner.name}</code>`)) failures.push(`API surface page is missing ${pkg.package} owner ${owner.name}`);
+    for (const member of owner.members) {
+      if (!apiSurfacePage.includes(`<code>${member.name.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;")}</code>`)) {
+        failures.push(`API surface page is missing ${pkg.package} member ${owner.name}.${member.name}`);
+      }
+    }
+  }
+}
 const whatIsPage = await readFile(resolve(siteRoot, "what-is-cockroach-browser/index.html"), "utf8");
 const featuresPage = await readFile(resolve(siteRoot, "features/index.html"), "utf8");
 const contractsSource = await readFile(resolve(sourceRoot, "src/contracts.ts"), "utf8");
@@ -226,7 +245,7 @@ for (const match of sitemap.matchAll(/<loc>https:\/\/cockroachbrowser\.com([^<]*
   const diskTarget = resolveAbsolutePath(target);
   if (!(await exists(diskTarget))) failures.push(`sitemap references missing ${target}`);
 }
-for (const route of ["/features/", "/install/", "/ai-agents/", "/use-cases/", "/browser-vs-crawler/"]) {
+for (const route of ["/features/", "/install/", "/ai-agents/", "/use-cases/", "/browser-vs-crawler/", "/api-surface/"]) {
   if (!sitemap.includes(`<loc>${siteUrl()}${route}</loc>`)) failures.push(`sitemap is missing ${route}`);
 }
 
@@ -352,7 +371,7 @@ if (searchIndex) {
     if (!searchIndex.documents.some((entry) => entry.url === `${siteUrl()}/what-is-cockroach-browser/`)) {
       failures.push("search.json is missing the product-definition page");
     }
-    for (const route of ["features/", "install/", "ai-agents/", "use-cases/", "browser-vs-crawler/"]) {
+    for (const route of ["features/", "install/", "ai-agents/", "use-cases/", "browser-vs-crawler/", "api-surface/"]) {
       if (!searchIndex.documents.some((entry) => entry.url === `${siteUrl()}/${route}`)) {
         failures.push(`search.json is missing ${route}`);
       }
@@ -367,10 +386,10 @@ const llms = await readFile(resolve(siteRoot, "llms.txt"), "utf8");
 if (!llms.includes(`${siteUrl()}/alternatives/`)) {
   failures.push("llms.txt is missing the alternatives page");
 }
-for (const route of ["what-is-cockroach-browser/", "features/", "install/", "ai-agents/", "use-cases/", "browser-vs-crawler/", "docs/capabilities/", "docs/getting-started/", "docs/"]) {
+for (const route of ["what-is-cockroach-browser/", "features/", "install/", "ai-agents/", "use-cases/", "browser-vs-crawler/", "api-surface/", "docs/capabilities/", "docs/getting-started/", "docs/"]) {
   if (!llms.includes(`${siteUrl()}/${route}`)) failures.push(`llms.txt is missing ${route}`);
 }
-for (const required of ["does not bundle an LLM", `${actionKinds.length} typed browser actions`, "Chromium-family sessions only", "separate optional integrations"]) {
+for (const required of ["OpenAI-compatible model gateway", `${actionKinds.length} bounded browser actions`, "Chromium, Firefox, or WebKit", "External-service boundary"]) {
   if (!llms.includes(required)) failures.push(`llms.txt is missing Browser fact: ${required}`);
 }
 for (const contamination of ["trafilatura@", "511 observed pages", "Core structural"]) {
@@ -378,7 +397,7 @@ for (const contamination of ["trafilatura@", "511 observed pages", "Core structu
 }
 
 const llmsFull = await readFile(resolve(siteRoot, "llms-full.txt"), "utf8");
-for (const required of ["## What Cockroach Browser is", "## AI-agent integration", `## ${actionKinds.length} typed browser actions`, "## Browser automation use cases", "## Current Cockroach Browser gaps", `## Complete ${registry.length}-capability matrix`]) {
+for (const required of ["## What Cockroach Browser is", "## AI-agent integration", `## ${actionKinds.length} bounded browser actions`, "## Browser automation use cases", "## Current Cockroach Browser gaps", `## Complete ${registry.length}-capability matrix`]) {
   if (!llmsFull.includes(required)) failures.push(`llms-full.txt is missing ${required}`);
 }
 for (const kind of actionKinds) {
@@ -394,6 +413,7 @@ for (const required of [
   "search.json",
   "llms.txt",
   "llms-full.txt",
+  "api/browser-api-surface.json",
   "_headers",
   "_redirects",
   "assets/logo.png"
