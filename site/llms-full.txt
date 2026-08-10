@@ -1,210 +1,299 @@
 # Cockroach Browser documentation
 
-## Governed-agent ecosystem
+## What Cockroach Browser is
+
+Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.
+
+Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It runs stateful Chromium sessions and exposes browser work through MCP, a TypeScript SDK, an authenticated HTTP API, and a CLI. Cockroach Crawler is a separate public-web acquisition product. Cockroach Browser does not bundle an LLM or autonomous planner.
+
+## AI-agent integration
+
+A host agent creates a session, requests a semantic snapshot, chooses a snapshot-scoped reference, submits an exact browser action, and receives an outcome plus evidence and a hash-linked receipt. The LLM remains outside Cockroach Browser and may be supplied by any host that can call MCP, TypeScript, or HTTP tools.
+
+## 65 typed browser actions
+
+- navigate
+- back
+- forward
+- reload
+- click
+- doubleClick
+- fill
+- type
+- press
+- hover
+- focus
+- check
+- uncheck
+- select
+- scroll
+- drag
+- mouse.move
+- mouse.down
+- mouse.up
+- mouse.click
+- keyboard.down
+- keyboard.up
+- keyboard.insertText
+- upload
+- download
+- evaluate
+- query.inspect
+- emulation.set
+- emulation.clear
+- cache.clear
+- console.clear
+- network.clear
+- wait
+- challenge.resolve
+- history.inspect
+- capture.paired
+- annotate.show
+- annotate.clear
+- clipboard.read
+- clipboard.write
+- network.inspect
+- network.export
+- network.route.add
+- network.route.remove
+- network.routes.list
+- state.save
+- state.load
+- state.list
+- state.delete
+- screenshot
+- pdf
+- snapshot
+- extract
+- cookies.read
+- cookies.write
+- storage.read
+- storage.write
+- tab.open
+- tab.close
+- tab.switch
+- tab.lock
+- tab.unlock
+- tab.lock.status
+- trace.start
+- trace.stop
 
-This page maps documented product centers and composition boundaries from official project sources. It does not publish a shared performance benchmark, security ranking, production-capacity result, or universal winner.
+## Browser automation use cases
 
-### Qarinah
-Local-first, evidence-linked project memory and compact cited handoffs for coding agents.
+### AI-agent web workflows
+An agent must inspect a live application, identify a semantic target, interact with it, and return a reviewable result.
 
-Choose it when: The agent needs durable local project history with explicit provenance and disclosure controls.
+Cockroach Browser route: Create a session, capture a semantic snapshot, act through MCP or the SDK, and retain the receipt and evidence artifacts.
 
-Relationship to Cockroach Browser: Qarinah can provide cited project context before a browser task. It does not control browser execution or approve a side effect.
+Relevant surfaces: MCP, BrowserRuntime, BrowserClient, snapshot, click, fill, select, capture.paired.
 
-Official source: https://github.com/AjnasNB/qarinah
+### Authenticated portal work
+A user-authorized workflow needs cookies, storage, permissions, tabs, downloads, or a visible login handoff.
 
-### Maqam
-A compact TypeScript boundary for policy, exact-input approval, one-use dispatch, execution, and receipts.
+Cockroach Browser route: Use an isolated or runtime-owned persistent profile, headed mode when required, explicit state checkpoints, and controlled files.
 
-Choose it when: A selected registered action must remain bound to the input that was reviewed and consumed once.
+Relevant surfaces: persistentProfile, profile import/export, state.*, tab.*, upload, download.
 
-Relationship to Cockroach Browser: Cockroach Browser ships a Maqam adapter for consequential browser actions. Maqam remains a separate authority and is not part of the browser engine.
+### Forms and operational tasks
+A workflow needs real clicks, typing, selection, dialogs, file upload, downloads, or multi-step navigation.
 
-Official source: https://github.com/AjnasNB/maqam
+Cockroach Browser route: Target semantic refs, CSS, or XPath; run individual actions or an ordered batch; capture an outcome after each state change.
 
-### Cockroach Browser
-A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts.
+Relevant surfaces: fill, type, press, select, check, dialog, upload, download, /actions/batch.
 
-Choose it when: A host agent needs explicit session authority and browser evidence above a maintained automation primitive.
+### QA and release review
+A team needs reproducible screenshots, PDFs, visual diffs, console and asset checks, or performance observations.
 
-Relationship to Cockroach Browser: Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.
+Cockroach Browser route: Run the same page through capture, audits, network inspection, trace, HAR, video, and visual comparison surfaces.
 
-Official source: https://github.com/AjnasNB/cockroach-browser
+Relevant surfaces: screenshot, pdf, trace.*, audit.*, compare, recordHar, recordVideo.
 
-### Cockroach Crawler
-Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits.
+### Local browser tool for coding agents
+A coding agent needs browser capability without uploading the user's browser profile to a hosted browser service.
 
-Choose it when: The workflow needs bounded public-web evidence rather than a stateful browser interaction session.
+Cockroach Browser route: Run the authenticated loopback daemon, connect through MCP or the typed client, and keep profiles and evidence on the operator's machine.
 
-Relationship to Cockroach Browser: Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.
+Relevant surfaces: serve, mcp, BrowserClient, dashboard, doctor, service install.
 
-Official source: https://github.com/AjnasNB/cockroach-crawler
+### Operator-managed browser workers
+A service needs to route sessions across several authenticated browser daemons while retaining local ownership of each worker.
 
-### Playwright
-Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools.
+Cockroach Browser route: Use BrowserWorkerPool capacity and tags, worker health checks, activity streams, metrics, and team session roles.
 
-Choose it when: The application should own direct browser calls and the surrounding policy, service, and evidence design.
+Relevant surfaces: BrowserWorkerPool, /v1/health, /v1/activity, /v1/metrics, TeamSessionStore.
 
-Relationship to Cockroach Browser: Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.
+## Cockroach Browser versus Cockroach Crawler
 
-Official source: https://playwright.dev/
+### Interact with a stateful web application
+Cockroach Browser: Native fit: tabs, cookies, profiles, semantic refs, forms, dialogs, files, downloads, and browser state.
 
-### Puppeteer
-A JavaScript API for controlling Chrome and Firefox through browser protocols.
+Cockroach Crawler: Not the primary fit for a user-like multi-step application session.
 
-Choose it when: The job needs direct JavaScript browser automation without adopting an agent session runtime.
+Recommended choice: Cockroach Browser.
 
-Relationship to Cockroach Browser: Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.
+### Render and inspect one dynamic page
+Cockroach Browser: Native fit when page state, JavaScript, interaction, screenshots, PDFs, trace, or network evidence matters.
 
-Official source: https://pptr.dev/
+Cockroach Crawler: Useful when the rendered page belongs inside a larger acquisition job.
 
-### Browser Use
-An open-source Python framework for model-directed agents that interact with websites.
+Recommended choice: Usually Cockroach Browser.
 
-Choose it when: The product needs an autonomous browser agent, model integration, and high-level task execution.
+### Discover and map many public pages
+Cockroach Browser: Can visit explicit pages, but browser sessions are expensive and do not provide site traversal as their primary abstraction.
 
-Relationship to Cockroach Browser: Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.
+Cockroach Crawler: Native fit for multiple seeds, traversal strategies, sitemaps, robots rules, filters, concurrency, and site maps.
 
-Official source: https://github.com/browser-use/browser-use
+Recommended choice: Cockroach Crawler.
 
-### Stagehand
-Open-source AI browser automation that combines code with model-powered observation, action, and extraction.
+### Extract normalized content across a site
+Cockroach Browser: Provides bounded text and HTML extraction from the current rendered page.
 
-Choose it when: The workflow needs natural-language browser methods and a framework for AI-assisted interaction.
+Cockroach Crawler: Native fit for repeated page acquisition, structured extraction, Markdown, metadata, provenance, and searchable maps.
 
-Relationship to Cockroach Browser: Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.
+Recommended choice: Cockroach Crawler.
 
-Official source: https://www.stagehand.dev/
+### Audit a release or reproduce a visual defect
+Cockroach Browser: Native fit for screenshots, PDF, traces, video, console, network, accessibility, performance, and visual comparisons.
 
-### Firecrawl
-A web API and open-source project for search, scrape, crawl, map, and browser interaction.
+Cockroach Crawler: Can collect pages, but does not replace a stateful browser review session.
 
-Choose it when: Managed web acquisition, hosted operations, and an API-centered product are primary requirements.
+Recommended choice: Cockroach Browser.
 
-Relationship to Cockroach Browser: Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.
+### Find candidates broadly, then interact deeply
+Cockroach Browser: Open only the selected pages that require state, interaction, or browser evidence.
 
-Official source: https://docs.firecrawl.dev/introduction
+Cockroach Crawler: Discover, filter, and rank the broader public-web candidate set first.
 
-### Trafilatura
-Web text, metadata, comments, discovery, and structured output with configurable extraction.
+Recommended choice: Use both through an explicit handoff.
 
-Choose it when: Main-content extraction from HTML is the central problem rather than browser interaction or agent authority.
+## Alternatives by product layer
 
-Relationship to Cockroach Browser: Cockroach Crawler's opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0. Cockroach Browser does not replace an extraction specialist.
+This comparison uses official project documentation reviewed on 10 August 2026. It describes product scope, deployment, and current Cockroach Browser gaps. It does not publish a speed, task-success, security, or scale ranking because there is no matched benchmark across these product categories.
 
-Official source: https://trafilatura.readthedocs.io/en/latest/
+### Browser libraries
+Examples: Playwright, Puppeteer, Selenium.
 
-### Docling
-Conversion of PDFs, office documents, images, HTML, and Markdown into a structured document representation.
+Direct browser APIs, browser objects, events, protocols, test tooling, and broad ecosystem compatibility.
 
-Choose it when: Layout, tables, images, OCR, or complex document structure is the main ingestion problem.
+Choose this layer when: Your application should own browser calls directly and your team will build the surrounding agent, service, policy, and evidence layers.
 
-Relationship to Cockroach Browser: Docling is a document specialist. Cockroach Browser can acquire a file through an authorized session, but it does not claim Docling's conversion scope.
+Cockroach Browser relationship: Cockroach Browser uses playwright-core, narrows control to session actions and semantic references, and adds packaged local transport plus evidence records.
 
-Official source: https://docling-project.github.io/docling/
+Official sources: Playwright browsers: https://playwright.dev/docs/browsers; Puppeteer supported browsers: https://pptr.dev/supported-browsers; Selenium WebDriver: https://www.selenium.dev/documentation/webdriver/.
 
-### LangGraph
-A low-level runtime for long-running, stateful agents with durable execution, streaming, and human involvement.
+### Agent control servers
+Examples: Playwright MCP, Chrome DevTools MCP, PinchTab.
 
-Choose it when: Durable workflow state, graph composition, pause and resume, and recovery are central.
+Browser control, inspection, debugging, or performance tools exposed to coding agents through MCP.
 
-Relationship to Cockroach Browser: LangGraph can orchestrate a browser tool. Cockroach Browser does not replace its workflow state or agent runtime.
+Choose this layer when: An MCP client needs maintained browser tools and the deployment already owns the surrounding trust and authorization model.
 
-Official source: https://docs.langchain.com/oss/javascript/langgraph/overview
+Cockroach Browser relationship: Cockroach Browser ships an observation-first MCP surface alongside its SDK, CLI, and authenticated HTTP API.
 
-### OpenAI Agents SDK
-A TypeScript SDK for agent loops, tools, handoffs, guardrails, sessions, tracing, and human involvement.
+Official sources: Playwright MCP: https://github.com/microsoft/playwright-mcp; Chrome DevTools MCP: https://github.com/ChromeDevTools/chrome-devtools-mcp; PinchTab: https://github.com/pinchtab/pinchtab.
 
-Choose it when: The primary job is building and running text, sandbox, or voice agents with a compact set of primitives.
+### AI browser frameworks
+Examples: Browser Use, Stagehand, Vercel Labs agent-browser.
 
-Relationship to Cockroach Browser: The SDK can call Cockroach Browser as a tool. Cockroach Browser does not replace its model loop, handoffs, sessions, or tracing.
+Model selection, natural-language browser operations, planning, extraction, recovery loops, and autonomous task execution.
 
-Official source: https://openai.github.io/openai-agents-js/
+Choose this layer when: The product needs an LLM-driven browser agent rather than only a browser runtime that an existing agent can call.
 
-## Alternatives and comparison method
+Cockroach Browser relationship: Cockroach Browser deliberately does not bundle an LLM planner. A host agent calls its MCP, SDK, or HTTP surfaces and remains responsible for planning.
 
-This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories.
+Official sources: Browser Use cloud quickstart: https://docs.browser-use.com/cloud/quickstart; Stagehand introduction: https://docs.stagehand.dev/v3/first-steps/introduction; Vercel Labs agent-browser: https://github.com/vercel-labs/agent-browser.
 
-### Playwright
-Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.
+### Hosted browser infrastructure
+Examples: Browserbase, Browserless, Steel.
 
-Choose it when: You want a general-purpose automation library and will design the agent policy, service boundary, and evidence model around it.
+Managed browser capacity, remote connection endpoints, sessions, profiles, proxies, recordings, live inspection, and provider-operated infrastructure.
 
-Relationship to Cockroach Browser: Cockroach Browser uses playwright-core underneath its runtime. The comparison is therefore package layer versus underlying primitive, not a claim that Cockroach Browser replaces or outperforms Playwright.
+Choose this layer when: Elastic capacity, hosted operations, managed proxies, geographic placement, or browser fleet management is the main requirement.
 
-Official source: https://playwright.dev/docs/intro
+Cockroach Browser relationship: Cockroach Browser defaults to local or operator-managed workers. It has a worker pool, but it is not a hosted elastic browser cloud or managed proxy service.
 
-### Puppeteer
-A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
+Official sources: Browserbase core features: https://docs.browserbase.com/platform/browser/core-features/overview; Browserless browser as a service: https://docs.browserless.io/baas/start; Steel Sessions API: https://docs.steel.dev/overview/sessions-api/overview.
 
-Choose it when: You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.
+## Current Cockroach Browser gaps
 
-Relationship to Cockroach Browser: Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.
+### Browser engines
+Shipped: Bundled or discovered Chromium, Chrome, Edge, and Brave executables, plus explicit Chrome CDP attachment.
 
-Official source: https://pptr.dev/guides/what-is-puppeteer
+Current gap: No Firefox or WebKit session selection in Cockroach Browser 0.3.0.
 
-### Selenium
-WebDriver-based browser automation with local or remote execution and broad language and browser support.
+Official comparison source: https://playwright.dev/docs/browsers
 
-Choose it when: You need the WebDriver ecosystem, multiple implementation languages, established test tooling, or a Selenium Grid deployment.
+### Protocol access
+Shipped: Attach to one operator-selected Chrome DevTools endpoint through the CDP provider.
 
-Relationship to Cockroach Browser: Cockroach Browser is a TypeScript and Node.js runtime centered on agent sessions, local authority, and evidence. That is a narrower product shape than Selenium's general WebDriver ecosystem.
+Current gap: No public raw CDP session surface and no WebDriver BiDi API.
 
-Official source: https://www.selenium.dev/documentation/webdriver/
+Official comparison source: https://pptr.dev/api/puppeteer.cdpsession
 
-### Playwright MCP
-MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.
+### Handles, targets, and events
+Shipped: Snapshot-scoped semantic references, exact CSS or XPath targets, tabs, frames, and a bounded activity stream.
 
-Choose it when: Your agent needs a maintained MCP surface for browser control and you will provide the surrounding trust and authorization boundary.
+Current gap: No drop-in Page, Frame, ElementHandle, JSHandle, BrowserContext, Target, or complete browser event API.
 
-Relationship to Cockroach Browser: The official project states that Playwright MCP is not a security boundary. Cockroach Browser's distinct focus is an explicit session policy, finite budgets, authenticated local transport, evidence records, and optional Maqam approval hooks.
+Official comparison source: https://pptr.dev/api/puppeteer.elementhandle
 
-Official source: https://github.com/microsoft/playwright-mcp
+### Network and WebSockets
+Shipped: Bounded redacted request and response observations, JSON or HAR-compatible export, session-start HAR recording, and exact-origin abort or static fulfillment routes.
 
-### Chrome DevTools MCP
-Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.
+Current gap: No complete request-mutation lifecycle, raw protocol network domains, or WebSocket frame lifecycle API.
 
-Choose it when: The job is browser debugging or performance analysis and direct access to Chrome DevTools is the primary requirement.
+Official comparison source: https://playwright.dev/docs/network
 
-Relationship to Cockroach Browser: Cockroach Browser emphasizes bounded operational sessions and proof of actions. Chrome DevTools MCP emphasizes Chrome inspection and diagnostics; its official documentation warns that connected MCP clients can inspect and modify browser data.
+### Tracing, video, and screencast
+Shipped: Trace start and stop actions, session video, screenshots, PDFs, and evidence indexing.
 
-Official source: https://github.com/ChromeDevTools/chrome-devtools-mcp
+Current gap: No full library-compatible tracing object model, raw screencast stream, or hosted recording viewer.
 
-### Browser Use
-A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.
+Official comparison source: https://playwright.dev/docs/api/class-tracing
 
-Choose it when: You want an autonomous browser agent, model integration, and high-level task execution rather than only a browser execution service.
+### Accessibility and diagnostics
+Shipped: Semantic snapshots plus bounded accessibility, performance, asset, console, security, and visual audits.
 
-Relationship to Cockroach Browser: Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.
+Current gap: No complete browser accessibility tree API, JavaScript coverage API, heap snapshot API, or full DevTools diagnostics surface.
 
-Official source: https://github.com/browser-use/browser-use
+Official comparison source: https://github.com/ChromeDevTools/chrome-devtools-mcp
 
-### Stagehand
-Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
+### Extensions
+Shipped: Up to 16 reviewed unpacked extension directories in an isolated headed Chromium profile.
 
-Choose it when: You want AI-assisted page actions and extraction with a choice of local browsers or Browserbase infrastructure.
+Current gap: No extension marketplace install, signed-extension distribution, or cross-browser extension test matrix.
 
-Relationship to Cockroach Browser: Cockroach Browser keeps model choice and planning outside the runtime. Its native concern is what one admitted session may do and which evidence and receipts remain afterward.
+Official comparison source: https://pptr.dev/guides/chrome-extensions
 
-Official source: https://docs.stagehand.dev/v3/first-steps/introduction
+### Hosted scale
+Shipped: Local daemon, Docker image, authenticated remote workers, capacity-aware worker pool, and team session roles.
 
-### Browserbase
-Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
+Current gap: No vendor-operated elastic browser fleet, managed regional capacity, live session viewer, usage billing, or hosted control plane.
 
-Choose it when: You need managed browser capacity, remote session infrastructure, live inspection, or scale without operating the browser fleet yourself.
+Official comparison source: https://docs.browserbase.com/platform/browser/core-features/overview
 
-Relationship to Cockroach Browser: Cockroach Browser defaults to a local or operator-managed runtime. Browserbase provides hosted infrastructure. These deployment choices can address different parts of one architecture.
+### Proxy and identity services
+Shipped: One explicit operator-supplied proxy per session with credentials resolved through a host secret reference.
 
-Official source: https://docs.browserbase.com/platform/browser/getting-started/create-browser-session
+Current gap: No managed residential proxy network, automatic rotation, geographic routing catalog, or hosted identity service.
 
-### Browserless
-Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
+Official comparison source: https://docs.steel.dev/overview/stealth/proxies
 
-Choose it when: You need a remote browser endpoint, browser APIs, or a self-hostable browser service with infrastructure features.
+### Stealth and access challenges
+Shipped: Challenge detection, pause, evidence, human handoff, and an optional host-authorized resolver callback.
 
-Relationship to Cockroach Browser: Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.
+Current gap: No covert fingerprint evasion, CAPTCHA bypass engine, or provider-operated challenge-solving service.
 
-Official source: https://docs.browserless.io/overview/intro
+Official comparison source: https://docs.steel.dev/overview/captchas-api/overview
+
+### Built-in LLM autonomy
+Shipped: MCP, TypeScript SDK, CLI, and authenticated HTTP surfaces that an external AI agent can call.
+
+Current gap: No bundled model, prompt planner, autonomous recovery loop, or natural-language task-success benchmark.
+
+Official comparison source: https://docs.browser-use.com/cloud/quickstart
+
+## Browser manuals
 
 ## Getting started
 
@@ -471,73 +560,6 @@ Every attempt admits only public HTTPS destinations, pins the connection to a va
 ### Understand the durability promise
 This is a local durable at-least-once outbox for one deployment-owned filesystem. It persists selected events before delivery, recovers interrupted local transactions, retries within finite policy, and records terminal outcomes. It is not a distributed queue, a cross-host consensus system, or an exactly-once transport. Receiver-side deduplication by stable delivery ID is required.
 
-## Maqam integration
-
-For operations routed through its adapter, Maqam presents a four-step browser driver: observe, preview, apply, and submit, then applies policy, exact approval, replay protection, and governance receipts.
-
-### Separate the authorities
-The browser runtime owns Chromium, tabs, semantic refs, action execution, and browser evidence. For operations routed through the adapter, Maqam owns registered tools, policy decisions, effect classification, exact one-use approvals, preview tokens, replay rejection, and governance records.
-
-### Observe and preview
-observe returns current page state and a stable revision. preview resolves the requested operation against that revision. If the target changed, the operation must be observed and previewed again.
-
-### Apply or submit once
-apply covers structural browser operations. submit covers form submission. The adapter carries operation IDs and rejects duplicate or stale execution. Unknown write outcomes are not retried automatically.
-
-### Register every additional effect as an exact tool
-Uploads, downloads, clipboard writes, JavaScript, state restore, network interception, PDF generation, and other high-risk actions are runtime capabilities, not implicit Maqam driver methods. A host that exposes one must register a typed Maqam tool with an exact input schema, effect class, policy, approval rule, and receipt mapping.
-
-### Do not expose the managed session directly
-A session placed behind the Maqam driver must remain host-owned. Do not expose its raw action endpoint or lifecycle methods to the same agent. Maqam governance covers only operations routed through this adapter; trusted-host SDK calls and explicitly enabled raw-action routes remain separate host authority. The browser adapter is an execution boundary, not a second policy system.
-
-## Qarinah integration
-
-Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.
-
-### Record metadata, not browser secrets
-The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the canonical input digest, output digest, browser receipt hash, evidence IDs, source URL, and bounded descriptive metadata as cited context links. The host supplies the persistence callback supported by its installed Qarinah release.
-
-### Keep memory read-only with respect to the browser
-Qarinah never creates a session, changes policy, approves an action, or dispatches a browser operation. A later memory query may inform a proposal, but Maqam and the browser boundary still decide execution.
-
-### Link a causal receipt chain when it exists
-A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.
-
-### Cross-tool context
-The same cited memory pack can be consumed by coding agents and CLIs that support the Qarinah integration. Authority remains scoped by workspace and source provenance.
-
-## Cockroach Crawler integration
-
-Cockroach Crawler maps and extracts public web content at bounded scale. Cockroach Browser handles stateful rendering, semantic interactions, screenshots, audits, and user-authorized sessions.
-
-### Choose the right engine
-Start with the crawler for static HTTP, searched site maps, structured extraction, documents, feeds, public-source breadth, and bounded crawl jobs. Hand a specific URL to the browser when JavaScript rendering, page state, interaction, or browser evidence is required.
-
-### Handoff explicit URLs and finite budgets
-The adapter passes explicit seed URLs, allowed origins, page ceilings, and other finite crawl budgets. Keep the browser-session purpose in local browser evidence and host orchestration records; it is not crawler authority. The handoff never shares browser profiles, cookies, authenticated state, session secrets, or interactive browser state.
-
-### Normalize the evidence
-Keep source URL, capture time, content digest, extraction method, and failure state across the handoff. Maqam may govern both tools while retaining separate receipts and effect models.
-
-### Avoid duplicate work
-Map once with the crawler, rank candidate pages, then render only the pages that need a browser. This preserves browser budgets and makes the reason for each rendered session visible.
-
-## ProductLoop OS
-
-A host-owned ProductLoop adapter can consume Cockroach Browser's structural capability snapshot while Maqam, Qarinah, Cockroach Crawler, ProductLoop, and the browser retain distinct contracts and records.
-
-### Read the structural capability snapshot
-productLoopBrowserCapabilitySnapshot() returns descriptive structural data for a host adapter: observations, proposals, effects, transports, supported Node releases, governance requirements, and lifecycle ownership. It is not a directly registerable ProductLoop connector manifest. Translate it into the exact versioned ProductLoop contract accepted by the installed release. The snapshot grants no origins, profiles, credentials, lifecycle, or action authority.
-
-### Use Maqam as the gateway
-Product workflows should call a Maqam-governed tool wrapper for consequential browser operations. Maqam governance applies only when the operation is actually routed through that adapter. Read-only structural adapters may expose bounded observations directly when their host policy allows it.
-
-### Keep ledgers distinct
-Browser evidence proves what Chromium observed and executed. Maqam proves the policy and approval path. Qarinah preserves cited project memory. ProductLoop coordinates packages and workflows. Stable IDs connect these records without pretending they are one database.
-
-### Current status
-The ProductLoop integration in 0.3.0 is a structural capability snapshot for a host-owned adapter, not direct connector registration. The browser runtime, SDK, CLI, HTTP API, MCP server, evidence chain, and local dashboard are implemented in the package.
-
 ## Security
 
 Cockroach Browser is built around explicit sessions, explicit origins, separate effects, finite budgets, authenticated transport, evidence receipts, and challenge handoff.
@@ -586,7 +608,7 @@ Embed TeamSessionStore to persist owner, viewer, and operator roles with revocat
 ### Release verification
 Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.
 
-## Capability matrix
+## Complete 94-capability matrix
 
 - Authorized browser sessions [available]: Create sessions only from explicit user or host configuration. Surface: runtime.createSession.
 - Headless Chromium [available]: Run unattended Chromium with the same policy boundary. Surface: mode=headless.
@@ -682,3 +704,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - ProductLoop capability snapshot [adapter]: Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority. Surface: docs/productloop.md.
 - Signed lifecycle webhooks [available]: Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery. Surface: SignedWebhookDispatcher.
 - Team session control [available]: Persist session owners, viewer and operator grants, revocation generations, policy, and receipts without sharing raw profiles. Surface: TeamSessionStore and /access.
+
+## Optional separate integrations
+
+Cockroach Browser runs independently. Maqam can optionally provide external exact-action approval. Qarinah can optionally record cited browser outcomes. Cockroach Crawler can optionally hand selected URLs to the browser after public-web discovery. These products do not become part of the browser engine by installation alone.

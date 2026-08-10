@@ -12,24 +12,27 @@
   <link rel="alternate" hreflang="en" href="https://cockroachbrowser.com/docs/deployment/">
   <link rel="alternate" hreflang="x-default" href="https://cockroachbrowser.com/docs/deployment/">
   <link rel="alternate" type="application/json" href="/search.json" title="Cockroach Browser search index">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Cockroach Browser LLM overview">
+  <link rel="alternate" type="text/plain" href="/llms-full.txt" title="Cockroach Browser complete LLM documentation">
   <link rel="icon" href="/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="/assets/styles.css">
   <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Cockroach Browser">
   <meta property="og:title" content="Deployment | Cockroach Browser">
   <meta property="og:description" content="Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.">
   <meta property="og:url" content="https://cockroachbrowser.com/docs/deployment/">
   <meta property="og:image" content="https://cockroachbrowser.com/assets/logo.png">
   <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1250">
-  <meta property="og:image:height" content="1250">
-  <meta property="og:image:alt" content="Cockroach Browser globe and cockroach mark">
+  <meta property="og:image:width" content="1254">
+  <meta property="og:image:height" content="1254">
+  <meta property="og:image:alt" content="Cockroach Browser AI browser automation logo">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Deployment | Cockroach Browser">
   <meta name="twitter:description" content="Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
-  <meta name="twitter:image:alt" content="Cockroach Browser globe and cockroach mark">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","url":"https://cockroachbrowser.com","description":"Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#webpage","name":"Deployment | Cockroach Browser","headline":"Deployment | Cockroach Browser","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#article","headline":"Deployment","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","author":{"@type":"Person","name":"Ajnas N B"},"about":{"@id":"https://cockroachbrowser.com/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Product","item":"https://cockroachbrowser.com/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://cockroachbrowser.com/docs/"},{"@type":"ListItem","position":3,"name":"Deployment","item":"https://cockroachbrowser.com/docs/deployment/"}]}]}</script>
+  <meta name="twitter:image:alt" content="Cockroach Browser AI browser automation logo">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#webpage","name":"Deployment | Cockroach Browser","headline":"Deployment | Cockroach Browser","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.3.0","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#article","headline":"Deployment","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","author":{"@type":"Person","name":"Ajnas N B"},"about":{"@id":"https://cockroachbrowser.com/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Product","item":"https://cockroachbrowser.com/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://cockroachbrowser.com/docs/"},{"@type":"ListItem","position":3,"name":"Deployment","item":"https://cockroachbrowser.com/docs/deployment/"}]}]}</script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -42,15 +45,13 @@
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/what-is-cockroach-browser/" >What it is</a>
-      <a href="/docs/capabilities/">Features</a>
-      <a href="/docs/getting-started/">Install</a>
+      <a href="/ai-agents/" >AI agents</a>
+      <a href="/use-cases/" >Use cases</a>
+      <a href="/features/" >Features</a>
+      <a href="/install/" >Install</a>
       <a href="/docs/" aria-current="page">Docs</a>
       <a href="/alternatives/" >Alternatives</a>
-      <a href="/ecosystem/" >Ecosystem</a>
-      <a href="/dashboard/" >Dashboard</a>
-      <a href="/paper/" >Paper</a>
       <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
-      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
     </nav>
     <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
   </div>
@@ -72,8 +73,8 @@
     <h2>Local daemon</h2>
 <p>Use the CLI for a single-user workstation or development environment. The daemon creates its own token file and serves only on loopback unless you explicitly configure a remote deployment.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-26">Copy</button></div>
-  <pre><code id="code-26">npx cockroach-browser serve --host 127.0.0.1 --port 43110
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-29">Copy</button></div>
+  <pre><code id="code-29">npx cockroach-browser serve --host 127.0.0.1 --port 43110
 
 # The daemon writes a 32-byte bearer token to its local data directory.
 # Pass its path to every CLI call instead of putting a token in shell history.
@@ -84,8 +85,8 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token</c
     <h2>Container</h2>
 <p>Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.</p>
 <div class="code-block">
-  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-27">Copy</button></div>
-  <pre><code id="code-27">docker build -t cockroach-browser:0.3.0 .
+  <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-30">Copy</button></div>
+  <pre><code id="code-30">docker build -t cockroach-browser:0.3.0 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp \
@@ -116,17 +117,19 @@ docker run --rm \
 <footer class="footer">
   <div class="shell footer-inner">
     <div>
-      <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34"><span>Cockroach Browser</span></a>
-      <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
+      <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34" loading="lazy" decoding="async"><span>Cockroach Browser</span></a>
+      <p>Open-source local-first browser automation for AI agents. Real Chromium, semantic page references, profiles, files, network tools, MCP, and evidence.</p>
     </div>
     <div class="footer-links">
       <a href="/what-is-cockroach-browser/">What it is</a>
-      <a href="/docs/capabilities/">Features</a>
-      <a href="/docs/getting-started/">Install</a>
+      <a href="/ai-agents/">AI agents</a>
+      <a href="/use-cases/">Use cases</a>
+      <a href="/features/">Features</a>
+      <a href="/install/">Install</a>
       <a href="/docs/">Documentation</a>
       <a href="/docs/security/">Security</a>
       <a href="/alternatives/">Alternatives</a>
-      <a href="/ecosystem/">Ecosystem</a>
+      <a href="/browser-vs-crawler/">Browser vs Crawler</a>
       <a href="/paper/">Technical paper</a>
       <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
       <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>

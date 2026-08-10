@@ -3,5 +3,6 @@ content.mjs
 validate.mjs
 smoke.mjs
 README.md
+worker.mjs
 _headers
 _redirects

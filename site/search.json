@@ -1,19 +1,23 @@
 {
   "version": 1,
-  "checkedOn": "2026-08-09",
+  "checkedOn": "2026-08-10",
   "documents": [
     {
       "title": "Cockroach Browser",
       "url": "https://cockroachbrowser.com/",
       "kind": "product",
-      "summary": "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence.",
+      "summary": "Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.",
       "keywords": [
         "browser automation",
         "AI agents",
-        "local-first",
+        "LLM browser",
+        "Chromium",
+        "semantic snapshots",
+        "profiles",
+        "files",
         "evidence",
         "MCP",
-        "Maqam"
+        "TypeScript"
       ]
     },
     {
@@ -30,184 +34,184 @@
       ]
     },
     {
+      "title": "Cockroach Browser features",
+      "url": "https://cockroachbrowser.com/features/",
+      "kind": "features",
+      "summary": "94 mapped capabilities covering Chromium sessions, page interaction, profiles, files, evidence, audits, MCP, APIs, workers, and deployment.",
+      "keywords": [
+        "browser automation features",
+        "AI agent browser",
+        "65 browser actions",
+        "Authorized browser sessions",
+        "Headless Chromium",
+        "Headed Chromium",
+        "Attach over CDP",
+        "Custom Chromium executable",
+        "Cross-platform browser discovery",
+        "Explicit browser providers",
+        "Reviewed unpacked extensions",
+        "Named isolated profiles",
+        "Runtime-owned persistent browser profiles",
+        "Explicit storage-state import",
+        "Explicit storage-state export",
+        "Encrypted state checkpoints",
+        "Policy-gated clipboard",
+        "User-supplied proxy",
+        "Locale and timezone",
+        "Device and network emulation",
+        "Tabs and popups",
+        "Exclusive tab locks",
+        "Navigation",
+        "Snapshot-scoped page references",
+        "Explicit XPath targets",
+        "Semantic snapshots",
+        "Click and double-click",
+        "Form interaction",
+        "Hover and focus",
+        "Bounded scrolling",
+        "Low-level mouse actions",
+        "Low-level keyboard actions",
+        "Drag and drop",
+        "Page-state waits",
+        "Open Shadow DOM access",
+        "Same-origin iframe access",
+        "Same-origin frame targeting",
+        "Explicit dialog handling",
+        "Bounded browser history",
+        "Navigation graph",
+        "Policy-gated JavaScript",
+        "Bounded element inspection",
+        "Ordered action batches",
+        "File upload",
+        "Controlled downloads",
+        "Screenshots",
+        "Paired visual and semantic capture",
+        "Temporary page annotations",
+        "PDF capture",
+        "Playwright traces",
+        "HAR capture",
+        "Session video",
+        "Console records",
+        "Explicit runtime clearing",
+        "Network records",
+        "Network inspection",
+        "Network export",
+        "Hash-chained receipts",
+        "Text and HTML extraction",
+        "Accessibility audit",
+        "Page performance observations",
+        "Broken asset audit",
+        "Console error audit",
+        "Page security observations",
+        "Visual comparison",
+        "Challenge detection",
+        "Human challenge handoff",
+        "Authorized challenge resolver",
+        "Origin allowlists",
+        "Private-network blocking",
+        "Effect-level policy",
+        "Finite budgets",
+        "Policy-bounded network routes",
+        "Exact action approvals",
+        "Secret references",
+        "Command-line interface",
+        "Shell completions",
+        "Per-user daemon autostart",
+        "One-command bootstrap",
+        "TypeScript SDK",
+        "Authenticated HTTP API",
+        "OpenAPI discovery",
+        "Prometheus metrics",
+        "Observation-first MCP server",
+        "Docker runtime",
+        "Local dashboard",
+        "Authenticated remote workers",
+        "Multi-worker orchestration",
+        "Configurable activity stream",
+        "Durable local jobs",
+        "Doctor and daemon health checks",
+        "Maqam governance",
+        "Qarinah memory",
+        "Cockroach Crawler handoff",
+        "ProductLoop capability snapshot",
+        "Signed lifecycle webhooks",
+        "Team session control"
+      ]
+    },
+    {
+      "title": "Install Cockroach Browser",
+      "url": "https://cockroachbrowser.com/install/",
+      "kind": "installation",
+      "summary": "Install on Windows, macOS, or Linux, bootstrap Chromium explicitly, and connect through MCP, TypeScript, HTTP, CLI, Docker, or a local service.",
+      "keywords": [
+        "npm install cockroach-browser",
+        "MCP browser install",
+        "Chromium AI agent",
+        "TypeScript browser automation"
+      ]
+    },
+    {
+      "title": "Cockroach Browser for AI agents and LLM applications",
+      "url": "https://cockroachbrowser.com/ai-agents/",
+      "kind": "ai-agent-integration",
+      "summary": "Connect an external AI agent or LLM host to real Chromium through MCP, TypeScript, or an authenticated HTTP API.",
+      "keywords": [
+        "AI browser agent",
+        "LLM browser automation",
+        "browser MCP",
+        "semantic page snapshot",
+        "agent browser tool"
+      ]
+    },
+    {
+      "title": "Cockroach Browser use cases",
+      "url": "https://cockroachbrowser.com/use-cases/",
+      "kind": "use-cases",
+      "summary": "Stateful browser workflows for AI agents, authenticated portals, forms and files, QA, local coding agents, and operator-managed workers.",
+      "keywords": [
+        "AI-agent web workflows",
+        "Authenticated portal work",
+        "Forms and operational tasks",
+        "QA and release review",
+        "Local browser tool for coding agents",
+        "Operator-managed browser workers"
+      ]
+    },
+    {
+      "title": "Cockroach Browser vs Cockroach Crawler",
+      "url": "https://cockroachbrowser.com/browser-vs-crawler/",
+      "kind": "product-comparison",
+      "summary": "Choose Cockroach Browser for stateful interaction and browser evidence; choose Cockroach Crawler for broad public-web discovery, mapping, and extraction.",
+      "keywords": [
+        "Cockroach Browser",
+        "Cockroach Crawler",
+        "browser vs crawler",
+        "Interact with a stateful web application",
+        "Render and inspect one dynamic page",
+        "Discover and map many public pages",
+        "Extract normalized content across a site",
+        "Audit a release or reproduce a visual defect",
+        "Find candidates broadly, then interact deeply"
+      ]
+    },
+    {
       "title": "Cockroach Browser alternatives",
       "url": "https://cockroachbrowser.com/alternatives/",
       "kind": "comparison",
-      "summary": "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+      "summary": "Compare Cockroach Browser with browser libraries, MCP servers, AI browser frameworks, and hosted browser infrastructure by product layer, shipped scope, and current gaps.",
       "keywords": [
         "Playwright",
         "Puppeteer",
         "Selenium",
         "Playwright MCP",
         "Chrome DevTools MCP",
+        "PinchTab",
         "Browser Use",
         "Stagehand",
+        "Vercel Labs agent-browser",
         "Browserbase",
-        "Browserless"
-      ]
-    },
-    {
-      "title": "Open-source toolkit for governed AI agents",
-      "url": "https://cockroachbrowser.com/ecosystem/",
-      "kind": "ecosystem",
-      "summary": "A source-linked map of Qarinah, Maqam, Cockroach Browser, Cockroach Crawler, and adjacent open-source agent, browser, web, extraction, and document tools.",
-      "keywords": [
-        "Qarinah",
-        "Maqam",
-        "Cockroach Browser",
-        "Cockroach Crawler",
-        "Playwright",
-        "Puppeteer",
-        "Browser Use",
-        "Stagehand",
-        "Firecrawl",
-        "Trafilatura",
-        "Docling",
-        "LangGraph",
-        "OpenAI Agents SDK"
-      ]
-    },
-    {
-      "title": "Qarinah in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#qarinah",
-      "kind": "ecosystem-project",
-      "summary": "Local-first, evidence-linked project memory and compact cited handoffs for coding agents. Qarinah can provide cited project context before a browser task. It does not control browser execution or approve a side effect.",
-      "keywords": [
-        "Qarinah",
-        "Project memory",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Maqam in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#maqam",
-      "kind": "ecosystem-project",
-      "summary": "A compact TypeScript boundary for policy, exact-input approval, one-use dispatch, execution, and receipts. Cockroach Browser ships a Maqam adapter for consequential browser actions. Maqam remains a separate authority and is not part of the browser engine.",
-      "keywords": [
-        "Maqam",
-        "Action governance",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Cockroach Browser in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#cockroach-browser",
-      "kind": "ecosystem-project",
-      "summary": "A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts. Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.",
-      "keywords": [
-        "Cockroach Browser",
-        "Browser authority and evidence",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Cockroach Crawler in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#cockroach-crawler",
-      "kind": "ecosystem-project",
-      "summary": "Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits. Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.",
-      "keywords": [
-        "Cockroach Crawler",
-        "Bounded web acquisition",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Playwright in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#playwright",
-      "kind": "ecosystem-project",
-      "summary": "Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools. Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.",
-      "keywords": [
-        "Playwright",
-        "Browser automation primitive",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Puppeteer in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#puppeteer",
-      "kind": "ecosystem-project",
-      "summary": "A JavaScript API for controlling Chrome and Firefox through browser protocols. Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.",
-      "keywords": [
-        "Puppeteer",
-        "Browser automation primitive",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Browser Use in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#browser-use",
-      "kind": "ecosystem-project",
-      "summary": "An open-source Python framework for model-directed agents that interact with websites. Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.",
-      "keywords": [
-        "Browser Use",
-        "AI browser framework",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Stagehand in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#stagehand",
-      "kind": "ecosystem-project",
-      "summary": "Open-source AI browser automation that combines code with model-powered observation, action, and extraction. Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.",
-      "keywords": [
-        "Stagehand",
-        "AI browser framework",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Firecrawl in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#firecrawl",
-      "kind": "ecosystem-project",
-      "summary": "A web API and open-source project for search, scrape, crawl, map, and browser interaction. Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.",
-      "keywords": [
-        "Firecrawl",
-        "Managed web acquisition",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Trafilatura in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#trafilatura",
-      "kind": "ecosystem-project",
-      "summary": "Web text, metadata, comments, discovery, and structured output with configurable extraction. Cockroach Crawler's opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0. Cockroach Browser does not replace an extraction specialist.",
-      "keywords": [
-        "Trafilatura",
-        "Main-content extraction",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Docling in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#docling",
-      "kind": "ecosystem-project",
-      "summary": "Conversion of PDFs, office documents, images, HTML, and Markdown into a structured document representation. Docling is a document specialist. Cockroach Browser can acquire a file through an authorized session, but it does not claim Docling's conversion scope.",
-      "keywords": [
-        "Docling",
-        "Document conversion",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "LangGraph in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#langgraph",
-      "kind": "ecosystem-project",
-      "summary": "A low-level runtime for long-running, stateful agents with durable execution, streaming, and human involvement. LangGraph can orchestrate a browser tool. Cockroach Browser does not replace its workflow state or agent runtime.",
-      "keywords": [
-        "LangGraph",
-        "Agent orchestration",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "OpenAI Agents SDK in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#openai-agents-sdk",
-      "kind": "ecosystem-project",
-      "summary": "A TypeScript SDK for agent loops, tools, handoffs, guardrails, sessions, tracing, and human involvement. The SDK can call Cockroach Browser as a tool. Cockroach Browser does not replace its model loop, handoffs, sessions, or tracing.",
-      "keywords": [
-        "OpenAI Agents SDK",
-        "Agent runtime",
-        "governed AI agents"
+        "Browserless",
+        "Steel"
       ]
     },
     {
@@ -266,10 +270,21 @@
       ]
     },
     {
+      "title": "Cockroach Browser and PinchTab",
+      "url": "https://cockroachbrowser.com/alternatives/#pinchtab",
+      "kind": "alternative",
+      "summary": "Local Chrome control through HTTP, MCP, semantic references, persistent profiles, tab locks, audits, visual comparison, and operator-managed instances. PinchTab overlaps local-first Chrome, semantic references, profiles, locks, MCP, and audits. Cockroach Browser documents a different composition around typed effects and budgets, content-addressed evidence, hash-linked action receipts, and optional external adapters.",
+      "keywords": [
+        "PinchTab",
+        "Local browser control plane",
+        "browser automation alternative"
+      ]
+    },
+    {
       "title": "Cockroach Browser and Browser Use",
       "url": "https://cockroachbrowser.com/alternatives/#browser-use",
       "kind": "alternative",
-      "summary": "A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops. Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.",
+      "summary": "A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops. Cockroach Browser does not provide an LLM planner, managed browser cloud, or autonomous task-success claim. It supplies an execution and evidence runtime that a host agent can call.",
       "keywords": [
         "Browser Use",
         "Agent framework",
@@ -284,6 +299,17 @@
       "keywords": [
         "Stagehand",
         "Agent framework",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Vercel Labs agent-browser",
+      "url": "https://cockroachbrowser.com/alternatives/#agent-browser",
+      "kind": "alternative",
+      "summary": "A broad browser automation CLI and daemon with Chrome, Lightpanda, and iOS routes, semantic references, profiles, files, network tools, recordings, accessibility, MCP, dashboard, chat, plugins, and action controls. This project overlaps local execution, semantic references, profiles, files, MCP, network tools, diagnostics, and confirmations. Cockroach Browser should be selected for its exact shipped contract and evidence chain, not because those general browser concepts are unique.",
+      "keywords": [
+        "Vercel Labs agent-browser",
+        "Agent browser CLI and daemon",
         "browser automation alternative"
       ]
     },
@@ -306,6 +332,17 @@
       "keywords": [
         "Browserless",
         "Hosted or self-hosted infrastructure",
+        "browser automation alternative"
+      ]
+    },
+    {
+      "title": "Cockroach Browser and Steel",
+      "url": "https://cockroachbrowser.com/alternatives/#steel",
+      "kind": "alternative",
+      "summary": "Cloud browser sessions with persistent profiles, proxy configuration, session options, and managed challenge-handling features. Cockroach Browser can run through operator-managed workers and accepts an explicit session proxy, but it does not provide Steel's hosted fleet, managed proxy network, or managed challenge service.",
+      "keywords": [
+        "Steel",
+        "Hosted browser infrastructure",
         "browser automation alternative"
       ]
     },

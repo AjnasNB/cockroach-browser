@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cockroach Browser for AI agents and LLM applications</title>
+  <meta name="description" content="Connect an AI agent or LLM application to real Chromium through Cockroach Browser MCP, TypeScript SDK, authenticated HTTP API, semantic snapshots, actions, and evidence.">
+  <meta name="author" content="Ajnas N B">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#050a0d">
+  <link rel="canonical" href="https://cockroachbrowser.com/ai-agents/">
+  <link rel="alternate" hreflang="en" href="https://cockroachbrowser.com/ai-agents/">
+  <link rel="alternate" hreflang="x-default" href="https://cockroachbrowser.com/ai-agents/">
+  <link rel="alternate" type="application/json" href="/search.json" title="Cockroach Browser search index">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Cockroach Browser LLM overview">
+  <link rel="alternate" type="text/plain" href="/llms-full.txt" title="Cockroach Browser complete LLM documentation">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Cockroach Browser">
+  <meta property="og:title" content="Cockroach Browser for AI agents and LLM applications">
+  <meta property="og:description" content="Connect an AI agent or LLM application to real Chromium through Cockroach Browser MCP, TypeScript SDK, authenticated HTTP API, semantic snapshots, actions, and evidence.">
+  <meta property="og:url" content="https://cockroachbrowser.com/ai-agents/">
+  <meta property="og:image" content="https://cockroachbrowser.com/assets/logo.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1254">
+  <meta property="og:image:height" content="1254">
+  <meta property="og:image:alt" content="Cockroach Browser AI browser automation logo">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Cockroach Browser for AI agents and LLM applications">
+  <meta name="twitter:description" content="Connect an AI agent or LLM application to real Chromium through Cockroach Browser MCP, TypeScript SDK, authenticated HTTP API, semantic snapshots, actions, and evidence.">
+  <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
+  <meta name="twitter:image:alt" content="Cockroach Browser AI browser automation logo">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/ai-agents/#webpage","name":"Cockroach Browser for AI agents and LLM applications","headline":"Cockroach Browser for AI agents and LLM applications","description":"Connect an AI agent or LLM application to real Chromium through Cockroach Browser MCP, TypeScript SDK, authenticated HTTP API, semantic snapshots, actions, and evidence.","url":"https://cockroachbrowser.com/ai-agents/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.3.0","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/ai-agents/#article","headline":"Cockroach Browser for AI agents and LLM applications","description":"How an external AI agent uses Cockroach Browser through MCP, TypeScript, or HTTP without bundling a model inside the browser runtime.","author":{"@type":"Person","name":"Ajnas N B"},"about":{"@id":"https://cockroachbrowser.com/#software"}},{"@type":"FAQPage","@id":"https://cockroachbrowser.com/ai-agents/#faq","mainEntity":[{"@type":"Question","name":"Does Cockroach Browser include an LLM?","acceptedAnswer":{"@type":"Answer","text":"No. It is the browser execution layer. A host agent or application supplies the model, task planning, prompts, retries, and user interaction."}},{"@type":"Question","name":"Which AI agents can use it?","acceptedAnswer":{"@type":"Answer","text":"Any host that can call MCP, TypeScript, or an authenticated HTTP API can integrate it. The runtime does not require one model provider or one agent framework."}},{"@type":"Question","name":"What does the LLM receive?","acceptedAnswer":{"@type":"Answer","text":"The host can return bounded semantic snapshots, page references, action results, challenge state, evidence metadata, and receipt hashes instead of exposing an unrestricted browser object."}},{"@type":"Question","name":"Can the agent use forms and files?","acceptedAnswer":{"@type":"Answer","text":"Yes. The shipped action surface includes form controls, keyboard and pointer input, drag, upload, controlled download, dialogs, tabs, profiles, state checkpoints, and extraction."}},{"@type":"Question","name":"Is Maqam required?","acceptedAnswer":{"@type":"Answer","text":"No. Maqam is a separate optional approval integration. Cockroach Browser, its MCP server, SDK, API, CLI, and evidence system run without it."}},{"@type":"Question","name":"Does it solve CAPTCHAs?","acceptedAnswer":{"@type":"Answer","text":"No. It detects access challenges, pauses, records the state, and waits for a human or an explicitly configured host-authorized resolver."}}]},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Cockroach Browser","item":"https://cockroachbrowser.com/"},{"@type":"ListItem","position":2,"name":"AI agents","item":"https://cockroachbrowser.com/ai-agents/"}]}]}</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/">
+      <img src="/assets/logo.png" alt="" width="34" height="34">
+      <span>Cockroach Browser</span>
+      <span class="version">0.3.0</span>
+    </a>
+    <nav class="top-nav" data-top-nav aria-label="Primary navigation">
+      <a href="/what-is-cockroach-browser/" >What it is</a>
+      <a href="/ai-agents/" aria-current="page">AI agents</a>
+      <a href="/use-cases/" >Use cases</a>
+      <a href="/features/" >Features</a>
+      <a href="/install/" >Install</a>
+      <a href="/docs/" >Docs</a>
+      <a href="/alternatives/" >Alternatives</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">GitHub</a>
+    </nav>
+    <button class="mobile-menu" type="button" data-menu aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </div>
+</header>
+<main id="main">
+  <section class="shell page-hero">
+    <p class="eyebrow">AI agent browser automation / MCP / TypeScript / HTTP</p>
+    <h1>Give an AI agent a real browser without hiding how it works.</h1>
+    <p class="kicker">Your LLM plans. Cockroach Browser observes, interacts, captures, and returns evidence.</p>
+    <p class="lede">Cockroach Browser is the execution layer between an AI agent and Chromium. It exposes bounded semantic page state and exact browser operations through MCP, a TypeScript SDK, and an authenticated API. It does not bundle a model, prompt framework, or autonomous planner.</p>
+    <div class="hero-actions"><a class="button button--primary" href="/install/">Install for an AI agent</a><a class="button" href="/features/">Explore Browser features</a></div>
+  </section>
+  <section class="section"><div class="shell"><div class="section-head"><h2>The agent loop is simple and inspectable.</h2><p>The host retains planning and decides what to return to the model. Cockroach Browser handles the exact browser step and its evidence.</p></div><div class="workflow"><article><b>01</b><h3>Create</h3><p>Start a Chromium session with a purpose, starting URL, profile choice, and finite browser limits.</p></article><article><b>02</b><h3>Observe</h3><p>Request a semantic snapshot with visible text, roles, names, page revision, and snapshot-scoped references.</p></article><article><b>03</b><h3>Select</h3><p>The host agent chooses an observed reference or an exact CSS or XPath target and states the browser action.</p></article><article><b>04</b><h3>Interact</h3><p>Navigate, click, type, select, scroll, drag, use files, inspect state, or run an ordered batch.</p></article><article><b>05</b><h3>Return</h3><p>Return the outcome, new page state, evidence metadata, and receipt hash to the host agent.</p></article></div></div></section>
+  <section class="section"><div class="shell"><div class="section-head"><h2>Three integration paths.</h2><p>Use MCP for an agent client, TypeScript for an embedded service, or the authenticated API when a separate process owns Chromium.</p></div><div class="stack-grid"><article><span class="tag">MCP</span><h3>Observation-first tools.</h3><p>Expose health, capabilities, sessions, snapshots, paired capture, network observations, audits, and canonical action proposals over stdio.</p><a href="/docs/mcp/">MCP manual</a></article><article><span class="tag">SDK</span><h3>Typed runtime calls.</h3><p>Embed BrowserRuntime and work with typed sessions, snapshots, actions, jobs, evidence, and receipts.</p><a href="/docs/getting-started/">SDK quickstart</a></article><article><span class="tag">API</span><h3>Authenticated daemon.</h3><p>Call loopback or an explicitly configured TLS worker through BrowserClient or the documented HTTP routes.</p><a href="/docs/deployment/">API deployment</a></article><article><span class="tag">Operator</span><h3>CLI and dashboard.</h3><p>Inspect readiness, sessions, snapshots, evidence, network records, audits, and worker activity.</p><a href="/docs/operator-install/">Operator install</a></article></div></div></section>
+  <section class="section"><div class="shell"><div class="section-head"><h2>TypeScript example.</h2><p>The model is not in this code. A host agent can call the same function after it has chosen a task and reviewed the available tool contract.</p></div><div class="code-block">
+  <div class="code-head"><span>browser-agent.mjs</span><button class="copy-code" type="button" data-copy="#code-3">Copy</button></div>
+  <pre><code id="code-3">import { BrowserRuntime } from &quot;cockroach-browser&quot;;
+
+const browser = new BrowserRuntime({ root: &quot;.cockroach-browser&quot; });
+await browser.initialize();
+
+const session = await browser.createSession({
+  purpose: &quot;Inspect the public release page&quot;,
+  mode: &quot;headless&quot;,
+  startUrl: &quot;https://docs.example.com/releases&quot;,
+  policy: {
+    allowedOrigins: [&quot;https://docs.example.com&quot;],
+    allowedEffects: [&quot;read&quot;],
+    allowedActions: [&quot;navigate&quot;, &quot;snapshot&quot;, &quot;extract&quot;, &quot;screenshot&quot;]
+  }
+});
+
+const snapshot = await browser.snapshot(session.id);
+console.log(snapshot.title, snapshot.refs);
+await browser.close();</code></pre>
+</div></div></section>
+  <section class="section"><div class="shell"><div class="section-head"><h2>What the Browser returns to an LLM host.</h2><p>Semantic and evidence outputs are designed to be useful without handing the model an unrestricted Page object.</p></div><div class="stack-grid"><article><span class="tag">Semantic</span><h3>Page snapshots.</h3><p>URL, title, bounded readable text, roles, accessible names, snapshot-scoped refs, frame context, digest, and challenge state.</p></article><article><span class="tag">Action</span><h3>Structured outcomes.</h3><p>URLs before and after, output values, errors, page revision, policy result, and the receipt that links the step together.</p></article><article><span class="tag">Visual</span><h3>Reviewable artifacts.</h3><p>Screenshots, PDFs, paired visual and semantic capture, annotations, traces, HAR, video, and visual comparisons.</p></article><article><span class="tag">Diagnostic</span><h3>Browser observations.</h3><p>Redacted network records, console output, accessibility checks, performance observations, broken assets, and security signals.</p></article></div></div></section>
+  <section class="section" id="faq"><div class="shell"><div class="section-head"><h2>AI and LLM questions.</h2><p>Direct answers for agent builders, search engines, and machine readers.</p></div><div class="answer-grid"><article><h3>Does Cockroach Browser include an LLM?</h3><p>No. It is the browser execution layer. A host agent or application supplies the model, task planning, prompts, retries, and user interaction.</p></article><article><h3>Which AI agents can use it?</h3><p>Any host that can call MCP, TypeScript, or an authenticated HTTP API can integrate it. The runtime does not require one model provider or one agent framework.</p></article><article><h3>What does the LLM receive?</h3><p>The host can return bounded semantic snapshots, page references, action results, challenge state, evidence metadata, and receipt hashes instead of exposing an unrestricted browser object.</p></article><article><h3>Can the agent use forms and files?</h3><p>Yes. The shipped action surface includes form controls, keyboard and pointer input, drag, upload, controlled download, dialogs, tabs, profiles, state checkpoints, and extraction.</p></article><article><h3>Is Maqam required?</h3><p>No. Maqam is a separate optional approval integration. Cockroach Browser, its MCP server, SDK, API, CLI, and evidence system run without it.</p></article><article><h3>Does it solve CAPTCHAs?</h3><p>No. It detects access challenges, pauses, records the state, and waits for a human or an explicitly configured host-authorized resolver.</p></article></div></div></section>
+</main>
+<footer class="footer">
+  <div class="shell footer-inner">
+    <div>
+      <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34" loading="lazy" decoding="async"><span>Cockroach Browser</span></a>
+      <p>Open-source local-first browser automation for AI agents. Real Chromium, semantic page references, profiles, files, network tools, MCP, and evidence.</p>
+    </div>
+    <div class="footer-links">
+      <a href="/what-is-cockroach-browser/">What it is</a>
+      <a href="/ai-agents/">AI agents</a>
+      <a href="/use-cases/">Use cases</a>
+      <a href="/features/">Features</a>
+      <a href="/install/">Install</a>
+      <a href="/docs/">Documentation</a>
+      <a href="/docs/security/">Security</a>
+      <a href="/alternatives/">Alternatives</a>
+      <a href="/browser-vs-crawler/">Browser vs Crawler</a>
+      <a href="/paper/">Technical paper</a>
+      <a href="https://github.com/AjnasNB/cockroach-browser">Source</a>
+      <a href="https://www.npmjs.com/package/cockroach-browser">npm</a>
+    </div>
+  </div>
+  <div class="shell launch-recognition" aria-label="Launch directories">
+    <span>Find Cockroach Browser on</span>
+    <a class="fazier-badge" href="https://fazier.com/launches/cockroachbrowser.com" target="_blank" rel="noopener noreferrer"><img src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&amp;theme=light" width="120" alt="Fazier badge"></a>
+  </div>
+</footer>
+<script src="/assets/main.js" defer></script>
+</body>
+</html>

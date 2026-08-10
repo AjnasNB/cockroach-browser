@@ -1,7 +1,7 @@
 {
   "name": "cockroach-browser",
   "version": "0.3.0",
-  "description": "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence.",
+  "description": "Open-source local-first Chromium automation for AI agents with semantic page snapshots, isolated profiles, MCP, network tools, and verifiable evidence.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",
   "type": "module",

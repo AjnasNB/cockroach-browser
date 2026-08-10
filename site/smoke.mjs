@@ -8,6 +8,7 @@ const siteRoot = resolve(import.meta.dirname);
 const chromePath = "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const consoleErrors = [];
 const screenshots = [];
+let inspectedViewports = 0;
 
 const server = createServer(async (request, response) => {
   try {
@@ -37,8 +38,13 @@ try {
   watchConsole(desktop);
   for (const [path, name] of [
     ["/", "home"],
+    ["/what-is-cockroach-browser/", "what-is"],
+    ["/features/", "features"],
+    ["/install/", "install"],
+    ["/ai-agents/", "ai-agents"],
+    ["/use-cases/", "use-cases"],
+    ["/browser-vs-crawler/", "browser-vs-crawler"],
     ["/alternatives/", "alternatives"],
-    ["/ecosystem/", "ecosystem"],
     ["/docs/capabilities/", "capabilities"],
     ["/docs/getting-started/", "getting-started"]
   ]) {
@@ -57,18 +63,19 @@ try {
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   watchConsole(mobile);
-  await inspect(mobile, "/docs/getting-started/", { expectNoHorizontalOverflow: true });
-  const mobileScreenshot = resolve(tmpdir(), "cockroach-browser-mobile.png");
-  await mobile.screenshot({ path: mobileScreenshot, fullPage: true });
-  screenshots.push(mobileScreenshot);
-  await inspect(mobile, "/alternatives/", { expectNoHorizontalOverflow: true });
-  const mobileAlternativesScreenshot = resolve(tmpdir(), "cockroach-browser-alternatives-mobile.png");
-  await mobile.screenshot({ path: mobileAlternativesScreenshot, fullPage: true });
-  screenshots.push(mobileAlternativesScreenshot);
-  await inspect(mobile, "/ecosystem/", { expectNoHorizontalOverflow: true });
-  const mobileEcosystemScreenshot = resolve(tmpdir(), "cockroach-browser-ecosystem-mobile.png");
-  await mobile.screenshot({ path: mobileEcosystemScreenshot, fullPage: true });
-  screenshots.push(mobileEcosystemScreenshot);
+  for (const [path, name] of [
+    ["/", "home-mobile"],
+    ["/features/", "features-mobile"],
+    ["/ai-agents/", "ai-agents-mobile"],
+    ["/browser-vs-crawler/", "browser-vs-crawler-mobile"],
+    ["/alternatives/", "alternatives-mobile"],
+    ["/docs/getting-started/", "getting-started-mobile"]
+  ]) {
+    await inspect(mobile, path, { expectNoHorizontalOverflow: true });
+    const screenshot = resolve(tmpdir(), `cockroach-browser-${name}.png`);
+    await mobile.screenshot({ path: screenshot, fullPage: true });
+    screenshots.push(screenshot);
+  }
 } finally {
   await browser?.close();
   await new Promise((resolveClose) => server.close(resolveClose));
@@ -78,15 +85,18 @@ if (consoleErrors.length) {
   throw new Error(`Browser console errors:\n${consoleErrors.map((message) => `- ${message}`).join("\n")}`);
 }
 
-process.stdout.write(`Browser smoke test passed for 8 viewports and the alternatives search.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
+process.stdout.write(`Browser smoke test passed for ${inspectedViewports} viewports and the alternatives search.\n${screenshots.map((file) => `- ${file}`).join("\n")}\n`);
 
 async function inspect(page, path, { expectNoHorizontalOverflow = false } = {}) {
+  inspectedViewports += 1;
   const response = await page.goto(`${origin}${path}`, { waitUntil: "networkidle" });
   if (!response?.ok()) throw new Error(`${path} returned ${response?.status()}`);
   const state = await page.evaluate(() => ({
     title: document.title,
     h1: document.querySelector("h1")?.textContent?.trim(),
-    imageFailures: [...document.images].filter((image) => !image.complete || image.naturalWidth === 0).length,
+    imageFailures: [...document.images].filter((image) => image.loading === "lazy"
+      ? image.complete && image.naturalWidth === 0
+      : !image.complete || image.naturalWidth === 0).length,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     overflowSources: [...document.querySelectorAll("body *")]
       .map((element) => {
