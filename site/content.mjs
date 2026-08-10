@@ -1137,6 +1137,11 @@ cockroach-browser persistent-profile archive --name support-review`,
           "<p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, <code>browser_capture</code>, <code>browser_network</code>, and <code>browser_propose_action</code>. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>"
       },
       {
+        title: "Reproduce the Glama build",
+        body:
+          "<p>Glama must inspect the stdio MCP process, not the authenticated HTTP daemon packaged by the root <code>Dockerfile</code>. Select <code>Dockerfile.glama</code> with the repository root as the build context in Glama's Dockerfile admin page. The root <code>glama.json</code> identifies the authorized maintainer. Schema inspection requires no secret because all eight tools are registered before a daemon client is configured; reproduce it with <code>npm run build</code> followed by <code>npm run check:glama</code>. Calls that read browser sessions still require <code>COCKROACH_BROWSER_TOKEN</code> and, when the daemon is not at the default loopback URL, <code>COCKROACH_BROWSER_URL</code>.</p>"
+      },
+      {
         title: "Keep lifecycle authority outside the model",
         body:
           "<p>Session creation, profile import, login, secret resolution, remote binding, and raw action dispatch stay with the host. This prevents a model from expanding its own origins, credentials, browser state, or resource ceilings.</p>"

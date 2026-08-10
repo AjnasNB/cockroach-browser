@@ -90,17 +90,21 @@
     <span class="section-number">02</span>
     <h2>Observation-first tools</h2>
 <p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, <code>browser_capture</code>, <code>browser_network</code>, and <code>browser_propose_action</code>. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>
-  </section><section class="manual-section" id="keep-lifecycle-authority-outside-the-model">
+  </section><section class="manual-section" id="reproduce-the-glama-build">
     <span class="section-number">03</span>
+    <h2>Reproduce the Glama build</h2>
+<p>Glama must inspect the stdio MCP process, not the authenticated HTTP daemon packaged by the root <code>Dockerfile</code>. Select <code>Dockerfile.glama</code> with the repository root as the build context in Glama's Dockerfile admin page. The root <code>glama.json</code> identifies the authorized maintainer. Schema inspection requires no secret because all eight tools are registered before a daemon client is configured; reproduce it with <code>npm run build</code> followed by <code>npm run check:glama</code>. Calls that read browser sessions still require <code>COCKROACH_BROWSER_TOKEN</code> and, when the daemon is not at the default loopback URL, <code>COCKROACH_BROWSER_URL</code>.</p>
+  </section><section class="manual-section" id="keep-lifecycle-authority-outside-the-model">
+    <span class="section-number">04</span>
     <h2>Keep lifecycle authority outside the model</h2>
 <p>Session creation, profile import, login, secret resolution, remote binding, and raw action dispatch stay with the host. This prevents a model from expanding its own origins, credentials, browser state, or resource ceilings.</p>
   </section><section class="manual-section" id="route-consequential-work-through-maqam">
-    <span class="section-number">04</span>
+    <span class="section-number">05</span>
     <h2>Route consequential work through Maqam</h2>
 <p>MCP proposes. Maqam evaluates policy, binds an approval to the exact operation, dispatches through the driver, rejects replay, and records governance evidence.</p>
   </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#configure-the-local-server">Configure the local server</a><a href="#observation-first-tools">Observation-first tools</a><a href="#keep-lifecycle-authority-outside-the-model">Keep lifecycle authority outside the model</a><a href="#route-consequential-work-through-maqam">Route consequential work through Maqam</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#configure-the-local-server">Configure the local server</a><a href="#observation-first-tools">Observation-first tools</a><a href="#reproduce-the-glama-build">Reproduce the Glama build</a><a href="#keep-lifecycle-authority-outside-the-model">Keep lifecycle authority outside the model</a><a href="#route-consequential-work-through-maqam">Route consequential work through Maqam</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">
