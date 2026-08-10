@@ -70,6 +70,7 @@ export type ActionKind = (typeof ACTION_KINDS)[number];
 export type RiskLevel = "low" | "medium" | "high" | "critical";
 export type Effect = "read" | "write" | "execute" | "upload" | "download" | "credential";
 export type BrowserMode = "headless" | "headed";
+export type BrowserEngine = "chromium" | "firefox" | "webkit";
 export type SessionState = "starting" | "ready" | "challenge" | "closed" | "failed";
 
 export interface ResourceBudget {
@@ -148,6 +149,8 @@ export interface SessionCreateInput {
   profile?: string;
   profilePassphrase?: string;
   mode?: BrowserMode;
+  /** Installed Playwright engine used by the bounded runtime. Defaults to Chromium. */
+  engine?: BrowserEngine;
   startUrl?: string;
   locale?: string;
   timezoneId?: string;
@@ -482,6 +485,7 @@ export interface SessionSummary {
   state: SessionState;
   profile?: string;
   mode: BrowserMode;
+  engine: BrowserEngine;
   purpose: string;
   actor?: string;
   createdAt: string;

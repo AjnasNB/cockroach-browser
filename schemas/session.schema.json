@@ -30,6 +30,13 @@
         "headed"
       ]
     },
+    "engine": {
+      "enum": [
+        "chromium",
+        "firefox",
+        "webkit"
+      ]
+    },
     "startUrl": {
       "type": "string",
       "format": "uri",

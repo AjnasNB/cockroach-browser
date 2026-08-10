@@ -6,11 +6,39 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.4.0-rc.1] - 2026-08-10
+
 ### Added
 
 - a page-less authorized challenge-resolution callback with bounded deadlines,
   exact approval, independent post-handoff verification, MCP proposals, and
   hash-linked action receipts
+- Chromium, Firefox, and WebKit execution in the bounded runtime and local
+  process fleet, with deterministic installed-engine integration tests
+- complete pinned Playwright Core 1.62.1 and Puppeteer Core 25.5.0 re-exports,
+  Playwright Test, code generation, raw CDP, and raw WebDriver BiDi surfaces
+- operator-level handles, targets, workers, events, locators, assertions,
+  network mutation, response rewriting, WebSocket routing, HAR replay,
+  coverage, heap snapshots, tracing, screencasting, profiling, and emulation
+  through the upstream compatibility subpaths
+- a raw W3C WebDriver/Appium client for operator-supplied Safari, iOS, Android,
+  and vendor-specific mobile endpoints
+- an optional OpenAI-compatible model gateway and finite-step browser agent
+  that still dispatches through the bounded runtime policy and receipt path
+- a working local three-engine fleet, authenticated managed-fleet adapter,
+  explicit residential/static/custom proxy classes, provider-authorized
+  challenge mode, and validated live-view leases
+- dependency-light authenticated daemon clients for Python, Java, .NET/C#,
+  Ruby, and Go alongside the native TypeScript SDK
+- a generated machine-readable Playwright/Puppeteer declaration inventory and
+  public API-surface page, checked for package-version and declaration drift
+
+### Changed
+
+- bootstrap and doctor now provision and verify Chromium, Firefox, and WebKit
+  instead of checking only Chromium
+- the source-derived registry now contains 124 entries: 114 directly
+  available surfaces and 10 explicit external-adapter surfaces
 
 ## [0.3.0] - 2026-07-31
 
@@ -141,7 +169,8 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0-rc.1...HEAD
+[0.4.0-rc.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...v0.4.0-rc.1
 [0.3.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.1.1...v0.2.0

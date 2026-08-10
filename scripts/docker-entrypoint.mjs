@@ -1,5 +1,12 @@
 import { spawn } from "node:child_process";
+import { mkdir } from "node:fs/promises";
 import { createConnection, createServer } from "node:net";
+
+for (const variable of ["HOME", "XDG_CACHE_HOME", "XDG_CONFIG_HOME", "XDG_RUNTIME_DIR"]) {
+  const directory = process.env[variable];
+  if (!directory) throw new Error(`${variable} is required in the container runtime`);
+  await mkdir(directory, { recursive: true, mode: 0o700 });
+}
 
 const daemon = spawn(
   process.execPath,

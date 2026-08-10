@@ -2,7 +2,7 @@
 import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { chromium } from "playwright-core";
+import { chromium, firefox, webkit, type BrowserType } from "playwright-core";
 import {
   BrowserClient,
   type NetworkReadOptions,
@@ -26,7 +26,7 @@ import { TeamSessionStore } from "./team-sessions.js";
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const [command = "help", subcommand, ...rest] = argv;
   if (command === "help" || command === "--help" || command === "-h") return printHelp();
-  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.3.0" });
+  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.4.0-rc.1" });
   if (command === "capabilities") {
     const status = flag(rest, "--status");
     return print(CAPABILITIES.filter((entry) => !status || entry.status === status));
@@ -223,6 +223,12 @@ async function doctorReport(args: string[]): Promise<{
   supportedNode: boolean;
   chromium: string;
   chromiumReady: boolean;
+  firefox: string;
+  firefoxReady: boolean;
+  webkit: string;
+  webkitReady: boolean;
+  allEnginesReady: boolean;
+  engines: Record<"chromium" | "firefox" | "webkit", { path: string; ready: boolean }>;
   runtimeRoot: string;
   runtimeRootReady: boolean;
   service: Awaited<ReturnType<typeof operatorServiceStatus>>;
@@ -231,7 +237,7 @@ async function doctorReport(args: string[]): Promise<{
   const major = Number(process.versions.node.split(".")[0]);
   const root = flag(args, "--root");
   const runtime = new BrowserRuntime({ ...(root ? { root } : {}) });
-  const readiness = await chromiumReadiness();
+  const engines = await browserEngineReadiness();
   let runtimeRootReady = false;
   try {
     await access(runtime.root);
@@ -244,15 +250,21 @@ async function doctorReport(args: string[]): Promise<{
     ...(root ? { root } : {})
   });
   return {
-    ok: supportedNode && readiness.ready,
+    ok: supportedNode && Object.values(engines).every((entry) => entry.ready),
     node: process.version,
     supportedNode,
-    chromium: readiness.path,
-    chromiumReady: readiness.ready,
+    chromium: engines.chromium.path,
+    chromiumReady: engines.chromium.ready,
+    firefox: engines.firefox.path,
+    firefoxReady: engines.firefox.ready,
+    webkit: engines.webkit.path,
+    webkitReady: engines.webkit.ready,
+    allEnginesReady: Object.values(engines).every((entry) => entry.ready),
+    engines,
     runtimeRoot: runtime.root,
     runtimeRootReady,
     service,
-    next: readiness.ready ? "ready" : "run: cockroach-browser bootstrap"
+    next: Object.values(engines).every((entry) => entry.ready) ? "ready" : "run: cockroach-browser bootstrap"
   };
 }
 
@@ -270,10 +282,10 @@ async function bootstrap(args: string[]): Promise<void> {
     return;
   }
 
-  let readiness = await chromiumReadiness();
-  if (!readiness.ready && !args.includes("--check-only")) {
-    await installChromium();
-    readiness = await chromiumReadiness();
+  let engines = await browserEngineReadiness();
+  if (!Object.values(engines).every((entry) => entry.ready) && !args.includes("--check-only")) {
+    await installBrowserEngines();
+    engines = await browserEngineReadiness();
   }
 
   const root = flag(args, "--root");
@@ -286,7 +298,7 @@ async function bootstrap(args: string[]): Promise<void> {
     status: 0,
     url: ""
   };
-  if (readiness.ready) {
+  if (Object.values(engines).every((entry) => entry.ready)) {
     const server = await startBrowserServer({
       root: initializedRoot,
       host: "127.0.0.1",
@@ -312,7 +324,10 @@ async function bootstrap(args: string[]): Promise<void> {
     ok,
     bootstrap: {
       rootInitialized: report.runtimeRootReady,
-      chromiumInstalled: readiness.ready,
+      chromiumInstalled: engines.chromium.ready,
+      firefoxInstalled: engines.firefox.ready,
+      webkitInstalled: engines.webkit.ready,
+      allEnginesInstalled: Object.values(engines).every((entry) => entry.ready),
       loopbackHealthProbe: probe
     },
     next: ok
@@ -339,8 +354,8 @@ async function serviceCommand(subcommand: string | undefined, args: string[]): P
   throw new Error("Use service install, service uninstall, or service status.");
 }
 
-async function chromiumReadiness(): Promise<{ path: string; ready: boolean }> {
-  const path = chromium.executablePath();
+async function browserTypeReadiness(browserType: BrowserType): Promise<{ path: string; ready: boolean }> {
+  const path = browserType.executablePath();
   try {
     await access(path);
     return { path, ready: true };
@@ -349,15 +364,24 @@ async function chromiumReadiness(): Promise<{ path: string; ready: boolean }> {
   }
 }
 
-async function installChromium(): Promise<void> {
+async function browserEngineReadiness(): Promise<Record<"chromium" | "firefox" | "webkit", { path: string; ready: boolean }>> {
+  const [chromiumResult, firefoxResult, webkitResult] = await Promise.all([
+    browserTypeReadiness(chromium),
+    browserTypeReadiness(firefox),
+    browserTypeReadiness(webkit)
+  ]);
+  return { chromium: chromiumResult, firefox: firefoxResult, webkit: webkitResult };
+}
+
+async function installBrowserEngines(): Promise<void> {
   await new Promise<void>((accept, reject) => {
     const command = process.platform === "win32" ? "npx.cmd" : "npx";
-    const child = spawn(command, ["--yes", "playwright@1.55.0", "install", "chromium"], {
+    const child = spawn(command, ["--no-install", "playwright", "install", "chromium", "firefox", "webkit"], {
       stdio: "inherit",
       shell: false
     });
     child.once("error", reject);
-    child.once("exit", (code) => code === 0 ? accept() : reject(new Error(`Chromium setup exited with ${code}.`)));
+    child.once("exit", (code) => code === 0 ? accept() : reject(new Error(`Browser engine setup exited with ${code}.`)));
   });
 }
 
@@ -422,7 +446,7 @@ function printText(value: string): void {
 }
 
 function printHelp(): void {
-  process.stdout.write(`Cockroach Browser 0.3.0
+  process.stdout.write(`Cockroach Browser 0.4.0-rc.1
 
 Usage:
   cockroach-browser bootstrap [--root PATH] [--check-only]
@@ -459,7 +483,7 @@ Usage:
   cockroach-browser persistent-profile create --name NAME [--root PATH]
   cockroach-browser persistent-profile archive --name NAME [--root PATH]
 
-Bootstrap installs Chromium only when it is missing, initializes the local data root,
+Bootstrap installs Chromium, Firefox, and WebKit when any selected engine is missing, initializes the local data root,
 and probes an authenticated ephemeral loopback daemon. Per-user service changes never
 use sudo or administrative service managers and require --confirm-local-owner.
 

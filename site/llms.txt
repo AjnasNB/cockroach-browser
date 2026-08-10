@@ -1,6 +1,6 @@
 # Cockroach Browser
 
-> Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.
+> Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
@@ -8,43 +8,51 @@ npm: https://www.npmjs.com/package/cockroach-browser
 Technical paper: https://cockroachbrowser.com/paper/
 
 ## Product identity
-Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It controls stateful Chromium sessions. Cockroach Crawler is a separate public-web discovery and extraction product with a separate website, package, and runtime.
+Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It controls stateful Chromium, Firefox, and WebKit sessions and exposes unrestricted upstream automation APIs separately from its bounded agent runtime. Cockroach Crawler is a separate public-web discovery and extraction product with a separate website, package, and runtime.
 
-Cockroach Browser does not bundle an LLM. A host agent plans the task and calls the browser through MCP, the TypeScript SDK, an authenticated HTTP API, or the CLI.
+Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step planner. A host may also call the browser directly through MCP, TypeScript, Python, Java, .NET, Ruby, Go, an authenticated HTTP API, or the CLI.
 
 ## Product routes
 - [What is Cockroach Browser?](https://cockroachbrowser.com/what-is-cockroach-browser/)
 - [Features overview](https://cockroachbrowser.com/features/)
-- [Complete 94-capability registry](https://cockroachbrowser.com/docs/capabilities/)
+- [Complete 124-capability registry](https://cockroachbrowser.com/docs/capabilities/)
 - [Install Cockroach Browser](https://cockroachbrowser.com/install/)
 - [Cockroach Browser for AI agents and LLM applications](https://cockroachbrowser.com/ai-agents/)
 - [Browser automation use cases](https://cockroachbrowser.com/use-cases/)
 - [Cockroach Browser versus Cockroach Crawler](https://cockroachbrowser.com/browser-vs-crawler/)
+- [Complete Playwright and Puppeteer API inventory](https://cockroachbrowser.com/api-surface/)
 - [Alternatives and current gaps](https://cockroachbrowser.com/alternatives/)
 - [Complete documentation](https://cockroachbrowser.com/docs/)
 
-## Shipped surface in 0.3.0
-- 88 directly available runtime and deployment surfaces
-- 6 optional adapter-backed surfaces
+## Shipped surface in 0.4.0-rc.1
+- 114 directly available runtime and deployment surfaces
+- 10 optional adapter-backed surfaces
 - 65 typed browser actions derived from src/contracts.ts
-- Real Chromium in headed or headless mode
+- 65 bounded browser actions in the policy-evaluated runtime
+- OpenAI-compatible model gateway and finite-step browser agent
+- Chromium, Firefox, or WebKit execution in the bounded runtime
+- Real Chromium, Firefox, and WebKit in headed or headless mode
+- Complete pinned Playwright and Puppeteer Core exports, Playwright Test, code generation, raw CDP, and raw WebDriver BiDi
 - Semantic snapshots and snapshot-scoped references
 - Tabs, forms, keyboard, pointer, drag, files, dialogs, profiles, state, and downloads
 - Screenshots, PDFs, trace, HAR, video, console, network, audits, visual comparison, and hash-linked receipts
-- MCP, TypeScript SDK, authenticated HTTP API, CLI, Docker, dashboard, metrics, activity, team roles, and worker pools
+- MCP, six language SDKs, authenticated HTTP API, CLI, Docker, dashboard, metrics, activity, team roles, local three-engine fleet, and managed-fleet adapters
 
 ## Current product limits
-- Chromium-family sessions only; no Firefox or WebKit selection
-- No public raw CDP or WebDriver BiDi API
-- No drop-in browser object, handle, target, or full event compatibility layer
-- No complete WebSocket frame lifecycle, heap snapshot, coverage, or complete accessibility-tree API
-- No vendor-operated browser cloud, managed proxy network, stealth engine, or CAPTCHA bypass service
-- No bundled LLM planner or autonomous task-success benchmark
+- No bundled macOS Safari host, iOS simulator, Android emulator, physical device lab, or hosted mobile capacity
+- No Cockroach-operated elastic browser fleet, residential proxy network, static-IP inventory, billing platform, or hosted live-view service
+- No covert stealth or bundled CAPTCHA bypass engine; provider challenge services remain explicit operator-selected adapters
+- No cross-product task-success benchmark or universal autonomous recovery claim
+- Non-TypeScript SDKs are authenticated daemon clients, not reimplementations of every upstream browser object
+
+## External-service boundary
+The local three-engine fleet is included. Managed capacity, residential or static-IP networks, provider challenge handling, live viewers, macOS Safari hosts, and mobile device labs require an explicit operator-selected provider. Cockroach Browser does not claim to operate those external services.
 
 ## Installation and documentation
 - [Installation options](https://cockroachbrowser.com/install/)
 - [Getting started manual](https://cockroachbrowser.com/docs/getting-started/)
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
+- [Full automation platform](https://cockroachbrowser.com/docs/automation-platform/)
 - [Operator install](https://cockroachbrowser.com/docs/operator-install/)
 - [Sessions and profiles](https://cockroachbrowser.com/docs/sessions/)
 - [Actions and semantic refs](https://cockroachbrowser.com/docs/actions/)

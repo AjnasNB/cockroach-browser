@@ -21,6 +21,7 @@ const sourceRoot = resolve(root, "..");
 
 const capabilities = parseCapabilities(await readFile(resolve(sourceRoot, "src/capabilities.ts"), "utf8"));
 const actionKinds = parseActionKinds(await readFile(resolve(sourceRoot, "src/contracts.ts"), "utf8"));
+const apiSurface = JSON.parse(await readFile(resolve(sourceRoot, "docs/compatibility/browser-api-surface.json"), "utf8"));
 const capabilityCounts = capabilities.reduce(
   (counts, capability) => {
     counts[capability.status] += 1;
@@ -36,6 +37,7 @@ const directoryRedirectPaths = [
   "/ai-agents",
   "/use-cases",
   "/browser-vs-crawler",
+  "/api-surface",
   "/docs",
   ...pages.map((page) => `/docs/${page.slug}`),
   "/docs/capabilities",
@@ -52,6 +54,8 @@ await writePage("install/index.html", installPage());
 await writePage("ai-agents/index.html", aiAgentsPage());
 await writePage("use-cases/index.html", useCasesPage());
 await writePage("browser-vs-crawler/index.html", browserVsCrawlerPage());
+await writePage("api-surface/index.html", apiSurfacePage());
+await writePage("api/browser-api-surface.json", `${JSON.stringify(apiSurface, null, 2)}\n`);
 await writePage("docs/index.html", docsIndex());
 for (const page of pages) {
   await writePage(`docs/${page.slug}/index.html`, manualPage(page));
@@ -85,9 +89,9 @@ npm: ${site.npm}
 Technical paper: ${site.origin}/paper/
 
 ## Product identity
-Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It controls stateful Chromium sessions. Cockroach Crawler is a separate public-web discovery and extraction product with a separate website, package, and runtime.
+Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It controls stateful Chromium, Firefox, and WebKit sessions and exposes unrestricted upstream automation APIs separately from its bounded agent runtime. Cockroach Crawler is a separate public-web discovery and extraction product with a separate website, package, and runtime.
 
-Cockroach Browser does not bundle an LLM. A host agent plans the task and calls the browser through MCP, the TypeScript SDK, an authenticated HTTP API, or the CLI.
+Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step planner. A host may also call the browser directly through MCP, TypeScript, Python, Java, .NET, Ruby, Go, an authenticated HTTP API, or the CLI.
 
 ## Product routes
 - [What is Cockroach Browser?](${site.origin}/what-is-cockroach-browser/)
@@ -97,26 +101,33 @@ Cockroach Browser does not bundle an LLM. A host agent plans the task and calls 
 - [Cockroach Browser for AI agents and LLM applications](${site.origin}/ai-agents/)
 - [Browser automation use cases](${site.origin}/use-cases/)
 - [Cockroach Browser versus Cockroach Crawler](${site.origin}/browser-vs-crawler/)
+- [Complete Playwright and Puppeteer API inventory](${site.origin}/api-surface/)
 - [Alternatives and current gaps](${site.origin}/alternatives/)
 - [Complete documentation](${site.origin}/docs/)
 
-## Shipped surface in 0.3.0
+## Shipped surface in ${site.version}
 - ${capabilityCounts.available} directly available runtime and deployment surfaces
 - ${capabilityCounts.adapter} optional adapter-backed surfaces
 - ${actionKinds.length} typed browser actions derived from src/contracts.ts
-- Real Chromium in headed or headless mode
+- ${actionKinds.length} bounded browser actions in the policy-evaluated runtime
+- OpenAI-compatible model gateway and finite-step browser agent
+- Chromium, Firefox, or WebKit execution in the bounded runtime
+- Real Chromium, Firefox, and WebKit in headed or headless mode
+- Complete pinned Playwright and Puppeteer Core exports, Playwright Test, code generation, raw CDP, and raw WebDriver BiDi
 - Semantic snapshots and snapshot-scoped references
 - Tabs, forms, keyboard, pointer, drag, files, dialogs, profiles, state, and downloads
 - Screenshots, PDFs, trace, HAR, video, console, network, audits, visual comparison, and hash-linked receipts
-- MCP, TypeScript SDK, authenticated HTTP API, CLI, Docker, dashboard, metrics, activity, team roles, and worker pools
+- MCP, six language SDKs, authenticated HTTP API, CLI, Docker, dashboard, metrics, activity, team roles, local three-engine fleet, and managed-fleet adapters
 
 ## Current product limits
-- Chromium-family sessions only; no Firefox or WebKit selection
-- No public raw CDP or WebDriver BiDi API
-- No drop-in browser object, handle, target, or full event compatibility layer
-- No complete WebSocket frame lifecycle, heap snapshot, coverage, or complete accessibility-tree API
-- No vendor-operated browser cloud, managed proxy network, stealth engine, or CAPTCHA bypass service
-- No bundled LLM planner or autonomous task-success benchmark
+- No bundled macOS Safari host, iOS simulator, Android emulator, physical device lab, or hosted mobile capacity
+- No Cockroach-operated elastic browser fleet, residential proxy network, static-IP inventory, billing platform, or hosted live-view service
+- No covert stealth or bundled CAPTCHA bypass engine; provider challenge services remain explicit operator-selected adapters
+- No cross-product task-success benchmark or universal autonomous recovery claim
+- Non-TypeScript SDKs are authenticated daemon clients, not reimplementations of every upstream browser object
+
+## External-service boundary
+The local three-engine fleet is included. Managed capacity, residential or static-IP networks, provider challenge handling, live viewers, macOS Safari hosts, and mobile device labs require an explicit operator-selected provider. Cockroach Browser does not claim to operate those external services.
 
 ## Installation and documentation
 - [Installation options](${site.origin}/install/)
@@ -132,11 +143,60 @@ Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses
 );
 await writePage(
   "llms-full.txt",
-  `# ${site.name} documentation\n\n## What Cockroach Browser is\n\n${site.description}\n\nCockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It runs stateful Chromium sessions and exposes browser work through MCP, a TypeScript SDK, an authenticated HTTP API, and a CLI. Cockroach Crawler is a separate public-web acquisition product. Cockroach Browser does not bundle an LLM or autonomous planner.\n\n## AI-agent integration\n\nA host agent creates a session, requests a semantic snapshot, chooses a snapshot-scoped reference, submits an exact browser action, and receives an outcome plus evidence and a hash-linked receipt. The LLM remains outside Cockroach Browser and may be supplied by any host that can call MCP, TypeScript, or HTTP tools.\n\n## ${actionKinds.length} typed browser actions\n\n${actionKinds.map((kind) => `- ${kind}`).join("\n")}\n\n## Browser automation use cases\n\n${browserUseCases.map((entry) => `### ${entry.title}\n${entry.problem}\n\nCockroach Browser route: ${entry.browserWork}\n\nRelevant surfaces: ${entry.surfaces}.`).join("\n\n")}\n\n## Cockroach Browser versus Cockroach Crawler\n\n${browserCrawlerDecisions.map((entry) => `### ${entry.workload}\nCockroach Browser: ${entry.browser}\n\nCockroach Crawler: ${entry.crawler}\n\nRecommended choice: ${entry.choice}.`).join("\n\n")}\n\n## Alternatives by product layer\n\n${comparison.methodology}\n\n${comparisonLayers.map((entry) => `### ${entry.label}\nExamples: ${entry.examples}.\n\n${entry.nativeFocus}\n\nChoose this layer when: ${entry.chooseWhen}\n\nCockroach Browser relationship: ${entry.browserFit}\n\nOfficial sources: ${entry.sources.map(([label, url]) => `${label}: ${url}`).join("; ")}.`).join("\n\n")}\n\n## Current Cockroach Browser gaps\n\n${capabilityGaps.map((entry) => `### ${entry.area}\nShipped: ${entry.shipped}\n\nCurrent gap: ${entry.gap}\n\nOfficial comparison source: ${entry.source}`).join("\n\n")}\n\n## Browser manuals\n\n${pages.filter((page) => !["maqam", "qarinah", "crawler", "productloop"].includes(page.slug)).map((page) => [
-    `## ${page.title}`,
-    page.lede,
-    ...page.sections.map((section) => `### ${section.title}\n${stripHtml(section.body)}`)
-  ].flat().join("\n\n")).join("\n\n")}\n\n## Complete ${capabilities.length}-capability matrix\n\n${capabilities.map((entry) => `- ${entry.title} [${entry.status}]: ${entry.summary} Surface: ${entry.surface}.`).join("\n")}\n\n## Optional separate integrations\n\nCockroach Browser runs independently. Maqam can optionally provide external exact-action approval. Qarinah can optionally record cited browser outcomes. Cockroach Crawler can optionally hand selected URLs to the browser after public-web discovery. These products do not become part of the browser engine by installation alone.\n`
+  `# ${site.name} documentation
+
+## What Cockroach Browser is
+
+${site.description}
+
+Cockroach Browser is the AjnasNB browser automation project at cockroachbrowser.com. The bounded runtime launches Chromium, Firefox, or WebKit. Separate unrestricted modules re-export the complete pinned Playwright and Puppeteer Core APIs, Playwright Test, raw CDP, raw WebDriver BiDi, and mobile WebDriver/Appium transport. Cockroach Crawler is a separate public-web acquisition product.
+
+## AI-agent integration
+
+Cockroach Browser includes an optional OpenAI-compatible model gateway and a finite-step browser agent over semantic snapshots, exact actions, evidence, and receipts. A host may instead use its own agent through MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API.
+
+## ${actionKinds.length} bounded browser actions
+
+${actionKinds.map((kind) => `- ${kind}`).join("\n")}
+
+## Raw operator automation
+
+- Playwright Chromium, Firefox, and WebKit browser, context, page, frame, locator, handle, worker, download, request, response, route, WebSocket, trace, HAR, clock, emulation, and protocol contracts
+- Puppeteer browser, context, page, frame, locator, element handle, JavaScript handle, target, worker, CDP, coverage, heap, tracing, metrics, emulation, and screencast contracts
+- Playwright Test fixtures, projects, assertions, retries, reporters, snapshots, parallelism, and code generation for JavaScript, TypeScript, Python, Java, and C#
+- Generated declaration inventory: ${site.origin}/api-surface/
+- Machine-readable declaration inventory: ${site.origin}/api/browser-api-surface.json
+
+## Browser automation use cases
+
+${browserUseCases.map((entry) => `### ${entry.title}\n${entry.problem}\n\nCockroach Browser route: ${entry.browserWork}\n\nRelevant surfaces: ${entry.surfaces}.`).join("\n\n")}
+
+## Cockroach Browser versus Cockroach Crawler
+
+${browserCrawlerDecisions.map((entry) => `### ${entry.workload}\nCockroach Browser: ${entry.browser}\n\nCockroach Crawler: ${entry.crawler}\n\nRecommended choice: ${entry.choice}.`).join("\n\n")}
+
+## Alternatives by product layer
+
+${comparison.methodology}
+
+${comparisonLayers.map((entry) => `### ${entry.label}\nExamples: ${entry.examples}.\n\n${entry.nativeFocus}\n\nChoose this layer when: ${entry.chooseWhen}\n\nCockroach Browser relationship: ${entry.browserFit}\n\nOfficial sources: ${entry.sources.map(([label, url]) => `${label}: ${url}`).join("; ")}.`).join("\n\n")}
+
+## Current Cockroach Browser gaps
+
+${capabilityGaps.map((entry) => `### ${entry.area}\nShipped: ${entry.shipped}\n\nCurrent gap: ${entry.gap}\n\nOfficial comparison source: ${entry.source}`).join("\n\n")}
+
+## Browser manuals
+
+${pages.filter((page) => !["maqam", "qarinah", "crawler", "productloop"].includes(page.slug)).map((page) => [`## ${page.title}`, page.lede, ...page.sections.map((section) => `### ${section.title}\n${stripHtml(section.body)}`)].join("\n\n")).join("\n\n")}
+
+## Complete ${capabilities.length}-capability matrix
+
+${capabilities.map((entry) => `- ${entry.title} [${entry.status}]: ${entry.summary} Surface: ${entry.surface}.`).join("\n")}
+
+## External-service boundary
+
+The local three-engine fleet is included. Managed capacity, residential or static-IP networks, provider challenge handling, live viewers, macOS Safari hosts, mobile devices, and device labs are operator-selected external services connected through explicit adapters. Cockroach Browser does not claim to operate those networks or bypass access controls.
+`
 );
 await writePage(
   "_headers",
@@ -157,7 +217,7 @@ await writePage(
   `${directoryRedirectPaths.map((path) => `${path} ${path}/ 301`).join("\n")}\n`
 );
 
-process.stdout.write(`Built ${pages.length + 14} HTML pages and ${capabilities.length} capability records.\n`);
+process.stdout.write(`Built ${pages.length + 15} HTML pages and ${capabilities.length} capability records.\n`);
 
 function parseCapabilities(source) {
   const pattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
@@ -297,6 +357,7 @@ function header(active = "") {
       <a href="/ai-agents/" ${active === "ai" ? 'aria-current="page"' : ""}>AI agents</a>
       <a href="/use-cases/" ${active === "uses" ? 'aria-current="page"' : ""}>Use cases</a>
       <a href="/features/" ${active === "features" ? 'aria-current="page"' : ""}>Features</a>
+      <a href="/api-surface/" ${active === "api" ? 'aria-current="page"' : ""}>API surface</a>
       <a href="/install/" ${active === "install" ? 'aria-current="page"' : ""}>Install</a>
       <a href="/docs/" ${active === "docs" ? 'aria-current="page"' : ""}>Docs</a>
       <a href="/alternatives/" ${active === "alternatives" ? 'aria-current="page"' : ""}>Alternatives</a>
@@ -312,13 +373,14 @@ function footer() {
   <div class="shell footer-inner">
     <div>
       <a class="brand" href="/"><img src="/assets/logo.png" alt="" width="34" height="34" loading="lazy" decoding="async"><span>${site.name}</span></a>
-      <p>Open-source local-first browser automation for AI agents. Real Chromium, semantic page references, profiles, files, network tools, MCP, and evidence.</p>
+      <p>Open-source local-first browser automation for AI agents. Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer exports, semantic page references, MCP, and evidence.</p>
     </div>
     <div class="footer-links">
       <a href="/what-is-cockroach-browser/">What it is</a>
       <a href="/ai-agents/">AI agents</a>
       <a href="/use-cases/">Use cases</a>
       <a href="/features/">Features</a>
+      <a href="/api-surface/">API surface</a>
       <a href="/install/">Install</a>
       <a href="/docs/">Documentation</a>
       <a href="/docs/security/">Security</a>
@@ -386,7 +448,7 @@ ${header("home")}
     <div class="shell">
       <div class="section-head">
         <h2>Connect. Observe. Interact. Capture. Continue.</h2>
-        <p>Cockroach Browser gives a host AI agent a direct, structured route from semantic page state to a real Chromium action and a reviewable result.</p>
+        <p>Cockroach Browser gives a host AI agent a direct, structured route from semantic page state to a real Chromium, Firefox, or WebKit action and a reviewable result.</p>
       </div>
       <div class="workflow">
         <article><b>01</b><h3>Connect</h3><p>Use MCP, BrowserRuntime, BrowserClient, the authenticated HTTP API, or the CLI.</p></article>
@@ -429,7 +491,7 @@ ${footer()}`;
 
 function whatIsPage() {
   const canonical = `${site.origin}/what-is-cockroach-browser/`;
-  const description = "Cockroach Browser is a local-first TypeScript runtime for authorized Chromium sessions, semantic page references, real interactions, browser evidence, and agent integrations.";
+  const description = "Cockroach Browser is a local-first TypeScript platform for Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer APIs, semantic page references, model-directed interaction, and verifiable browser evidence.";
   return `${baseHead({
     title: "What is Cockroach Browser?",
     description,
@@ -577,7 +639,7 @@ function installPage() {
   ];
   return `${baseHead({
     title: "Install Cockroach Browser",
-    description: "Install Cockroach Browser on Windows, macOS, or Linux, bootstrap Chromium explicitly, and connect through MCP, TypeScript, HTTP, CLI, Docker, or a local service.",
+    description: "Install Cockroach Browser on Windows, macOS, or Linux, bootstrap Chromium, Firefox, and WebKit explicitly, and connect through MCP, six SDKs, HTTP, CLI, Docker, or a local service.",
     canonical,
     type: "article",
     schemas: [
@@ -585,7 +647,7 @@ function installPage() {
         "@type": "HowTo",
         "@id": `${canonical}#howto`,
         name: "Install Cockroach Browser",
-        description: "Install the package, bootstrap Chromium, verify the runtime, and choose an AI-agent or operator control surface.",
+        description: "Install the package, bootstrap Chromium, Firefox, and WebKit, verify the runtime, and choose an AI-agent or operator control surface.",
         step: steps.map(([name, text], index) => ({ "@type": "HowToStep", position: index + 1, name, text }))
       },
       breadcrumbSchema("Install", canonical)
@@ -611,8 +673,8 @@ ${footer()}`;
 function aiAgentsPage() {
   const canonical = `${site.origin}/ai-agents/`;
   const questions = [
-    ["Does Cockroach Browser include an LLM?", "No. It is the browser execution layer. A host agent or application supplies the model, task planning, prompts, retries, and user interaction."],
-    ["Which AI agents can use it?", "Any host that can call MCP, TypeScript, or an authenticated HTTP API can integrate it. The runtime does not require one model provider or one agent framework."],
+    ["Does Cockroach Browser include an LLM?", "It includes an optional OpenAI-compatible model gateway and finite-step browser agent. The operator supplies the model endpoint, credentials, task authority, and any external fleet services."],
+    ["Which AI agents can use it?", "Any host that can call MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API can integrate it. The built-in gateway does not require one model provider."],
     ["What does the LLM receive?", "The host can return bounded semantic snapshots, page references, action results, challenge state, evidence metadata, and receipt hashes instead of exposing an unrestricted browser object."],
     ["Can the agent use forms and files?", "Yes. The shipped action surface includes form controls, keyboard and pointer input, drag, upload, controlled download, dialogs, tabs, profiles, state checkpoints, and extraction."],
     ["Is Maqam required?", "No. Maqam is a separate optional approval integration. Cockroach Browser, its MCP server, SDK, API, CLI, and evidence system run without it."],
@@ -620,7 +682,7 @@ function aiAgentsPage() {
   ];
   return `${baseHead({
     title: "Cockroach Browser for AI agents and LLM applications",
-    description: "Connect an AI agent or LLM application to real Chromium through Cockroach Browser MCP, TypeScript SDK, authenticated HTTP API, semantic snapshots, actions, and evidence.",
+    description: "Connect an AI agent or LLM application to Chromium, Firefox, or WebKit through the built-in planner, MCP, six SDKs, authenticated HTTP API, semantic snapshots, actions, and evidence.",
     canonical,
     type: "article",
     schemas: [
@@ -710,7 +772,7 @@ function browserVsCrawlerPage() {
 <body>
 ${header("")}
 <main id="main">
-  <section class="shell page-hero"><p class="eyebrow">Two products / two workloads</p><h1>Cockroach Browser or Cockroach Crawler?</h1><p class="kicker">Use the Browser for stateful interaction. Use the Crawler for public-web breadth.</p><p class="lede">Cockroach Browser controls a real Chromium session with tabs, profiles, forms, files, screenshots, network observations, audits, and receipts. Cockroach Crawler discovers, traverses, filters, maps, and extracts many public web pages. The workload decides which is better.</p></section>
+  <section class="shell page-hero"><p class="eyebrow">Two products / two workloads</p><h1>Cockroach Browser or Cockroach Crawler?</h1><p class="kicker">Use the Browser for stateful interaction. Use the Crawler for public-web breadth.</p><p class="lede">Cockroach Browser controls real Chromium, Firefox, and WebKit sessions with raw APIs, agents, tabs, profiles, forms, files, screenshots, network tools, audits, and receipts. Cockroach Crawler discovers, traverses, filters, maps, and extracts many public web pages. The workload decides which is better.</p></section>
   <section class="section"><div class="shell"><div class="section-head"><h2>The short decision.</h2><p>Ask whether the job is a stateful user-like path through one application or a breadth-oriented acquisition job across many public pages.</p></div><div class="stack-grid"><article><span class="tag">Choose Browser</span><h3>State, interaction, and proof.</h3><p>Dynamic applications, authenticated portals, forms, files, tabs, screenshots, PDFs, traces, video, network inspection, audits, and visual comparison.</p><a href="/features/">Browser features</a></article><article><span class="tag">Choose Crawler</span><h3>Discovery, traversal, and extraction.</h3><p>Multiple seeds, breadth-first or depth-first traversal, sitemaps, robots enforcement, include and exclude filters, concurrency, Markdown, structured fields, and site maps.</p><a href="https://cockroachcrawler.com/">Crawler website</a></article><article><span class="tag">Use both</span><h3>Discover broadly, inspect deeply.</h3><p>Find and filter candidate pages with the Crawler, then open only selected dynamic or stateful paths in the Browser.</p><a href="/docs/crawler/">Handoff manual</a></article><article><span class="tag">Do not merge them</span><h3>Keep records explicit.</h3><p>A handoff should name the selected URL, purpose, source record, Browser session, and evidence result instead of hiding both jobs behind one claim.</p><a href="${site.repository}/blob/main/src/integrations/crawler.ts">Browser adapter source</a></article></div></div></section>
   <section class="section"><div class="shell"><div class="section-head"><h2>Workload-by-workload comparison.</h2><p>This table compares product centers, not a shared speed or quality benchmark.</p></div><div class="comparison-table-wrap"><table class="comparison-table"><caption>Cockroach Browser and Cockroach Crawler compared by workload.</caption><thead><tr><th scope="col">Workload</th><th scope="col">Cockroach Browser</th><th scope="col">Cockroach Crawler</th><th scope="col">Recommended fit</th></tr></thead><tbody>${rows}</tbody></table></div></div></section>
   <section class="section" id="faq"><div class="shell"><div class="section-head"><h2>Direct choice answers.</h2><p>The best product is the one whose native abstraction matches the job.</p></div><div class="answer-grid">${questions.map(([question, answer]) => `<article><h3>${escapeHtml(question)}</h3><p>${escapeHtml(answer)}</p></article>`).join("")}</div></div></section>
@@ -869,7 +931,7 @@ ${header("docs")}
       <p class="kicker">${capabilities.length} named surfaces. No hidden universal-access claim.</p>
       <p class="lede"><strong>${counts.available}</strong> runtime surfaces are available, <strong>${counts.adapter}</strong> require an external integration authority, and <strong>${counts.planned}</strong> remain planned.</p>
     </header>
-    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in 0.3.0. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
+    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in ${escapeHtml(site.version)}. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
       <button type="button" data-cap-filter="available" aria-pressed="false">Available ${counts.available}</button>
@@ -881,6 +943,89 @@ ${header("docs")}
     <div class="cap-grid">${cards}</div>
   </article>
   ${pageToc([["Status model", "status-model"], ["Capability filters", "capability-filters"]])}
+</main>
+${footer()}`;
+}
+
+function apiSurfacePage() {
+  const packageSections = apiSurface.packages.map((pkg) => {
+    const packageId = idFor(pkg.package);
+    const summaryCards = [
+      [pkg.summary.owners, "class and interface owners"],
+      [pkg.summary.groupedOwnerMembers, "grouped owner members"],
+      [pkg.summary.ownerMemberSignatures, "owner-member signatures"],
+      [pkg.summary.topLevelDeclarations, "top-level declarations"]
+    ].map(([value, label]) => `<div class="proof"><strong>${value}</strong><span>${escapeHtml(label)}</span></div>`).join("");
+    const topLevel = pkg.topLevel.map((entry) => `<li><code>${escapeHtml(entry.name)}</code><span>${escapeHtml(entry.kind)}${entry.signatures > 1 ? ` · ${entry.signatures} signatures` : ""}</span></li>`).join("");
+    const owners = pkg.owners.map((owner) => {
+      const members = owner.members.map((member) => `<li><code>${escapeHtml(member.name)}</code><span>${escapeHtml(member.kind)}${member.signatures > 1 ? ` · ${member.signatures} signatures` : ""}</span></li>`).join("");
+      return `<details class="api-owner" id="${packageId}-${idFor(owner.name)}">
+        <summary><span><code>${escapeHtml(owner.name)}</code> <small>${escapeHtml(owner.kind)}</small></span><strong>${owner.members.length} members</strong></summary>
+        <ul class="api-member-list">${members}</ul>
+      </details>`;
+    }).join("");
+    return `<section class="section api-package" id="${packageId}">
+      <div class="section-head">
+        <p class="eyebrow">${escapeHtml(pkg.package)} ${escapeHtml(pkg.version)}</p>
+        <h2>${escapeHtml(pkg.package)} public declarations</h2>
+        <p>Re-exported from <code>${escapeHtml(pkg.reexport)}</code>. Generated from <code>${escapeHtml(pkg.declaration)}</code>.</p>
+      </div>
+      <div class="proof-row">${summaryCards}</div>
+      <details class="api-owner api-top-level">
+        <summary><span>Top-level exports</span><strong>${pkg.topLevel.length} declarations</strong></summary>
+        <ul class="api-member-list">${topLevel}</ul>
+      </details>
+      <div class="api-owner-list">${owners}</div>
+    </section>`;
+  }).join("");
+  const totalOwners = apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.owners, 0);
+  const totalMembers = apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.groupedOwnerMembers, 0);
+  const totalSignatures = apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.ownerMemberSignatures, 0);
+  const canonical = `${site.origin}/api-surface/`;
+  return `${baseHead({
+    title: "Complete Playwright and Puppeteer API surface",
+    description: `Machine-generated inventory of ${totalOwners} Playwright and Puppeteer class/interface owners, ${totalMembers} grouped members, and ${totalSignatures} signatures re-exported by Cockroach Browser.`,
+    canonical,
+    schemas: [
+      {
+        "@type": "CollectionPage",
+        "@id": `${canonical}#inventory`,
+        name: "Cockroach Browser Playwright and Puppeteer API inventory",
+        description: apiSurface.scope,
+        url: canonical,
+        about: { "@id": `${site.origin}/#software` }
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${canonical}#packages`,
+        name: "Re-exported browser automation packages",
+        numberOfItems: apiSurface.packages.length,
+        itemListElement: apiSurface.packages.map((pkg, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "SoftwareSourceCode",
+            name: `${pkg.package} ${pkg.version}`,
+            programmingLanguage: "TypeScript",
+            codeSampleType: pkg.reexport
+          }
+        }))
+      },
+      breadcrumbSchema("API surface", canonical)
+    ]
+  })}
+<body>
+${header("api")}
+<main id="main">
+  <section class="page-hero shell">
+    <p class="eyebrow">Generated from installed TypeScript declarations</p>
+    <h1>Complete pinned Playwright and Puppeteer API inventory</h1>
+    <p class="kicker">${totalOwners} class/interface owners · ${totalMembers} grouped members · ${totalSignatures} owner-member signatures</p>
+    <p class="lede">Cockroach Browser re-exports Playwright Core ${escapeHtml(apiSurface.packages[0].version)} and Puppeteer Core ${escapeHtml(apiSurface.packages[1].version)} instead of rewriting a partial imitation. The JSON and this page are rebuilt from the exact installed declarations and checked for drift.</p>
+    <div class="hero-actions"><a class="button button--primary" href="/api/browser-api-surface.json">Download machine-readable JSON</a><a class="button" href="/docs/capabilities/">Product capability matrix</a></div>
+  </section>
+  <section class="section"><div class="shell"><div class="callout"><strong>Counts are contracts, not marketing features</strong><p>${escapeHtml(apiSurface.warning)} Runtime execution is separately proven by installed Chromium, Firefox, WebKit, and Puppeteer integration tests. Operator-level upstream APIs remain separate from the bounded policy runtime.</p></div></div></section>
+  <div class="shell api-surface">${packageSections}</div>
 </main>
 ${footer()}`;
 }
@@ -1038,9 +1183,9 @@ ${header("alternatives")}
 
   <section class="section" id="current-gaps">
     <div class="shell comparison-shell">
-      <div class="section-head"><h2>What Cockroach Browser 0.3.0 still lacks.</h2><p>Existing trace, HAR, video, extension, proxy, accessibility, and worker features remain credited. Each gap names the deeper library, framework, or hosted capability that is not currently shipped.</p></div>
+      <div class="section-head"><h2>What Cockroach Browser ${escapeHtml(site.version)} still lacks.</h2><p>Existing multi-engine, upstream API, trace, HAR, network, protocol, SDK, model, fleet-adapter, extension, accessibility, and worker surfaces remain credited. Each gap names external infrastructure or native platform capacity that is not bundled with this release.</p></div>
       <div class="comparison-table-wrap"><table class="comparison-table"><caption>Current Cockroach Browser features and gaps compared with official competitor documentation.</caption><thead><tr><th scope="col">Area</th><th scope="col">What ships now</th><th scope="col">Current gap</th><th scope="col">Official comparison source</th></tr></thead><tbody>${gapRows}</tbody></table></div>
-      <div class="callout"><strong>Truthful release boundary</strong><p>Cockroach Browser 0.3.0 is Chromium-family, TypeScript and Node.js, operator-owned, and model-agnostic. It does not claim drop-in library API parity, multi-engine coverage, built-in LLM autonomy, CAPTCHA solving, stealth, managed proxies, or hosted global scale.</p></div>
+      <div class="callout"><strong>Truthful release boundary</strong><p>Cockroach Browser ${escapeHtml(site.version)} includes Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer exports, an optional model gateway, five additional daemon SDKs, and local plus remote fleet contracts. It does not claim native macOS Safari/iOS/Android capacity, an operated browser cloud, an owned proxy network, covert stealth, bundled CAPTCHA bypass, or hosted global scale.</p></div>
     </div>
   </section>
 
@@ -1412,6 +1557,7 @@ function sitemap() {
     "/ai-agents/",
     "/use-cases/",
     "/browser-vs-crawler/",
+    "/api-surface/",
     "/docs/",
     ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)),
     "/alternatives/",
@@ -1434,34 +1580,34 @@ function searchIndex() {
         url: `${site.origin}/`,
         kind: "product",
         summary: site.description,
-        keywords: ["browser automation", "AI agents", "LLM browser", "Chromium", "semantic snapshots", "profiles", "files", "evidence", "MCP", "TypeScript"]
+        keywords: ["browser automation", "AI agents", "LLM browser", "Chromium", "Firefox", "WebKit", "Playwright", "Puppeteer", "semantic snapshots", "profiles", "files", "evidence", "MCP", "TypeScript"]
       },
       {
         title: "What is Cockroach Browser?",
         url: `${site.origin}/what-is-cockroach-browser/`,
         kind: "product-definition",
-        summary: "A local-first TypeScript runtime for explicitly authorized Chromium sessions, semantic page references, real interactions, and verifiable browser evidence.",
-        keywords: ["Cockroach Browser", "browser runtime", "authorized browser sessions", "semantic page references", "browser evidence"]
+        summary: "A local-first TypeScript runtime for Chromium, Firefox, and WebKit, complete pinned Playwright and Puppeteer exports, semantic page references, real interactions, and verifiable browser evidence.",
+        keywords: ["Cockroach Browser", "browser runtime", "Playwright", "Puppeteer", "Chromium", "Firefox", "WebKit", "semantic page references", "browser evidence"]
       },
       {
         title: "Cockroach Browser features",
         url: `${site.origin}/features/`,
         kind: "features",
-        summary: `${capabilities.length} mapped capabilities covering Chromium sessions, page interaction, profiles, files, evidence, audits, MCP, APIs, workers, and deployment.`,
+        summary: `${capabilities.length} mapped capabilities covering Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer exports, page interaction, files, evidence, audits, AI agents, SDKs, and deployment.`,
         keywords: ["browser automation features", "AI agent browser", `${actionKinds.length} browser actions`, ...capabilities.map((entry) => entry.title)]
       },
       {
         title: "Install Cockroach Browser",
         url: `${site.origin}/install/`,
         kind: "installation",
-        summary: "Install on Windows, macOS, or Linux, bootstrap Chromium explicitly, and connect through MCP, TypeScript, HTTP, CLI, Docker, or a local service.",
-        keywords: ["npm install cockroach-browser", "MCP browser install", "Chromium AI agent", "TypeScript browser automation"]
+        summary: "Install on Windows, macOS, or Linux, install Chromium, Firefox, and WebKit explicitly, and connect through MCP, six SDKs, HTTP, CLI, Docker, or a local service.",
+        keywords: ["npm install cockroach-browser", "MCP browser install", "Chromium AI agent", "Firefox automation", "WebKit automation", "TypeScript browser automation"]
       },
       {
         title: "Cockroach Browser for AI agents and LLM applications",
         url: `${site.origin}/ai-agents/`,
         kind: "ai-agent-integration",
-        summary: "Connect an external AI agent or LLM host to real Chromium through MCP, TypeScript, or an authenticated HTTP API.",
+        summary: "Connect an AI agent or LLM host to Chromium, Firefox, or WebKit through the built-in planner, MCP, six SDKs, or an authenticated HTTP API.",
         keywords: ["AI browser agent", "LLM browser automation", "browser MCP", "semantic page snapshot", "agent browser tool"]
       },
       {
@@ -1477,6 +1623,13 @@ function searchIndex() {
         kind: "product-comparison",
         summary: "Choose Cockroach Browser for stateful interaction and browser evidence; choose Cockroach Crawler for broad public-web discovery, mapping, and extraction.",
         keywords: ["Cockroach Browser", "Cockroach Crawler", "browser vs crawler", ...browserCrawlerDecisions.map((entry) => entry.workload)]
+      },
+      {
+        title: "Complete Playwright and Puppeteer API surface",
+        url: `${site.origin}/api-surface/`,
+        kind: "api-inventory",
+        summary: `Machine-generated inventory of ${apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.owners, 0)} class/interface owners and ${apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.groupedOwnerMembers, 0)} grouped members from the exact pinned declarations.`,
+        keywords: apiSurface.packages.flatMap((pkg) => [pkg.package, ...pkg.owners.map((owner) => owner.name), ...pkg.topLevel.map((entry) => entry.name)])
       },
       {
         title: comparison.title,
@@ -1557,7 +1710,7 @@ ${capabilities.map((entry) => `| \`${entry.id}\` | ${entry.group} | ${entry.titl
 function docsReadme() {
   return `# Cockroach Browser documentation
 
-Cockroach Browser is a local-first browser runtime for AI agents with authorized Chromium sessions, snapshot-scoped semantic references, evidence capture, MCP, and Maqam policy hooks.
+Cockroach Browser is a local-first browser runtime for AI agents with Chromium, Firefox, and WebKit execution; complete pinned Playwright and Puppeteer exports; snapshot-scoped semantic references; evidence capture; an optional model gateway; six SDKs; and MCP.
 
 The public documentation lives at ${site.origin}/docs/.
 
@@ -1565,6 +1718,7 @@ The public documentation lives at ${site.origin}/docs/.
 
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](./${slug}.md)`).join("\n")}
 - [Alternatives and product-layer comparison](${site.origin}/alternatives/)
+- [Complete Playwright and Puppeteer API inventory](${site.origin}/api-surface/)
 - [Technical white paper](./whitepaper.md)
 
 ## Product boundaries

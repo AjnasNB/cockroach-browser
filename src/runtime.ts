@@ -4,11 +4,12 @@ import { homedir } from "node:os";
 import { basename, extname, isAbsolute, join, relative, resolve } from "node:path";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
-import { chromium } from "playwright-core";
+import { chromium, firefox, webkit } from "playwright-core";
 import type {
   Browser,
   BrowserContext,
   BrowserContextOptions,
+  BrowserType,
   ConsoleMessage,
   Dialog,
   Download,
@@ -25,6 +26,7 @@ import type {
   BrowserAction,
   BrowserActionBatchInput,
   BrowserActionBatchResult,
+  BrowserEngine as CockroachBrowserEngine,
   BrowserEventPublisher,
   BrowserHistoryEntry,
   BrowserActivityQuery,
@@ -211,6 +213,9 @@ export class BrowserRuntime {
   async createSession(rawInput: SessionCreateInput): Promise<SessionSummary> {
     await this.initialize();
     const input = structuredClone(rawInput);
+    const engine = input.engine ?? "chromium";
+    input.engine = engine;
+    const browserType = browserTypeFor(engine);
     const policy = normalizePolicy(input.policy);
     input.policy = policy;
     if (!input.purpose?.trim() || input.purpose.trim().length > 500) {
@@ -240,6 +245,24 @@ export class BrowserRuntime {
       ...(input.executablePath ? { executablePath: input.executablePath } : {}),
       ...(input.cdpEndpoint ? { cdpEndpoint: input.cdpEndpoint } : {})
     });
+    if (engine !== "chromium" && provider.cdpEndpoint) {
+      throw new CockroachBrowserError(
+        "CDP_ENGINE_UNSUPPORTED",
+        "CDP attachment is available only for Chromium. Use the public BiDi module or a Firefox/WebKit launch instead."
+      );
+    }
+    if (engine !== "chromium" && input.browserProvider?.kind === "system") {
+      throw new CockroachBrowserError(
+        "SYSTEM_ENGINE_UNSUPPORTED",
+        "System browser discovery currently selects Chromium-family installations. Use the bundled or an explicit custom Firefox/WebKit executable."
+      );
+    }
+    if (engine !== "chromium" && provider.extensions.length > 0) {
+      throw new CockroachBrowserError(
+        "EXTENSION_ENGINE_UNSUPPORTED",
+        "Reviewed unpacked extension loading is available only for Chromium sessions."
+      );
+    }
     if (provider.persistentProfile && policy.allowedProfiles && !policy.allowedProfiles.includes(provider.persistentProfile)) {
       throw new CockroachBrowserError("PROFILE_DENIED", `Persistent profile ${provider.persistentProfile} is not allowed by policy.`);
     }
@@ -295,7 +318,7 @@ export class BrowserRuntime {
         const extensionArgs = provider.extensions.length
           ? [`--disable-extensions-except=${provider.extensions.join(",")}`, `--load-extension=${provider.extensions.join(",")}`]
           : [];
-        const launchOptions: NonNullable<Parameters<typeof chromium.launch>[0]> = {
+        const launchOptions: NonNullable<Parameters<BrowserType["launch"]>[0]> = {
           headless: (input.mode ?? "headless") === "headless",
           ...(provider.executablePath ? { executablePath: provider.executablePath } : {}),
           ...(proxy ? { proxy } : {}),
@@ -341,13 +364,13 @@ export class BrowserRuntime {
           const persistentRoot = provider.persistentProfile
             ? (await this.persistentProfiles.prepare(provider.persistentProfile)).path
             : join(sessionArtifactRoot, "extension-profile");
-          context = await chromium.launchPersistentContext(persistentRoot, {
+          context = await browserType.launchPersistentContext(persistentRoot, {
             ...launchOptions,
             ...contextOptions
           });
           browser = context.browser() ?? undefined;
         } else {
-          browser = await chromium.launch(launchOptions);
+          browser = await browserType.launch(launchOptions);
           context = await browser.newContext(contextOptions);
         }
         // Headers may contain bearer credentials. The browser context has its
@@ -432,6 +455,7 @@ export class BrowserRuntime {
       state: session.state,
       ...(session.input.profile ? { profile: session.input.profile } : {}),
       mode: session.input.mode ?? "headless",
+      engine: session.input.engine ?? "chromium",
       purpose: session.input.purpose,
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       createdAt: session.createdAt,
@@ -1586,6 +1610,12 @@ export class BrowserRuntime {
         return { evidenceId: evidence.id, bytes: evidence.size };
       }
       case "pdf": {
+        if ((session.input.engine ?? "chromium") !== "chromium") {
+          throw new CockroachBrowserError(
+            "PDF_ENGINE_UNSUPPORTED",
+            "PDF generation in the bounded runtime requires Chromium. Firefox and WebKit sessions can use screenshots or the raw automation API."
+          );
+        }
         await this.#assertCaptureGeometry(page, session, true);
         const buffer = await page.pdf({ printBackground: true, format: "A4" });
         const evidence = await this.#addBufferEvidence(session, {
@@ -2517,6 +2547,12 @@ export class BrowserRuntime {
       // never change the result of a browser action or evidence capture.
     }
   }
+}
+
+function browserTypeFor(engine: CockroachBrowserEngine): BrowserType {
+  if (engine === "firefox") return firefox;
+  if (engine === "webkit") return webkit;
+  return chromium;
 }
 
 function stateName(input: string | undefined): string {

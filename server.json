@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.AjnasNB/cockroach-browser",
-  "description": "Local-first Chromium tools for AI agents with semantic page snapshots, authenticated sessions, files, network inspection, and verifiable evidence.",
+  "description": "Local-first Chromium, Firefox, WebKit, Playwright, and Puppeteer tools for AI agents with semantic page snapshots, model-directed execution, authenticated sessions, SDKs, and verifiable evidence.",
   "repository": {
     "url": "https://github.com/AjnasNB/cockroach-browser",
     "source": "github"
   },
-  "version": "0.3.0",
+  "version": "0.4.0-rc.1",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "cockroach-browser",
-      "version": "0.3.0",
+      "version": "0.4.0-rc.1",
       "transport": {
         "type": "stdio"
       },

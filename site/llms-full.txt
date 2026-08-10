@@ -2,15 +2,15 @@
 
 ## What Cockroach Browser is
 
-Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.
+Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.
 
-Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It runs stateful Chromium sessions and exposes browser work through MCP, a TypeScript SDK, an authenticated HTTP API, and a CLI. Cockroach Crawler is a separate public-web acquisition product. Cockroach Browser does not bundle an LLM or autonomous planner.
+Cockroach Browser is the AjnasNB browser automation project at cockroachbrowser.com. The bounded runtime launches Chromium, Firefox, or WebKit. Separate unrestricted modules re-export the complete pinned Playwright and Puppeteer Core APIs, Playwright Test, raw CDP, raw WebDriver BiDi, and mobile WebDriver/Appium transport. Cockroach Crawler is a separate public-web acquisition product.
 
 ## AI-agent integration
 
-A host agent creates a session, requests a semantic snapshot, chooses a snapshot-scoped reference, submits an exact browser action, and receives an outcome plus evidence and a hash-linked receipt. The LLM remains outside Cockroach Browser and may be supplied by any host that can call MCP, TypeScript, or HTTP tools.
+Cockroach Browser includes an optional OpenAI-compatible model gateway and a finite-step browser agent over semantic snapshots, exact actions, evidence, and receipts. A host may instead use its own agent through MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API.
 
-## 65 typed browser actions
+## 65 bounded browser actions
 
 - navigate
 - back
@@ -77,6 +77,14 @@ A host agent creates a session, requests a semantic snapshot, chooses a snapshot
 - tab.lock.status
 - trace.start
 - trace.stop
+
+## Raw operator automation
+
+- Playwright Chromium, Firefox, and WebKit browser, context, page, frame, locator, handle, worker, download, request, response, route, WebSocket, trace, HAR, clock, emulation, and protocol contracts
+- Puppeteer browser, context, page, frame, locator, element handle, JavaScript handle, target, worker, CDP, coverage, heap, tracing, metrics, emulation, and screencast contracts
+- Playwright Test fixtures, projects, assertions, retries, reporters, snapshots, parallelism, and code generation for JavaScript, TypeScript, Python, Java, and C#
+- Generated declaration inventory: https://cockroachbrowser.com/api-surface/
+- Machine-readable declaration inventory: https://cockroachbrowser.com/api/browser-api-surface.json
 
 ## Browser automation use cases
 
@@ -177,7 +185,7 @@ Direct browser APIs, browser objects, events, protocols, test tooling, and broad
 
 Choose this layer when: Your application should own browser calls directly and your team will build the surrounding agent, service, policy, and evidence layers.
 
-Cockroach Browser relationship: Cockroach Browser uses playwright-core, narrows control to session actions and semantic references, and adds packaged local transport plus evidence records.
+Cockroach Browser relationship: Cockroach Browser exposes the pinned Playwright and Puppeteer APIs directly, and separately provides a bounded semantic action runtime, agent loop, local transport, fleet adapters, and evidence records.
 
 Official sources: Playwright browsers: https://playwright.dev/docs/browsers; Puppeteer supported browsers: https://pptr.dev/supported-browsers; Selenium WebDriver: https://www.selenium.dev/documentation/webdriver/.
 
@@ -199,7 +207,7 @@ Model selection, natural-language browser operations, planning, extraction, reco
 
 Choose this layer when: The product needs an LLM-driven browser agent rather than only a browser runtime that an existing agent can call.
 
-Cockroach Browser relationship: Cockroach Browser deliberately does not bundle an LLM planner. A host agent calls its MCP, SDK, or HTTP surfaces and remains responsible for planning.
+Cockroach Browser relationship: Cockroach Browser includes a finite-step planner over its semantic runtime plus MCP, SDK, and HTTP surfaces. The operator still selects the model gateway, task authority, and external services.
 
 Official sources: Browser Use cloud quickstart: https://docs.browser-use.com/cloud/quickstart; Stagehand introduction: https://docs.stagehand.dev/v3/first-steps/introduction; Vercel Labs agent-browser: https://github.com/vercel-labs/agent-browser.
 
@@ -210,53 +218,18 @@ Managed browser capacity, remote connection endpoints, sessions, profiles, proxi
 
 Choose this layer when: Elastic capacity, hosted operations, managed proxies, geographic placement, or browser fleet management is the main requirement.
 
-Cockroach Browser relationship: Cockroach Browser defaults to local or operator-managed workers. It has a worker pool, but it is not a hosted elastic browser cloud or managed proxy service.
+Cockroach Browser relationship: Cockroach Browser includes a local three-engine process fleet and an authenticated provider adapter for regions, proxy classes, challenge modes, and live-view URLs. It does not operate a hosted browser or proxy network.
 
 Official sources: Browserbase core features: https://docs.browserbase.com/platform/browser/core-features/overview; Browserless browser as a service: https://docs.browserless.io/baas/start; Steel Sessions API: https://docs.steel.dev/overview/sessions-api/overview.
 
 ## Current Cockroach Browser gaps
 
-### Browser engines
-Shipped: Bundled or discovered Chromium, Chrome, Edge, and Brave executables, plus explicit Chrome CDP attachment.
+### Native Safari and mobile infrastructure
+Shipped: Installed Chromium, Firefox, and WebKit execution plus a raw W3C WebDriver/Appium client for operator-supplied iOS, Android, and Safari endpoints.
 
-Current gap: No Firefox or WebKit session selection in Cockroach Browser 0.3.0.
+Current gap: No bundled macOS Safari host, iOS simulator, Android emulator, physical-device lab, or hosted mobile capacity.
 
 Official comparison source: https://playwright.dev/docs/browsers
-
-### Protocol access
-Shipped: Attach to one operator-selected Chrome DevTools endpoint through the CDP provider.
-
-Current gap: No public raw CDP session surface and no WebDriver BiDi API.
-
-Official comparison source: https://pptr.dev/api/puppeteer.cdpsession
-
-### Handles, targets, and events
-Shipped: Snapshot-scoped semantic references, exact CSS or XPath targets, tabs, frames, and a bounded activity stream.
-
-Current gap: No drop-in Page, Frame, ElementHandle, JSHandle, BrowserContext, Target, or complete browser event API.
-
-Official comparison source: https://pptr.dev/api/puppeteer.elementhandle
-
-### Network and WebSockets
-Shipped: Bounded redacted request and response observations, JSON or HAR-compatible export, session-start HAR recording, and exact-origin abort or static fulfillment routes.
-
-Current gap: No complete request-mutation lifecycle, raw protocol network domains, or WebSocket frame lifecycle API.
-
-Official comparison source: https://playwright.dev/docs/network
-
-### Tracing, video, and screencast
-Shipped: Trace start and stop actions, session video, screenshots, PDFs, and evidence indexing.
-
-Current gap: No full library-compatible tracing object model, raw screencast stream, or hosted recording viewer.
-
-Official comparison source: https://playwright.dev/docs/api/class-tracing
-
-### Accessibility and diagnostics
-Shipped: Semantic snapshots plus bounded accessibility, performance, asset, console, security, and visual audits.
-
-Current gap: No complete browser accessibility tree API, JavaScript coverage API, heap snapshot API, or full DevTools diagnostics surface.
-
-Official comparison source: https://github.com/ChromeDevTools/chrome-devtools-mcp
 
 ### Extensions
 Shipped: Up to 16 reviewed unpacked extension directories in an isolated headed Chromium profile.
@@ -266,41 +239,48 @@ Current gap: No extension marketplace install, signed-extension distribution, or
 Official comparison source: https://pptr.dev/guides/chrome-extensions
 
 ### Hosted scale
-Shipped: Local daemon, Docker image, authenticated remote workers, capacity-aware worker pool, and team session roles.
+Shipped: Local daemon, Docker image, a working local three-engine process fleet, authenticated workers, and an exact REST provider contract for capacity, regions, proxy classes, challenges, and HTTPS live views.
 
-Current gap: No vendor-operated elastic browser fleet, managed regional capacity, live session viewer, usage billing, or hosted control plane.
+Current gap: The open-source project does not itself operate elastic capacity, a customer control plane, billing, recordings storage, or an availability SLA.
 
 Official comparison source: https://docs.browserbase.com/platform/browser/core-features/overview
 
 ### Proxy and identity services
-Shipped: One explicit operator-supplied proxy per session with credentials resolved through a host secret reference.
+Shipped: Explicit per-session proxies plus fleet requests for declared datacenter, residential, static-IP, or custom proxy classes and geography.
 
-Current gap: No managed residential proxy network, automatic rotation, geographic routing catalog, or hosted identity service.
+Current gap: No Cockroach-operated IP inventory, automatic rotation network, geographic availability catalog, or hosted identity service.
 
 Official comparison source: https://docs.steel.dev/overview/stealth/proxies
 
 ### Stealth and access challenges
-Shipped: Challenge detection, pause, evidence, human handoff, and an optional host-authorized resolver callback.
+Shipped: Challenge detection, pause, evidence, human handoff, a host-authorized resolver, and an exact provider-authorized challenge mode in the fleet contract.
 
-Current gap: No covert fingerprint evasion, CAPTCHA bypass engine, or provider-operated challenge-solving service.
+Current gap: No covert fingerprint evasion or bundled CAPTCHA bypass engine. Any external challenge service remains operator-selected and must be authorized for the target.
 
 Official comparison source: https://docs.steel.dev/overview/captchas-api/overview
 
-### Built-in LLM autonomy
-Shipped: MCP, TypeScript SDK, CLI, and authenticated HTTP surfaces that an external AI agent can call.
+### Agent evaluation
+Shipped: A bounded OpenAI-compatible model gateway and finite-step browser agent over semantic snapshots, exact actions, receipts, MCP, SDK, and HTTP surfaces.
 
-Current gap: No bundled model, prompt planner, autonomous recovery loop, or natural-language task-success benchmark.
+Current gap: No independently reproduced cross-product task-success benchmark, universal autonomous recovery claim, or bundled model weights.
 
 Official comparison source: https://docs.browser-use.com/cloud/quickstart
+
+### Language-native API depth
+Shipped: Complete TypeScript Playwright and Puppeteer contracts plus dependency-light Python, Java, .NET, Ruby, and Go daemon clients with generic route access.
+
+Current gap: The non-TypeScript SDKs do not reimplement every browser object as a language-native class; they call the authenticated Cockroach Browser service.
+
+Official comparison source: https://www.selenium.dev/documentation/webdriver/
 
 ## Browser manuals
 
 ## Getting started
 
-Cockroach Browser gives an AI agent a real Chromium session without turning the browser into ambient authority. Start with a local daemon or embed the TypeScript runtime.
+Cockroach Browser gives an AI agent real Chromium, Firefox, or WebKit execution without turning the browser into ambient authority. Start with a local daemon, embed the bounded runtime, or use the raw upstream APIs.
 
-### Install the package and Chromium
-The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Chromium only when it is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
+### Install the package and three browser engines
+The package supports maintained Node.js 22, 24, and 26 releases. bootstrap installs Playwright 1.62.1 Chromium, Firefox, and WebKit builds only when an engine is missing, initializes the local data root, and probes an authenticated ephemeral loopback daemon. Browser downloads never happen in an npm lifecycle script.
 
 ### Start the authenticated localhost daemon
 The daemon binds to loopback by default, generates a strong bearer token, and rejects requests without it. A non-loopback bind requires an explicit remote setting and TLS.
@@ -311,12 +291,37 @@ A session must state its purpose, allowed origins, effects, actions, and resourc
 ### Embed the runtime
 Use the SDK when the browser process belongs inside your service. Use the authenticated client when a separate daemon owns Chromium. Both surfaces return the same snapshots, evidence, and receipts.
 
+## Full automation platform
+
+Cockroach Browser keeps its policy-evaluated agent runtime separate from unrestricted operator automation while shipping both in one versioned package.
+
+### Run Chromium, Firefox, and WebKit through Playwright
+cockroach-browser/automation re-exports the complete pinned playwright-core package. Browser, context, page, frame, locator, handle, worker, request, response, route, WebSocket, tracing, HAR, clock, emulation, download, video, and protocol APIs retain their upstream contracts. This unrestricted operator surface does not inherit bounded-runtime origin or budget policy.
+
+### Use every pinned Puppeteer Core export
+cockroach-browser/puppeteer is an exact default and named re-export of puppeteer-core. It includes Browser, BrowserContext, Page, Frame, Locator, ElementHandle, JSHandle, Target, WebWorker, CDPSession, coverage, tracing, heap, metrics, emulation, and screencast contracts. The generated API inventory records every public owner and member from the installed declarations.
+
+### Run tests and generate cross-language scripts
+cockroach-browser/test exposes Playwright Test fixtures and assertions. cockroach-browser-test runs the upstream test runner. cockroach-browser-codegen records JavaScript, TypeScript, Python, Java, or C# scripts. Projects, retries, reporters, snapshots, parallelism, trace, and multi-engine configuration remain upstream Playwright behavior.
+
+### Use CDP, WebDriver BiDi, Safari, iOS, and Android endpoints
+The CDP module creates raw sessions for Chromium pages and frames. The BiDi module sends arbitrary bounded commands and subscriptions to an operator-owned WebSocket. The mobile module is a raw W3C WebDriver/Appium transport for operator-supplied Safari, iOS, Android, and vendor endpoints. Cockroach Browser does not bundle a macOS Safari host, simulator, emulator, or device lab.
+
+### Run the optional model gateway and finite-step agent
+The OpenAI-compatible gateway resolves its API key in the trusted host, enforces request deadlines and response byte ceilings, and parses structured tool calls. The agent observes semantic snapshots, dispatches typed actions through BrowserRuntime, retains receipts, and stops at a configured step limit. A host can omit this layer and use any external planner.
+
+### Allocate local or provider-managed browser capacity
+The local fleet launches real Chromium, Firefox, or WebKit browser servers with capacity and TTL enforcement. The HTTP provider adapter requires exact declared engines, regions, proxy classes, challenge modes, and live-view behavior. Residential/static IPs, provider challenge services, live viewers, and hosted capacity remain external infrastructure selected by the operator.
+
+### Call the authenticated daemon from six languages
+TypeScript is the native embedded and daemon SDK. Dependency-light Python, Java, .NET/C#, Ruby, and Go clients expose health, capabilities, sessions, actions, batches, snapshots, and generic route access. These clients preserve server errors and caller-owned timeouts; they do not pretend to reimplement every upstream browser object in every language.
+
 ## Operator install
 
 Generate shell completions, verify local readiness, and install a per-user loopback daemon on Windows, macOS, or Linux without sudo, administrator prompts, or public binding.
 
 ### Bootstrap and probe the local runtime
-cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit a browser download.
+cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs pinned Chromium, Firefox, and WebKit builds only when an engine is absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit browser downloads.
 
 ### Generate completion scripts
 The completion command writes a script to standard output and never edits a shell profile. Inspect the output, place it in your shell's normal completion directory, and keep profile ownership with the local operator.
@@ -608,15 +613,20 @@ Embed TeamSessionStore to persist owner, viewer, and operator roles with revocat
 ### Release verification
 Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.
 
-## Complete 94-capability matrix
+## Complete 124-capability matrix
 
 - Authorized browser sessions [available]: Create sessions only from explicit user or host configuration. Surface: runtime.createSession.
-- Headless Chromium [available]: Run unattended Chromium with the same policy boundary. Surface: mode=headless.
-- Headed Chromium [available]: Show the real browser for review, login, and human handoff. Surface: mode=headed.
+- Headless Chromium, Firefox, and WebKit [available]: Run any installed Playwright engine unattended with the same policy boundary. Surface: engine and mode=headless.
+- Headed Chromium, Firefox, and WebKit [available]: Show an installed Playwright engine for review, login, and human handoff. Surface: engine and mode=headed.
 - Attach over CDP [available]: Connect to a user-selected Chrome debugging endpoint. Surface: cdpEndpoint.
-- Custom Chromium executable [available]: Launch an explicitly supplied compatible browser binary. Surface: executablePath.
+- Custom browser executable [available]: Launch an explicitly supplied executable for the selected Chromium, Firefox, or WebKit engine. Surface: engine and executablePath.
 - Cross-platform browser discovery [available]: Discover reviewed Chrome, Edge, Brave, and Chromium binaries on Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Surface: browser discover and discoverBrowserExecutables.
 - Explicit browser providers [available]: Select bundled, system, custom executable, or CDP providers without ambient profile discovery. Surface: browserProvider.
+- Complete raw Playwright API [available]: Re-export the installed Playwright browser, context, page, frame, locator, handle, worker, event, network, tracing, emulation, and protocol contracts without wrapping away upstream methods. Surface: cockroach-browser/automation.
+- Complete raw Puppeteer Core API [available]: Re-export the installed Puppeteer Core package, including browser, page, frame, target, handle, worker, CDP, coverage, tracing, emulation, and screencast contracts. Surface: cockroach-browser/puppeteer.
+- Raw Chrome DevTools Protocol sessions [available]: Connect to explicit CDP endpoints or create an unrestricted CDP session for an operator-owned Playwright page or frame. Surface: cockroach-browser/cdp.
+- Raw WebDriver BiDi sessions [available]: Send bounded arbitrary WebDriver BiDi commands, subscribe to events, and receive protocol events over operator-owned WebSocket endpoints. Surface: cockroach-browser/bidi.
+- Native mobile WebDriver and Appium transport [available]: Create W3C WebDriver sessions for operator-supplied Android, iOS, and Safari endpoints and issue both standard and vendor commands. Surface: cockroach-browser/mobile.
 - Reviewed unpacked extensions [available]: Load explicit local extension directories in an isolated headed browser without downloading CRX files. Surface: browserProvider.extensions.
 - Named isolated profiles [available]: Keep cookies and storage separated by an explicit profile name. Surface: profile.
 - Runtime-owned persistent browser profiles [available]: Keep headed browser cookies, permissions, extensions, and storage across sessions in an explicit runtime-owned user-data directory, with single-writer locking and recoverable archival. Surface: browserProvider.persistentProfile and /v1/profiles.
@@ -627,6 +637,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - User-supplied proxy [available]: Route one session through an explicitly configured proxy. Surface: proxy.
 - Locale and timezone [available]: Create deterministic locale and timezone contexts. Surface: locale/timezoneId.
 - Device and network emulation [available]: Apply bounded viewport, media, offline, geolocation, permission, and non-secret header settings behind explicit emulation policy and approval. Surface: emulation.set/clear.
+- Complete upstream emulation controls [available]: Expose Playwright and Puppeteer device, clock, CPU, network, media, locale, timezone, geolocation, permission, vision, and browser-feature emulation contracts. Surface: cockroach-browser/automation and cockroach-browser/puppeteer.
 - Tabs and popups [available]: Open, list, switch, and close bounded tabs. Surface: tab.*.
 - Exclusive tab locks [available]: Bind a tab to one owner and opaque lock-token reference for a finite lease before executing protected actions. Surface: tab.lock/unlock/status.
 - Navigation [available]: Navigate, reload, go back, and go forward within allowed origins. Surface: navigate/back/forward/reload.
@@ -652,12 +663,20 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Ordered action batches [available]: Run up to 100 exact policy-evaluated actions with stop-on-error or continue semantics and an individual receipt for every attempted step. Surface: /actions/batch.
 - File upload [available]: Upload explicit paths under byte and policy limits. Surface: upload.
 - Controlled downloads [available]: Capture downloads into the evidence directory under byte limits. Surface: download.
+- JSHandle and ElementHandle APIs [available]: Expose complete upstream JavaScript and element handle lifecycles, evaluation, property access, disposal, and element operations. Surface: cockroach-browser/automation and cockroach-browser/puppeteer.
+- Browser, context, page, target, worker, and frame events [available]: Expose complete upstream event emitters and typed event payloads for unrestricted operator automation. Surface: cockroach-browser/automation and cockroach-browser/puppeteer.
+- Full locators and web assertions [available]: Expose Playwright locator composition, role and text queries, actionability, retries, and web-first assertions. Surface: cockroach-browser/automation and cockroach-browser/test.
+- Playwright Test runner [available]: Expose fixtures, projects, parallelism, retries, reporters, snapshots, test assertions, and multi-engine projects. Surface: cockroach-browser/test and cockroach-browser-test.
+- Cross-language test generation [available]: Launch Playwright code generation for JavaScript, TypeScript, Python, Java, and C# targets. Surface: cockroach-browser-codegen.
+- General request and response rewriting [available]: Expose request continuation, method/header/body mutation, route fetch, abort, fulfill, response replacement, and context-level routing. Surface: cockroach-browser/automation and cockroach-browser/puppeteer.
+- WebSocket inspection and routing [available]: Expose Playwright WebSocket events, frame inspection, message mocking, forwarding, mutation, and close handling. Surface: cockroach-browser/automation.
 - Screenshots [available]: Capture PNG or JPEG evidence with source metadata. Surface: screenshot.
 - Paired visual and semantic capture [available]: Capture a screenshot and semantic snapshot as one evidence set, optionally rejecting page drift and including reference bounds. Surface: capture.paired and browser_capture.
 - Temporary page annotations [available]: Overlay bounded semantic-reference labels for review, then remove them without changing application state. Surface: annotate.show/clear.
 - PDF capture [available]: Generate page PDFs in Chromium sessions. Surface: pdf.
 - Playwright traces [available]: Start and stop trace archives for authorized sessions. Surface: trace.*.
 - HAR capture [available]: Record network archives when enabled at session creation. Surface: recordHar.
+- HAR replay and network mocking [available]: Replay HAR entries, update archives, abort missing requests, and combine archives with general route handlers. Surface: BrowserContext.routeFromHAR and Page.routeFromHAR.
 - Session video [available]: Record browser video when enabled at session creation. Surface: recordVideo.
 - Console records [available]: Capture bounded console messages with timestamps. Surface: session evidence.
 - Explicit runtime clearing [available]: Clear browser cache or retained console and network observations through policy-evaluated actions. Surface: cache.clear/console.clear/network.clear.
@@ -666,6 +685,10 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Network export [available]: Export the bounded redacted observation set as JSON, NDJSON, or HAR-compatible evidence. Surface: network.export.
 - Hash-chained receipts [available]: Link action inputs, outputs, policy decisions, and evidence. Surface: ActionReceipt.
 - Text and HTML extraction [available]: Return bounded readable text or HTML fragments. Surface: extract.
+- JavaScript and CSS coverage [available]: Expose Puppeteer coverage collection for JavaScript and stylesheets in Chromium sessions. Surface: cockroach-browser/puppeteer Page.coverage.
+- Heap snapshots and runtime object queries [available]: Expose raw CDP heap snapshots plus Puppeteer runtime object queries and handle inspection. Surface: cockroach-browser/cdp and cockroach-browser/puppeteer.
+- Screencasting, metrics, and profiling [available]: Expose raw DevTools screencast, performance metrics, tracing, CPU profiling, and protocol diagnostics. Surface: cockroach-browser/cdp and cockroach-browser/puppeteer.
+- Generated upstream API inventory [available]: Generate and verify every public class and interface member exposed by the pinned Playwright and Puppeteer declarations. Surface: docs/compatibility/browser-api-surface.json.
 - Accessibility audit [available]: Inspect semantic names, labels, heading order, and obvious failures. Surface: audit accessibility.
 - Page performance observations [available]: Collect navigation timing, paint entries, transfer sizes, and resource summaries. Surface: audit performance.
 - Broken asset audit [available]: Report failed scripts, styles, images, and requests. Surface: audit assets.
@@ -675,6 +698,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Challenge detection [available]: Detect login, consent, CAPTCHA, and access challenges. Surface: challenge.
 - Human challenge handoff [available]: Pause for a user or authorized resolver instead of bypassing controls. Surface: challenge wait.
 - Authorized challenge resolver [available]: Request a host-owned operator workflow through a page-less callback, then independently verify the page before resuming. Surface: challenge.resolve.
+- Provider-authorized challenge service [adapter]: Request a declared provider challenge mode through the fleet adapter without silently widening engine, region, proxy, or session authority. Surface: BrowserFleetProvider.challengeModes.
 - Origin allowlists [available]: Fail closed when navigation leaves explicitly allowed origins. Surface: allowedOrigins.
 - Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
 - Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.
@@ -685,26 +709,37 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Command-line interface [available]: Manage authorized sessions and observations; direct actions require an explicit trusted-host opt-in. Surface: cockroach-browser.
 - Shell completions [available]: Generate auditable Bash, Zsh, Fish, or PowerShell completion scripts without modifying shell profiles. Surface: completion bash|zsh|fish|powershell.
 - Per-user daemon autostart [available]: Install an owner-confirmed loopback daemon definition for Windows Startup, macOS LaunchAgents, or Linux systemd user services without privilege escalation. Surface: service install|status|uninstall.
-- One-command bootstrap [available]: Verify Node, install Chromium only when missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon. Surface: bootstrap.
+- One-command three-engine bootstrap [available]: Verify Node, install Chromium, Firefox, and WebKit only when any engine is missing, initialize the local data root, and probe an authenticated ephemeral loopback daemon. Surface: bootstrap.
 - TypeScript SDK [available]: Embed the runtime or call an authenticated daemon. Surface: BrowserRuntime/BrowserClient.
+- Python SDK [available]: Call every daemon route through a dependency-free Python 3.10 client with typed convenience methods for sessions and actions. Surface: sdks/python.
+- Java SDK [available]: Call every daemon route through a Java 11 HttpClient with session and action conveniences. Surface: sdks/java.
+- .NET and C# SDK [available]: Call every daemon route through a .NET 8 HttpClient with async session and action conveniences. Surface: sdks/dotnet.
+- Ruby SDK [available]: Call every daemon route through a Ruby 3.1 standard-library client with session and action conveniences. Surface: sdks/ruby.
+- Go SDK [available]: Call every daemon route through a Go 1.22 standard-library client with context cancellation and generic route access. Surface: sdks/go.
 - Authenticated HTTP API [available]: Expose the runtime through a bearer-token localhost server. Surface: serve.
 - OpenAPI discovery [available]: Publish an authenticated machine-readable route index for local SDK and operator tooling. Surface: /v1/openapi.json.
 - Prometheus metrics [available]: Expose authenticated session, action, and failure counters for local operations. Surface: /v1/metrics.
 - Observation-first MCP server [available]: Expose health, capabilities, sessions, snapshots, paired capture, network observations, audits, and canonical Maqam action proposals over stdio. Surface: mcp.
-- Docker runtime [available]: Run Chromium and the authenticated daemon in a container. Surface: Dockerfile.
+- Three-engine Docker runtime [available]: Run installed Chromium, Firefox, and WebKit builds plus the authenticated daemon in a hardened container. Surface: Dockerfile.
 - Local dashboard [available]: Inspect sessions, evidence, challenges, and receipts. Surface: dashboard.
 - Authenticated remote workers [available]: Connect SDK clients to explicitly configured remote daemons. Surface: BrowserClient.
 - Multi-worker orchestration [available]: Route sessions across healthy authenticated browser daemons by capacity, weight, and explicit tags. Surface: BrowserWorkerPool.
+- Local multi-engine process fleet [available]: Allocate and connect bounded Chromium, Firefox, or WebKit browser-server leases with TTL and capacity enforcement. Surface: LocalBrowserFleetProvider.
+- Managed and self-hosted fleet adapter [adapter]: Connect an authenticated REST fleet that declares exact engines, regions, proxy classes, challenge modes, capacity, and TTLs. Surface: HttpBrowserFleetProvider.
+- Provider live-session viewer [adapter]: Return a validated HTTPS live-view URL when the selected fleet provider supplies one. Surface: FleetProviderSession.liveViewUrl.
+- Residential, datacenter, static-IP, and custom proxy providers [adapter]: Request an exact declared proxy class and geography from a selected fleet provider; Cockroach Browser does not operate the proxy network. Surface: FleetProxyRequest.
 - Configurable activity stream [available]: Read bounded summary or detailed lifecycle activity through polling or server-sent events. Surface: /v1/activity and /v1/activity/stream.
 - Durable local jobs [available]: Queue bounded action plans with checkpoints and retries. Surface: JobQueue.
-- Doctor and daemon health checks [available]: Verify the supported Node release, Chromium installation, daemon authentication, evidence integrity, and active session count. Surface: doctor and /v1/health.
+- Doctor and daemon health checks [available]: Verify the supported Node release, Chromium, Firefox, and WebKit installations, daemon authentication, evidence integrity, and active session count. Surface: doctor and /v1/health.
 - Maqam governance [adapter]: Route high-risk browser actions through exact approval and receipts. Surface: cockroach-browser/maqam.
 - Qarinah memory [adapter]: Record cited browser outcomes without persisting hidden reasoning or secrets. Surface: cockroach-browser/qarinah.
 - Cockroach Crawler handoff [adapter]: Hand breadth-first collection to the crawler while retaining browser evidence. Surface: cockroach-browser/crawler.
 - ProductLoop capability snapshot [adapter]: Describe browser capabilities for a separately reviewed ProductLoop adapter without granting authority. Surface: docs/productloop.md.
 - Signed lifecycle webhooks [available]: Queue sanitized browser lifecycle events for bounded HMAC-signed HTTPS delivery. Surface: SignedWebhookDispatcher.
 - Team session control [available]: Persist session owners, viewer and operator grants, revocation generations, policy, and receipts without sharing raw profiles. Surface: TeamSessionStore and /access.
+- Built-in model gateway [available]: Call an OpenAI-compatible model endpoint with bounded requests, tool definitions, structured tool calls, timeouts, and secret-provider support. Surface: cockroach-browser/model-gateway.
+- Built-in browser planner loop [available]: Iterate semantic snapshots, policy-evaluated browser actions, receipts, and an explicit finish tool under a finite step ceiling. Surface: cockroach-browser/agent.
 
-## Optional separate integrations
+## External-service boundary
 
-Cockroach Browser runs independently. Maqam can optionally provide external exact-action approval. Qarinah can optionally record cited browser outcomes. Cockroach Crawler can optionally hand selected URLs to the browser after public-web discovery. These products do not become part of the browser engine by installation alone.
+The local three-engine fleet is included. Managed capacity, residential or static-IP networks, provider challenge handling, live viewers, macOS Safari hosts, mobile devices, and device labs are operator-selected external services connected through explicit adapters. Cockroach Browser does not claim to operate those networks or bypass access controls.

@@ -1,7 +1,7 @@
 {
   "name": "cockroach-browser",
-  "version": "0.3.0",
-  "description": "Open-source local-first Chromium automation for AI agents with semantic page snapshots, isolated profiles, MCP, network tools, and verifiable evidence.",
+  "version": "0.4.0-rc.1",
+  "description": "Open-source local-first Chromium, Firefox, WebKit, Playwright, and Puppeteer automation for AI agents with semantic page snapshots, model-directed execution, MCP, SDKs, and verifiable evidence.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",
   "type": "module",
@@ -9,7 +9,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "cockroach-browser": "dist/cli.js"
+    "cockroach-browser": "dist/cli.js",
+    "cockroach-browser-codegen": "dist/codegen.js",
+    "cockroach-browser-test": "dist/test-runner.js"
   },
   "exports": {
     ".": {
@@ -44,6 +46,42 @@
       "types": "./dist/operator-install.d.ts",
       "default": "./dist/operator-install.js"
     },
+    "./automation": {
+      "types": "./dist/raw-automation.d.ts",
+      "default": "./dist/raw-automation.js"
+    },
+    "./puppeteer": {
+      "types": "./dist/puppeteer.d.ts",
+      "default": "./dist/puppeteer.js"
+    },
+    "./bidi": {
+      "types": "./dist/bidi.d.ts",
+      "default": "./dist/bidi.js"
+    },
+    "./mobile": {
+      "types": "./dist/mobile.d.ts",
+      "default": "./dist/mobile.js"
+    },
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "default": "./dist/agent.js"
+    },
+    "./model-gateway": {
+      "types": "./dist/model-gateway.d.ts",
+      "default": "./dist/model-gateway.js"
+    },
+    "./test": {
+      "types": "./dist/test.d.ts",
+      "default": "./dist/test.js"
+    },
+    "./cdp": {
+      "types": "./dist/cdp.d.ts",
+      "default": "./dist/cdp.js"
+    },
+    "./fleet": {
+      "types": "./dist/fleet.d.ts",
+      "default": "./dist/fleet.js"
+    },
     "./schemas/browser-memory.schema.json": "./schemas/browser-memory.schema.json",
     "./server.json": "./server.json"
   },
@@ -52,6 +90,7 @@
     "dashboard/",
     "docs/",
     "examples/",
+    "sdks/",
     "schemas/",
     "server.json",
     "README.md",
@@ -70,7 +109,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:package": "node scripts/check-package.mjs",
     "check:site": "node scripts/check-site.mjs",
-    "check": "npm run typecheck && npm run build && npm test && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
+    "api-surface:build": "node scripts/build-api-surface.mjs",
+    "api-surface:check": "node scripts/build-api-surface.mjs --check",
+    "check": "npm run typecheck && npm run build && npm test && npm run api-surface:check && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
     "prepack": "npm run clean && npm run build && npm run check:package",
     "prepublishOnly": "npm run check"
   },
@@ -89,6 +130,11 @@
     "ai-agent",
     "browser-automation",
     "playwright",
+    "puppeteer",
+    "firefox",
+    "webkit",
+    "webdriver-bidi",
+    "appium",
     "mcp",
     "agent-browser",
     "browser-runtime",
@@ -105,9 +151,11 @@
   "mcpName": "io.github.AjnasNB/cockroach-browser",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
+    "@playwright/test": "^1.62.1",
     "pixelmatch": "^7.1.0",
-    "playwright-core": "^1.55.0",
+    "playwright-core": "^1.62.1",
     "pngjs": "^7.0.0",
+    "puppeteer-core": "^25.5.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

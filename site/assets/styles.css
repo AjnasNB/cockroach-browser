@@ -886,6 +886,89 @@ button:active,
   font-size: 0.72rem;
 }
 
+.api-surface {
+  padding-bottom: 5rem;
+}
+
+.api-package {
+  padding-inline: 0;
+}
+
+.api-owner-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.api-owner {
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.api-owner-list .api-owner {
+  border-top: 0;
+  border-left: 0;
+}
+
+.api-owner summary {
+  display: flex;
+  min-height: 56px;
+  padding: 0.85rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.api-owner summary code {
+  color: var(--ink);
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.api-owner summary small,
+.api-owner summary strong,
+.api-member-list span {
+  color: var(--quiet);
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.api-top-level {
+  margin: 2rem 0;
+}
+
+.api-member-list {
+  display: grid;
+  max-height: 34rem;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.api-member-list li {
+  display: flex;
+  padding: 0.58rem 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.api-member-list li:last-child {
+  border-bottom: 0;
+}
+
+.api-member-list code {
+  color: var(--accent);
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+
 .callout {
   margin: 2rem 0;
   padding: 1.2rem;
@@ -1924,6 +2007,10 @@ button:active,
   }
 
   .cap-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .api-owner-list {
     grid-template-columns: 1fr;
   }
 

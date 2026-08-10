@@ -8,7 +8,7 @@ Public manual: https://cockroachbrowser.com/docs/operator-install/
 
 ## Bootstrap and probe the local runtime
 
-cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs the pinned Chromium build only when absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit a browser download.
+cockroach-browser bootstrap checks for Node.js 22, 24, or 26, installs pinned Chromium, Firefox, and WebKit builds only when an engine is absent, initializes the owner-scoped data directory, and starts an ephemeral authenticated loopback server long enough to verify /v1/health. Use --check-only to prohibit browser downloads.
 
 ```
 cockroach-browser bootstrap
@@ -65,4 +65,4 @@ The generated service cannot add remote binding, raw-action routes, session host
 
 ## Release status
 
-This manual targets Cockroach Browser 0.3.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.4.0-rc.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

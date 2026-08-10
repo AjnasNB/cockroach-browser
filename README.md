@@ -7,21 +7,22 @@
 <p align="center"><strong>Powerful browser automation for AI agents - without inheriting your whole machine.</strong></p>
 
 <p align="center">
-  Real Chromium - Semantic page refs - Profiles and files - Local MCP - Verifiable evidence
+  Chromium, Firefox, and WebKit - Full Playwright and Puppeteer APIs - Agent runtime - Verifiable evidence
 </p>
 
 <p align="center">
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
   <a href="https://cockroachbrowser.com/features/">Features</a> -
   <a href="https://cockroachbrowser.com/ai-agents/">AI agents</a> -
-  <a href="https://cockroachbrowser.com/docs/capabilities/">94-capability registry</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">124-capability registry</a> -
+  <a href="https://cockroachbrowser.com/api-surface/">Complete Playwright and Puppeteer API inventory</a> -
   <a href="https://cockroachbrowser.com/alternatives/">Alternatives by product layer</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
 </p>
 
-Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-capable AI agents. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
+Cockroach Browser is a local-first TypeScript browser platform for browser-capable AI agents and operator automation. Its bounded runtime launches Chromium, Firefox, or WebKit, while separate unrestricted subpaths expose the complete installed Playwright and Puppeteer Core contracts. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, test generation, model-directed execution, fleet adapters, mobile WebDriver transport, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
 
-The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, and a local dashboard. Optional adapters connect Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS without making those products part of the core browser runtime.
+The package supports headed or headless Chromium, Firefox, and WebKit; explicit raw CDP and WebDriver BiDi; Puppeteer Core; Playwright Test and code generation; TypeScript, Python, Java, .NET, Ruby, and Go clients; a built-in model gateway and agent loop; local and provider-backed fleets; native mobile WebDriver/Appium endpoints; an authenticated daemon; an observation-first MCP server; Docker; and a local dashboard. Optional adapters connect Maqam, Qarinah, Cockroach Crawler, ProductLoop OS, managed proxy networks, provider-authorized challenges, and live-session viewers without pretending Cockroach Browser operates those external services.
 
 It detects login, consent, CAPTCHA, and access challenges and can pause for a human or an operator-authorized resolver. High-authority browser controls stay behind explicit host configuration and session policy. Maqam approvals are an optional integration.
 
@@ -40,12 +41,12 @@ These controls preserve the powerful operational workflows people expect from an
 
 ## Release status
 
-Current release line: **0.3.0**
+Current release line: **0.4.0-rc.1**
 
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 94 entries, with 88 available and 6 adapter-backed
+- Capability registry: 124 entries, with 114 available and 10 adapter-backed
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 - Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
 - Published paper v1.1 DOI: [10.5281/zenodo.21850760](https://doi.org/10.5281/zenodo.21850760)
@@ -72,7 +73,7 @@ npm install cockroach-browser
 npx cockroach-browser bootstrap
 ```
 
-`bootstrap` verifies Node.js, installs the Chromium build used by Playwright 1.55.0 only when it is missing, initializes the owner-scoped data root, and probes an authenticated ephemeral loopback daemon. Use `--check-only` when the command must not download a browser.
+`bootstrap` verifies Node.js, installs the Chromium, Firefox, and WebKit builds used by Playwright 1.62.1 only when any engine is missing, initializes the owner-scoped data root, and probes an authenticated ephemeral loopback daemon. Use `--check-only` when the command must not download a browser.
 
 ## Operator bootstrap, completions, and per-user autostart
 
@@ -265,7 +266,7 @@ Start the daemon, load its token into the client process through a secret store,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.3.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.4.0-rc.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -318,7 +319,7 @@ Then point CLI or SDK clients at `http://127.0.0.1:43110` and use that token fil
 
 | Command | What it does |
 | --- | --- |
-| `cockroach-browser bootstrap [--check-only]` | Initialize the data root, install Chromium only when missing, and probe an authenticated loopback daemon |
+| `cockroach-browser bootstrap [--check-only]` | Initialize the data root, install Chromium, Firefox, and WebKit only when needed, and probe an authenticated loopback daemon |
 | `cockroach-browser setup` | Alias for `bootstrap` |
 | `cockroach-browser doctor [--root DIR]` | Check Node, Chromium, data-root, and per-user service readiness |
 | `cockroach-browser completion <bash\|zsh\|powershell>` | Print a completion script without modifying shell configuration |
@@ -353,36 +354,36 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 94 source-registered capabilities
+## 124 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Sessions | 17 | 0 | 0 | 17 |
-| Interaction | 25 | 0 | 0 | 25 |
-| Evidence | 14 | 0 | 0 | 14 |
-| Audit | 6 | 0 | 0 | 6 |
-| Security | 8 | 2 | 0 | 10 |
-| Deployment | 16 | 0 | 0 | 16 |
-| Integration | 2 | 4 | 0 | 6 |
-| **Total** | **88** | **6** | **0** | **94** |
+| Sessions | 23 | 0 | 0 | 23 |
+| Interaction | 32 | 0 | 0 | 32 |
+| Evidence | 18 | 0 | 0 | 18 |
+| Audit | 7 | 0 | 0 | 7 |
+| Security | 8 | 3 | 0 | 11 |
+| Deployment | 22 | 3 | 0 | 25 |
+| Integration | 4 | 4 | 0 | 8 |
+| **Total** | **114** | **10** | **0** | **124** |
 
 ### Sessions
 
-Authorized browser sessions; headless Chromium; headed Chromium; explicit CDP attachment; cross-platform Chrome, Edge, Brave, and Chromium discovery; bundled, system, custom-executable, and CDP providers; reviewed unpacked extensions; runtime-owned persistent profiles with single-writer locking and recoverable archive; named isolated profiles; explicit encrypted storage-state import and export; named encrypted session checkpoints; policy-gated clipboard reads and writes; a user-supplied proxy; deterministic locale and timezone; bounded viewport, media, offline, geolocation, permission, and header emulation.
+Authorized browser sessions; headless or headed Chromium, Firefox, and WebKit; explicit CDP attachment; raw CDP and WebDriver BiDi; complete Playwright and Puppeteer Core re-exports; native mobile WebDriver/Appium transport; cross-platform Chrome, Edge, Brave, and Chromium discovery; bundled, system, custom-executable, and CDP providers; reviewed unpacked Chromium extensions; runtime-owned persistent profiles; named isolated profiles; encrypted storage state and checkpoints; clipboard; explicit proxies; bounded runtime emulation; and unrestricted upstream emulation through the raw operator APIs.
 
 ### Interaction
 
-Tabs and popups; exclusive tab locks; navigation, back, forward, and reload; snapshot-scoped semantic page references; explicit bounded XPath; compact snapshots; click and double-click; form fill, type, press, select, check, and uncheck; hover and focus; bounded scroll; low-level in-viewport mouse and bounded keyboard actions; drag and drop; page-state waits; open Shadow DOM access; readable and explicitly targetable same-origin frames; explicit dialog handling; bounded session history and a navigation graph; policy-gated JavaScript; bounded element inspection; ordered policy-evaluated batches; controlled upload; controlled download.
+Tabs and popups; exclusive tab locks; navigation; semantic references; CSS, XPath, role, text, label, and test-id locators; web-first assertions; complete JavaScript and element handles; browser, context, page, target, worker, frame, request, response, and WebSocket events; forms; mouse, keyboard, touch, drag, scroll, and waits; frames and Shadow DOM; dialogs; history; JavaScript; batches; files and downloads; general request/response rewriting; WebSocket routing; Playwright Test; and JavaScript, TypeScript, Python, Java, and C# code generation.
 
 ### Evidence
 
-PNG and JPEG screenshots; paired visual-plus-semantic capture; temporary numbered page annotations; PDF capture; Playwright traces; HAR capture; session video; bounded console records; explicit cache, console, and network clearing; bounded redacted network inspection and export; hash-chained receipts; bounded readable text and HTML extraction.
+PNG and JPEG screenshots; paired visual-plus-semantic capture; annotations; PDF capture; traces; HAR capture and replay; session video; console and network evidence; cache and ledger clearing; network inspection and export; hash-chained receipts; extraction; JavaScript and CSS coverage; heap snapshots; runtime object queries; screencasting; performance metrics; and protocol profiling.
 
 ### Audits
 
-Accessibility; page performance observations; broken assets; console errors and warnings; page security observations; screenshot comparison with visual diffs.
+Accessibility; page performance observations; broken assets; console errors and warnings; page security observations; screenshot comparison with visual diffs; and a mechanically generated inventory of the pinned Playwright and Puppeteer declaration surfaces.
 
 ### Security
 
@@ -392,10 +393,11 @@ Adapter-backed security surfaces:
 
 - Exact action approvals through `MaqamApprovalProvider`
 - Host-resolved secret references through `SecretResolver`
+- Provider-authorized challenge services through an explicitly selected fleet adapter
 
 ### Deployment
 
-CLI; generated bash, zsh, and PowerShell completions; owner-confirmed Windows, macOS, and Linux per-user daemon definitions; one-command bootstrap; TypeScript SDK; authenticated HTTP API; authenticated OpenAPI and Prometheus surfaces; native stdio MCP; Docker; local dashboard; authenticated remote workers and a capacity-aware worker pool; bounded activity polling and server-sent events; crash-resumable local jobs; doctor and health checks.
+CLI; Playwright Test and codegen CLIs; shell completions; per-user daemon definitions; bootstrap; TypeScript, Python, Java, .NET, Ruby, and Go SDKs; authenticated HTTP, OpenAPI, and Prometheus surfaces; native stdio MCP; Docker; dashboard; authenticated remote workers; worker pool; a working local three-engine process fleet; exact managed-fleet, proxy-class, challenge-mode, and live-view adapter contracts; activity streams; crash-resumable jobs; doctor and health checks.
 
 ### Integrations
 
@@ -405,6 +407,7 @@ Adapter-backed:
 - Qarinah memory
 - Cockroach Crawler handoff
 - ProductLoop OS capability snapshot
+- Managed fleet, proxy, challenge, and live-view providers selected by the operator
 
 Available:
 
@@ -412,6 +415,8 @@ Available:
   signatures, bounded retries, dead letters, and hash-linked delivery receipts
 - Persistent team session ownership with revocable viewer and operator grants,
   without raw profile sharing
+- OpenAI-compatible model gateway with bounded structured tool calls
+- Finite-step browser agent loop over semantic snapshots, exact actions, and receipts
 
 The complete searchable matrix, including capability IDs, implementation status, and exact API surfaces, is in [docs/capabilities.md](./docs/capabilities.md).
 
