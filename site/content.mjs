@@ -5,16 +5,16 @@ export const site = {
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence."
+    "Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence."
 };
 
 export const comparison = {
-  checkedOn: "2026-08-08",
+  checkedOn: "2026-08-10",
   title: "Cockroach Browser alternatives",
   description:
-    "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+    "Compare Cockroach Browser with browser libraries, MCP servers, AI browser frameworks, and hosted browser infrastructure by product layer, shipped scope, and current gaps.",
   methodology:
-    "This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories."
+    "This comparison uses official project documentation reviewed on 10 August 2026. It describes product scope, deployment, and current Cockroach Browser gaps. It does not publish a speed, task-success, security, or scale ranking because there is no matched benchmark across these product categories."
 };
 
 export const ecosystem = {
@@ -248,8 +248,8 @@ export const alternatives = [
       "You want a general-purpose automation library and will design the agent policy, service boundary, and evidence model around it.",
     relationship:
       "Cockroach Browser uses playwright-core underneath its runtime. The comparison is therefore package layer versus underlying primitive, not a claim that Cockroach Browser replaces or outperforms Playwright.",
-    sourceLabel: "Playwright documentation",
-    source: "https://playwright.dev/docs/intro"
+    sourceLabel: "Playwright browser documentation",
+    source: "https://playwright.dev/docs/browsers"
   },
   {
     id: "puppeteer",
@@ -262,8 +262,8 @@ export const alternatives = [
       "You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.",
     relationship:
       "Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.",
-    sourceLabel: "Puppeteer documentation",
-    source: "https://pptr.dev/guides/what-is-puppeteer"
+    sourceLabel: "Puppeteer supported browsers",
+    source: "https://pptr.dev/supported-browsers"
   },
   {
     id: "selenium",
@@ -308,6 +308,20 @@ export const alternatives = [
     source: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
   },
   {
+    id: "pinchtab",
+    name: "PinchTab",
+    category: "mcp",
+    categoryLabel: "Local browser control plane",
+    nativeFocus:
+      "Local Chrome control through HTTP, MCP, semantic references, persistent profiles, tab locks, audits, visual comparison, and operator-managed instances.",
+    chooseWhen:
+      "You want a local Go-based Chrome control plane with HTTP and MCP surfaces, profiles, references, audits, and multi-instance operation.",
+    relationship:
+      "PinchTab overlaps local-first Chrome, semantic references, profiles, locks, MCP, and audits. Cockroach Browser documents a different composition around typed effects and budgets, content-addressed evidence, hash-linked action receipts, and optional external adapters.",
+    sourceLabel: "PinchTab repository",
+    source: "https://github.com/pinchtab/pinchtab"
+  },
+  {
     id: "browser-use",
     name: "Browser Use",
     category: "agent",
@@ -317,9 +331,9 @@ export const alternatives = [
     chooseWhen:
       "You want an autonomous browser agent, model integration, and high-level task execution rather than only a browser execution service.",
     relationship:
-      "Cockroach Browser does not provide an LLM planner or claim autonomous task-success leadership. It supplies a bounded execution and evidence runtime that a host agent can call.",
-    sourceLabel: "Browser Use repository",
-    source: "https://github.com/browser-use/browser-use"
+      "Cockroach Browser does not provide an LLM planner, managed browser cloud, or autonomous task-success claim. It supplies an execution and evidence runtime that a host agent can call.",
+    sourceLabel: "Browser Use cloud quickstart",
+    source: "https://docs.browser-use.com/cloud/quickstart"
   },
   {
     id: "stagehand",
@@ -336,6 +350,20 @@ export const alternatives = [
     source: "https://docs.stagehand.dev/v3/first-steps/introduction"
   },
   {
+    id: "agent-browser",
+    name: "Vercel Labs agent-browser",
+    category: "agent",
+    categoryLabel: "Agent browser CLI and daemon",
+    nativeFocus:
+      "A broad browser automation CLI and daemon with Chrome, Lightpanda, and iOS routes, semantic references, profiles, files, network tools, recordings, accessibility, MCP, dashboard, chat, plugins, and action controls.",
+    chooseWhen:
+      "You want a broad cross-runtime agent-browser tool with direct CDP-oriented automation, multiple engine routes, plugins, skills, and interactive operator surfaces.",
+    relationship:
+      "This project overlaps local execution, semantic references, profiles, files, MCP, network tools, diagnostics, and confirmations. Cockroach Browser should be selected for its exact shipped contract and evidence chain, not because those general browser concepts are unique.",
+    sourceLabel: "Vercel Labs agent-browser repository",
+    source: "https://github.com/vercel-labs/agent-browser"
+  },
+  {
     id: "browserbase",
     name: "Browserbase",
     category: "infrastructure",
@@ -346,8 +374,8 @@ export const alternatives = [
       "You need managed browser capacity, remote session infrastructure, live inspection, or scale without operating the browser fleet yourself.",
     relationship:
       "Cockroach Browser defaults to a local or operator-managed runtime. Browserbase provides hosted infrastructure. These deployment choices can address different parts of one architecture.",
-    sourceLabel: "Browserbase documentation",
-    source: "https://docs.browserbase.com/platform/browser/getting-started/create-browser-session"
+    sourceLabel: "Browserbase core features",
+    source: "https://docs.browserbase.com/platform/browser/core-features/overview"
   },
   {
     id: "browserless",
@@ -362,6 +390,20 @@ export const alternatives = [
       "Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.",
     sourceLabel: "Browserless documentation",
     source: "https://docs.browserless.io/overview/intro"
+  },
+  {
+    id: "steel",
+    name: "Steel",
+    category: "infrastructure",
+    categoryLabel: "Hosted browser infrastructure",
+    nativeFocus:
+      "Cloud browser sessions with persistent profiles, proxy configuration, session options, and managed challenge-handling features.",
+    chooseWhen:
+      "You need a hosted browser API with managed session infrastructure, profile reuse, proxy services, or provider-operated challenge handling.",
+    relationship:
+      "Cockroach Browser can run through operator-managed workers and accepts an explicit session proxy, but it does not provide Steel's hosted fleet, managed proxy network, or managed challenge service.",
+    sourceLabel: "Steel Sessions API overview",
+    source: "https://docs.steel.dev/overview/sessions-api/overview"
   }
 ];
 
@@ -386,6 +428,225 @@ export const comparisonQuestions = [
     "What is Cockroach Browser's distinct product boundary?",
     "Its implemented boundary combines explicit origins, allowed actions and effects, finite budgets, authenticated local transport, semantic snapshots, evidence artifacts, and hash-linked receipts. The public comparison does not turn those features into an independent security certification."
   ]
+];
+
+export const comparisonLayers = [
+  {
+    id: "libraries",
+    label: "Browser libraries",
+    examples: "Playwright, Puppeteer, Selenium",
+    nativeFocus: "Direct browser APIs, browser objects, events, protocols, test tooling, and broad ecosystem compatibility.",
+    chooseWhen: "Your application should own browser calls directly and your team will build the surrounding agent, service, policy, and evidence layers.",
+    browserFit: "Cockroach Browser uses playwright-core, narrows control to session actions and semantic references, and adds packaged local transport plus evidence records.",
+    sources: [
+      ["Playwright browsers", "https://playwright.dev/docs/browsers"],
+      ["Puppeteer supported browsers", "https://pptr.dev/supported-browsers"],
+      ["Selenium WebDriver", "https://www.selenium.dev/documentation/webdriver/"]
+    ]
+  },
+  {
+    id: "agent-tools",
+    label: "Agent control servers",
+    examples: "Playwright MCP, Chrome DevTools MCP, PinchTab",
+    nativeFocus: "Browser control, inspection, debugging, or performance tools exposed to coding agents through MCP.",
+    chooseWhen: "An MCP client needs maintained browser tools and the deployment already owns the surrounding trust and authorization model.",
+    browserFit: "Cockroach Browser ships an observation-first MCP surface alongside its SDK, CLI, and authenticated HTTP API.",
+    sources: [
+      ["Playwright MCP", "https://github.com/microsoft/playwright-mcp"],
+      ["Chrome DevTools MCP", "https://github.com/ChromeDevTools/chrome-devtools-mcp"],
+      ["PinchTab", "https://github.com/pinchtab/pinchtab"]
+    ]
+  },
+  {
+    id: "agent-frameworks",
+    label: "AI browser frameworks",
+    examples: "Browser Use, Stagehand, Vercel Labs agent-browser",
+    nativeFocus: "Model selection, natural-language browser operations, planning, extraction, recovery loops, and autonomous task execution.",
+    chooseWhen: "The product needs an LLM-driven browser agent rather than only a browser runtime that an existing agent can call.",
+    browserFit: "Cockroach Browser deliberately does not bundle an LLM planner. A host agent calls its MCP, SDK, or HTTP surfaces and remains responsible for planning.",
+    sources: [
+      ["Browser Use cloud quickstart", "https://docs.browser-use.com/cloud/quickstart"],
+      ["Stagehand introduction", "https://docs.stagehand.dev/v3/first-steps/introduction"],
+      ["Vercel Labs agent-browser", "https://github.com/vercel-labs/agent-browser"]
+    ]
+  },
+  {
+    id: "infrastructure",
+    label: "Hosted browser infrastructure",
+    examples: "Browserbase, Browserless, Steel",
+    nativeFocus: "Managed browser capacity, remote connection endpoints, sessions, profiles, proxies, recordings, live inspection, and provider-operated infrastructure.",
+    chooseWhen: "Elastic capacity, hosted operations, managed proxies, geographic placement, or browser fleet management is the main requirement.",
+    browserFit: "Cockroach Browser defaults to local or operator-managed workers. It has a worker pool, but it is not a hosted elastic browser cloud or managed proxy service.",
+    sources: [
+      ["Browserbase core features", "https://docs.browserbase.com/platform/browser/core-features/overview"],
+      ["Browserless browser as a service", "https://docs.browserless.io/baas/start"],
+      ["Steel Sessions API", "https://docs.steel.dev/overview/sessions-api/overview"]
+    ]
+  }
+];
+
+export const capabilityGaps = [
+  {
+    area: "Browser engines",
+    shipped: "Bundled or discovered Chromium, Chrome, Edge, and Brave executables, plus explicit Chrome CDP attachment.",
+    gap: "No Firefox or WebKit session selection in Cockroach Browser 0.3.0.",
+    sourceLabel: "Playwright browser coverage",
+    source: "https://playwright.dev/docs/browsers"
+  },
+  {
+    area: "Protocol access",
+    shipped: "Attach to one operator-selected Chrome DevTools endpoint through the CDP provider.",
+    gap: "No public raw CDP session surface and no WebDriver BiDi API.",
+    sourceLabel: "Puppeteer CDP session API",
+    source: "https://pptr.dev/api/puppeteer.cdpsession"
+  },
+  {
+    area: "Handles, targets, and events",
+    shipped: "Snapshot-scoped semantic references, exact CSS or XPath targets, tabs, frames, and a bounded activity stream.",
+    gap: "No drop-in Page, Frame, ElementHandle, JSHandle, BrowserContext, Target, or complete browser event API.",
+    sourceLabel: "Puppeteer ElementHandle API",
+    source: "https://pptr.dev/api/puppeteer.elementhandle"
+  },
+  {
+    area: "Network and WebSockets",
+    shipped: "Bounded redacted request and response observations, JSON or HAR-compatible export, session-start HAR recording, and exact-origin abort or static fulfillment routes.",
+    gap: "No complete request-mutation lifecycle, raw protocol network domains, or WebSocket frame lifecycle API.",
+    sourceLabel: "Playwright network documentation",
+    source: "https://playwright.dev/docs/network"
+  },
+  {
+    area: "Tracing, video, and screencast",
+    shipped: "Trace start and stop actions, session video, screenshots, PDFs, and evidence indexing.",
+    gap: "No full library-compatible tracing object model, raw screencast stream, or hosted recording viewer.",
+    sourceLabel: "Playwright tracing API",
+    source: "https://playwright.dev/docs/api/class-tracing"
+  },
+  {
+    area: "Accessibility and diagnostics",
+    shipped: "Semantic snapshots plus bounded accessibility, performance, asset, console, security, and visual audits.",
+    gap: "No complete browser accessibility tree API, JavaScript coverage API, heap snapshot API, or full DevTools diagnostics surface.",
+    sourceLabel: "Chrome DevTools MCP",
+    source: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
+  },
+  {
+    area: "Extensions",
+    shipped: "Up to 16 reviewed unpacked extension directories in an isolated headed Chromium profile.",
+    gap: "No extension marketplace install, signed-extension distribution, or cross-browser extension test matrix.",
+    sourceLabel: "Puppeteer Chrome extensions guide",
+    source: "https://pptr.dev/guides/chrome-extensions"
+  },
+  {
+    area: "Hosted scale",
+    shipped: "Local daemon, Docker image, authenticated remote workers, capacity-aware worker pool, and team session roles.",
+    gap: "No vendor-operated elastic browser fleet, managed regional capacity, live session viewer, usage billing, or hosted control plane.",
+    sourceLabel: "Browserbase core features",
+    source: "https://docs.browserbase.com/platform/browser/core-features/overview"
+  },
+  {
+    area: "Proxy and identity services",
+    shipped: "One explicit operator-supplied proxy per session with credentials resolved through a host secret reference.",
+    gap: "No managed residential proxy network, automatic rotation, geographic routing catalog, or hosted identity service.",
+    sourceLabel: "Steel proxy documentation",
+    source: "https://docs.steel.dev/overview/stealth/proxies"
+  },
+  {
+    area: "Stealth and access challenges",
+    shipped: "Challenge detection, pause, evidence, human handoff, and an optional host-authorized resolver callback.",
+    gap: "No covert fingerprint evasion, CAPTCHA bypass engine, or provider-operated challenge-solving service.",
+    sourceLabel: "Steel CAPTCHA documentation",
+    source: "https://docs.steel.dev/overview/captchas-api/overview"
+  },
+  {
+    area: "Built-in LLM autonomy",
+    shipped: "MCP, TypeScript SDK, CLI, and authenticated HTTP surfaces that an external AI agent can call.",
+    gap: "No bundled model, prompt planner, autonomous recovery loop, or natural-language task-success benchmark.",
+    sourceLabel: "Browser Use cloud quickstart",
+    source: "https://docs.browser-use.com/cloud/quickstart"
+  }
+];
+
+export const browserUseCases = [
+  {
+    id: "agent-web-workflows",
+    title: "AI-agent web workflows",
+    problem: "An agent must inspect a live application, identify a semantic target, interact with it, and return a reviewable result.",
+    browserWork: "Create a session, capture a semantic snapshot, act through MCP or the SDK, and retain the receipt and evidence artifacts.",
+    surfaces: "MCP, BrowserRuntime, BrowserClient, snapshot, click, fill, select, capture.paired"
+  },
+  {
+    id: "authenticated-portals",
+    title: "Authenticated portal work",
+    problem: "A user-authorized workflow needs cookies, storage, permissions, tabs, downloads, or a visible login handoff.",
+    browserWork: "Use an isolated or runtime-owned persistent profile, headed mode when required, explicit state checkpoints, and controlled files.",
+    surfaces: "persistentProfile, profile import/export, state.*, tab.*, upload, download"
+  },
+  {
+    id: "forms-and-operations",
+    title: "Forms and operational tasks",
+    problem: "A workflow needs real clicks, typing, selection, dialogs, file upload, downloads, or multi-step navigation.",
+    browserWork: "Target semantic refs, CSS, or XPath; run individual actions or an ordered batch; capture an outcome after each state change.",
+    surfaces: "fill, type, press, select, check, dialog, upload, download, /actions/batch"
+  },
+  {
+    id: "qa-and-release-review",
+    title: "QA and release review",
+    problem: "A team needs reproducible screenshots, PDFs, visual diffs, console and asset checks, or performance observations.",
+    browserWork: "Run the same page through capture, audits, network inspection, trace, HAR, video, and visual comparison surfaces.",
+    surfaces: "screenshot, pdf, trace.*, audit.*, compare, recordHar, recordVideo"
+  },
+  {
+    id: "local-agent-tool",
+    title: "Local browser tool for coding agents",
+    problem: "A coding agent needs browser capability without uploading the user's browser profile to a hosted browser service.",
+    browserWork: "Run the authenticated loopback daemon, connect through MCP or the typed client, and keep profiles and evidence on the operator's machine.",
+    surfaces: "serve, mcp, BrowserClient, dashboard, doctor, service install"
+  },
+  {
+    id: "multi-worker-service",
+    title: "Operator-managed browser workers",
+    problem: "A service needs to route sessions across several authenticated browser daemons while retaining local ownership of each worker.",
+    browserWork: "Use BrowserWorkerPool capacity and tags, worker health checks, activity streams, metrics, and team session roles.",
+    surfaces: "BrowserWorkerPool, /v1/health, /v1/activity, /v1/metrics, TeamSessionStore"
+  }
+];
+
+export const browserCrawlerDecisions = [
+  {
+    workload: "Interact with a stateful web application",
+    browser: "Native fit: tabs, cookies, profiles, semantic refs, forms, dialogs, files, downloads, and browser state.",
+    crawler: "Not the primary fit for a user-like multi-step application session.",
+    choice: "Cockroach Browser"
+  },
+  {
+    workload: "Render and inspect one dynamic page",
+    browser: "Native fit when page state, JavaScript, interaction, screenshots, PDFs, trace, or network evidence matters.",
+    crawler: "Useful when the rendered page belongs inside a larger acquisition job.",
+    choice: "Usually Cockroach Browser"
+  },
+  {
+    workload: "Discover and map many public pages",
+    browser: "Can visit explicit pages, but browser sessions are expensive and do not provide site traversal as their primary abstraction.",
+    crawler: "Native fit for multiple seeds, traversal strategies, sitemaps, robots rules, filters, concurrency, and site maps.",
+    choice: "Cockroach Crawler"
+  },
+  {
+    workload: "Extract normalized content across a site",
+    browser: "Provides bounded text and HTML extraction from the current rendered page.",
+    crawler: "Native fit for repeated page acquisition, structured extraction, Markdown, metadata, provenance, and searchable maps.",
+    choice: "Cockroach Crawler"
+  },
+  {
+    workload: "Audit a release or reproduce a visual defect",
+    browser: "Native fit for screenshots, PDF, traces, video, console, network, accessibility, performance, and visual comparisons.",
+    crawler: "Can collect pages, but does not replace a stateful browser review session.",
+    choice: "Cockroach Browser"
+  },
+  {
+    workload: "Find candidates broadly, then interact deeply",
+    browser: "Open only the selected pages that require state, interaction, or browser evidence.",
+    crawler: "Discover, filter, and rank the broader public-web candidate set first.",
+    choice: "Use both through an explicit handoff"
+  }
 ];
 
 export const navGroups = [
@@ -430,7 +691,7 @@ export const navGroups = [
   }
 ];
 
-const snippets = {
+export const snippets = {
   install: `# Install once for the current computer account
 npm install --global cockroach-browser
 cockroach-browser bootstrap
@@ -1414,8 +1675,8 @@ cockroach-browser persistent-profile archive --name support-review`,
 ];
 
 export const homepage = {
-  title: "Powerful browser automation for AI agents. Your machine stays yours.",
+  title: "Browser automation for AI agents, from first snapshot to final evidence.",
   lede:
-    "One lightweight TypeScript package for authorized Chromium sessions, semantic page references, real interaction, paired evidence, network inspection, MCP, and Maqam-governed actions.",
+    "Run real Chromium locally with semantic page snapshots, forms, files, tabs, persistent profiles, screenshots, PDFs, traces, network tools, MCP, a TypeScript SDK, and an authenticated API.",
   proof: []
 };

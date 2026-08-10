@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cockroachbrowser.com/assets/logo.png" width="144" alt="Cockroach Browser globe and cockroach logo">
+  <img src="https://cockroachbrowser.com/assets/logo.png" width="144" alt="Cockroach Browser AI browser automation logo">
 </p>
 
 <h1 align="center">Cockroach Browser</h1>
@@ -7,11 +7,13 @@
 <p align="center"><strong>Powerful browser automation for AI agents - without inheriting your whole machine.</strong></p>
 
 <p align="center">
-  Authorized sessions - Semantic page refs - Paired evidence - Local MCP - Maqam-governed actions
+  Real Chromium - Semantic page refs - Profiles and files - Local MCP - Verifiable evidence
 </p>
 
 <p align="center">
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
+  <a href="https://cockroachbrowser.com/features/">Features</a> -
+  <a href="https://cockroachbrowser.com/ai-agents/">AI agents</a> -
   <a href="https://cockroachbrowser.com/docs/capabilities/">94-capability registry</a> -
   <a href="https://cockroachbrowser.com/alternatives/">Alternatives by product layer</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
@@ -19,15 +21,15 @@
 
 Cockroach Browser is a local-first TypeScript and Chromium runtime for browser-capable AI agents. It combines real page rendering, semantic interaction, forms, files, screenshots, PDFs, network observations, audits, stateful sessions, and authenticated tooling without silently giving an agent every browser profile, credential, origin, or machine resource.
 
-The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, a local dashboard, and explicit integrations with Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.
+The package supports headed or headless Chromium, explicit Chrome/CDP attachment, a typed SDK, an authenticated daemon, an observation-first MCP server, Docker, and a local dashboard. Optional adapters connect Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS without making those products part of the core browser runtime.
 
-It detects login, consent, CAPTCHA, and access challenges and can pause for a human or an operator-authorized resolver. High-authority browser controls stay behind explicit host configuration, session policy, and Maqam-ready approval.
+It detects login, consent, CAPTCHA, and access challenges and can pause for a human or an operator-authorized resolver. High-authority browser controls stay behind explicit host configuration and session policy. Maqam approvals are an optional integration.
 
-### Governed high-authority controls
+### Explicit high-authority controls
 
 Cockroach Browser keeps powerful browser options explicit instead of discovering or exposing them silently:
 
-| Requested capability | Governed Cockroach Browser path |
+| Requested capability | Cockroach Browser path |
 | --- | --- |
 | CAPTCHA or access-control bypass | Detect and stop on challenges, then hand control to a human or an explicitly configured resolver for a site the operator is authorized to use. No bypass engine is bundled. |
 | Covert stealth, cloaking, or fingerprint evasion | Use deterministic device, locale, timezone, media, permission, proxy, header, and browser-provider configuration for compatibility testing. Configuration cannot silently expand origin or credential authority. |
@@ -351,7 +353,7 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 93 source-registered capabilities
+## 94 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
@@ -361,10 +363,10 @@ The registry is generated from `src/capabilities.ts`, not from a marketing check
 | Interaction | 25 | 0 | 0 | 25 |
 | Evidence | 14 | 0 | 0 | 14 |
 | Audit | 6 | 0 | 0 | 6 |
-| Security | 7 | 2 | 0 | 9 |
+| Security | 8 | 2 | 0 | 10 |
 | Deployment | 16 | 0 | 0 | 16 |
 | Integration | 2 | 4 | 0 | 6 |
-| **Total** | **87** | **6** | **0** | **93** |
+| **Total** | **88** | **6** | **0** | **94** |
 
 ### Sessions
 
@@ -511,9 +513,9 @@ handling, quotas, and recovery procedures.
 
 ## Action surface
 
-The typed runtime implements 64 action kinds:
+The typed runtime implements 65 action kinds:
 
-`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `query.inspect`, `emulation.set`, `emulation.clear`, `cache.clear`, `console.clear`, `network.clear`, `wait`, `history.inspect`, `capture.paired`, `annotate.show`, `annotate.clear`, `clipboard.read`, `clipboard.write`, `network.inspect`, `network.export`, `network.route.add`, `network.route.remove`, `network.routes.list`, `state.save`, `state.load`, `state.list`, `state.delete`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `tab.lock`, `tab.unlock`, `tab.lock.status`, `trace.start`, and `trace.stop`.
+`navigate`, `back`, `forward`, `reload`, `click`, `doubleClick`, `fill`, `type`, `press`, `hover`, `focus`, `check`, `uncheck`, `select`, `scroll`, `drag`, `mouse.move`, `mouse.down`, `mouse.up`, `mouse.click`, `keyboard.down`, `keyboard.up`, `keyboard.insertText`, `upload`, `download`, `evaluate`, `query.inspect`, `emulation.set`, `emulation.clear`, `cache.clear`, `console.clear`, `network.clear`, `wait`, `challenge.resolve`, `history.inspect`, `capture.paired`, `annotate.show`, `annotate.clear`, `clipboard.read`, `clipboard.write`, `network.inspect`, `network.export`, `network.route.add`, `network.route.remove`, `network.routes.list`, `state.save`, `state.load`, `state.list`, `state.delete`, `screenshot`, `pdf`, `snapshot`, `extract`, `cookies.read`, `cookies.write`, `storage.read`, `storage.write`, `tab.open`, `tab.close`, `tab.switch`, `tab.lock`, `tab.unlock`, `tab.lock.status`, `trace.start`, and `trace.stop`.
 
 Availability in the type system does not grant authority. The session policy, effect policy, approval provider, server surface, origin checks, and resource budget decide whether an action can run.
 

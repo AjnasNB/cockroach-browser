@@ -60,7 +60,11 @@ if (!headers.includes("img-src 'self' data: https://fazier.com")) {
 if (failures.length > 0) {
   throw new Error(`Site verification failed:\n- ${failures.join("\n- ")}`);
 }
-process.stdout.write(`${JSON.stringify({ ok: true, root: relative(root, siteRoot), pages: htmlFiles.length }, null, 2)}\n`);
+const semanticValidation = spawnSync(process.execPath, ["site/validate.mjs"], { cwd: root, encoding: "utf8", shell: false });
+if (semanticValidation.status !== 0) {
+  throw new Error(`Site semantic validation failed:\n${semanticValidation.stdout}\n${semanticValidation.stderr}`);
+}
+process.stdout.write(`${JSON.stringify({ ok: true, root: relative(root, siteRoot), pages: htmlFiles.length }, null, 2)}\n${semanticValidation.stdout}`);
 
 async function findSiteRoot() {
   for (const candidate of ["website/dist", "website", "site/dist", "site"]) {

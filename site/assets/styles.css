@@ -421,6 +421,93 @@ button:active,
   text-transform: uppercase;
 }
 
+.release-note {
+  max-width: 64ch;
+  margin: 1.2rem 0 0;
+  color: var(--quiet);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.feature-manual {
+  padding-bottom: clamp(4rem, 8vw, 8rem);
+}
+
+.feature-list,
+.use-case-grid {
+  display: grid;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.feature-list article,
+.use-case-card {
+  min-width: 0;
+  padding: clamp(1.25rem, 3vw, 2.2rem);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.feature-list article > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.feature-list h3,
+.use-case-card h2 {
+  margin: 1.2rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2.4vw, 2.2rem);
+  font-weight: 400;
+  line-height: 1.04;
+}
+
+.feature-list p,
+.use-case-card p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.feature-list code,
+.use-case-card code,
+.action-kind-list code {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
+.use-case-card > span {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.action-kind-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.action-kind-list code {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.source-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+}
+
 .section {
   padding: clamp(4.5rem, 9vw, 8rem) 0;
   border-top: 1px solid var(--line);
@@ -1780,7 +1867,9 @@ button:active,
 
   .workflow,
   .stack-grid,
-  .answer-grid {
+  .answer-grid,
+  .feature-list,
+  .use-case-grid {
     grid-template-columns: 1fr;
   }
 

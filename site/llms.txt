@@ -1,21 +1,49 @@
 # Cockroach Browser
 
-> Powerful local-first browser automation for AI agents with real Chromium, isolated profiles, MCP, Maqam approvals, and verifiable evidence.
+> Open-source local-first browser automation for AI agents with real Chromium, semantic page snapshots, profiles, files, MCP, network tools, and verifiable evidence.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
 npm: https://www.npmjs.com/package/cockroach-browser
 Technical paper: https://cockroachbrowser.com/paper/
-Alternatives and product-layer comparison: https://cockroachbrowser.com/alternatives/
-Open-source governed-agent ecosystem: https://cockroachbrowser.com/ecosystem/
+
+## Product identity
+Cockroach Browser is the AjnasNB browser automation project for AI agents at cockroachbrowser.com. It controls stateful Chromium sessions. Cockroach Crawler is a separate public-web discovery and extraction product with a separate website, package, and runtime.
+
+Cockroach Browser does not bundle an LLM. A host agent plans the task and calls the browser through MCP, the TypeScript SDK, an authenticated HTTP API, or the CLI.
 
 ## Product routes
 - [What is Cockroach Browser?](https://cockroachbrowser.com/what-is-cockroach-browser/)
-- [Features and capabilities](https://cockroachbrowser.com/docs/capabilities/)
-- [Install and get started](https://cockroachbrowser.com/docs/getting-started/)
+- [Features overview](https://cockroachbrowser.com/features/)
+- [Complete 94-capability registry](https://cockroachbrowser.com/docs/capabilities/)
+- [Install Cockroach Browser](https://cockroachbrowser.com/install/)
+- [Cockroach Browser for AI agents and LLM applications](https://cockroachbrowser.com/ai-agents/)
+- [Browser automation use cases](https://cockroachbrowser.com/use-cases/)
+- [Cockroach Browser versus Cockroach Crawler](https://cockroachbrowser.com/browser-vs-crawler/)
+- [Alternatives and current gaps](https://cockroachbrowser.com/alternatives/)
 - [Complete documentation](https://cockroachbrowser.com/docs/)
 
-## Documentation
+## Shipped surface in 0.3.0
+- 88 directly available runtime and deployment surfaces
+- 6 optional adapter-backed surfaces
+- 65 typed browser actions derived from src/contracts.ts
+- Real Chromium in headed or headless mode
+- Semantic snapshots and snapshot-scoped references
+- Tabs, forms, keyboard, pointer, drag, files, dialogs, profiles, state, and downloads
+- Screenshots, PDFs, trace, HAR, video, console, network, audits, visual comparison, and hash-linked receipts
+- MCP, TypeScript SDK, authenticated HTTP API, CLI, Docker, dashboard, metrics, activity, team roles, and worker pools
+
+## Current product limits
+- Chromium-family sessions only; no Firefox or WebKit selection
+- No public raw CDP or WebDriver BiDi API
+- No drop-in browser object, handle, target, or full event compatibility layer
+- No complete WebSocket frame lifecycle, heap snapshot, coverage, or complete accessibility-tree API
+- No vendor-operated browser cloud, managed proxy network, stealth engine, or CAPTCHA bypass service
+- No bundled LLM planner or autonomous task-success benchmark
+
+## Installation and documentation
+- [Installation options](https://cockroachbrowser.com/install/)
+- [Getting started manual](https://cockroachbrowser.com/docs/getting-started/)
 - [Getting started](https://cockroachbrowser.com/docs/getting-started/)
 - [Operator install](https://cockroachbrowser.com/docs/operator-install/)
 - [Sessions and profiles](https://cockroachbrowser.com/docs/sessions/)
@@ -28,48 +56,12 @@ Open-source governed-agent ecosystem: https://cockroachbrowser.com/ecosystem/
 - [Jobs and retries](https://cockroachbrowser.com/docs/jobs/)
 - [MCP](https://cockroachbrowser.com/docs/mcp/)
 - [Signed webhooks](https://cockroachbrowser.com/docs/webhooks/)
-- [Maqam](https://cockroachbrowser.com/docs/maqam/)
-- [Qarinah](https://cockroachbrowser.com/docs/qarinah/)
-- [Cockroach Crawler](https://cockroachbrowser.com/docs/crawler/)
-- [ProductLoop OS](https://cockroachbrowser.com/docs/productloop/)
 - [Security](https://cockroachbrowser.com/docs/security/)
 - [Deployment](https://cockroachbrowser.com/docs/deployment/)
 - [Capability matrix](https://cockroachbrowser.com/docs/capabilities/)
 
-## Alternatives and product layers
-This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories.
+## Optional integrations
+Cockroach Browser runs without Maqam, Qarinah, or Cockroach Crawler. Those are separate optional integrations with separate responsibilities. Maqam can provide external approval for selected actions; it is not the browser engine or the primary product identity.
 
-- [Playwright](https://cockroachbrowser.com/alternatives/#playwright): Cross-browser testing and automation across Chromium, Firefox, and WebKit with direct APIs.
-- [Puppeteer](https://cockroachbrowser.com/alternatives/#puppeteer): A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.
-- [Selenium](https://cockroachbrowser.com/alternatives/#selenium): WebDriver-based browser automation with local or remote execution and broad language and browser support.
-- [Playwright MCP](https://cockroachbrowser.com/alternatives/#playwright-mcp): MCP browser tools backed by Playwright and structured accessibility snapshots for agent interaction.
-- [Chrome DevTools MCP](https://cockroachbrowser.com/alternatives/#chrome-devtools-mcp): Chrome automation, debugging, network inspection, console analysis, and performance tracing for coding agents.
-- [Browser Use](https://cockroachbrowser.com/alternatives/#browser-use): A Python browser-agent framework and hosted platform for model-directed web tasks, custom tools, and recovery loops.
-- [Stagehand](https://cockroachbrowser.com/alternatives/#stagehand): Browser automation with natural-language and code primitives for act, extract, observe, and autonomous agent workflows.
-- [Browserbase](https://cockroachbrowser.com/alternatives/#browserbase): Managed cloud browser sessions with connection URLs, observability, recordings, contexts, and automation-framework integrations.
-- [Browserless](https://cockroachbrowser.com/alternatives/#browserless): Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.
-
-## Open-source governed-agent ecosystem
-This page maps documented product centers and composition boundaries from official project sources. It does not publish a shared performance benchmark, security ranking, production-capacity result, or universal winner.
-
-- [Qarinah](https://cockroachbrowser.com/ecosystem/#qarinah): Local-first, evidence-linked project memory and compact cited handoffs for coding agents. Qarinah can provide cited project context before a browser task. It does not control browser execution or approve a side effect.
-- [Maqam](https://cockroachbrowser.com/ecosystem/#maqam): A compact TypeScript boundary for policy, exact-input approval, one-use dispatch, execution, and receipts. Cockroach Browser ships a Maqam adapter for consequential browser actions. Maqam remains a separate authority and is not part of the browser engine.
-- [Cockroach Browser](https://cockroachbrowser.com/ecosystem/#cockroach-browser): A local-first TypeScript runtime for authorized browser sessions, semantic refs, finite budgets, evidence, and receipts. Cockroach Browser uses playwright-core. It is not a browser engine and does not replace Playwright.
-- [Cockroach Crawler](https://cockroachbrowser.com/ecosystem/#cockroach-crawler): Local web crawling, mapping, rendering, extraction, and normalized evidence with explicit network and resource limits. Cockroach Browser handles stateful interaction. Cockroach Crawler handles breadth. Its opt-in quality option is Trafilatura-backed and delegates main-content extraction to exact trafilatura@0.2.0.
-- [Playwright](https://cockroachbrowser.com/ecosystem/#playwright): Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools. Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.
-- [Puppeteer](https://cockroachbrowser.com/ecosystem/#puppeteer): A JavaScript API for controlling Chrome and Firefox through browser protocols. Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.
-- [Browser Use](https://cockroachbrowser.com/ecosystem/#browser-use): An open-source Python framework for model-directed agents that interact with websites. Cockroach Browser keeps model selection and planning outside its runtime and can serve as a bounded execution layer for a separately designed host.
-- [Stagehand](https://cockroachbrowser.com/ecosystem/#stagehand): Open-source AI browser automation that combines code with model-powered observation, action, and extraction. Stagehand centers AI-assisted browser automation. Cockroach Browser centers admitted session authority, finite budgets, and evidence.
-- [Firecrawl](https://cockroachbrowser.com/ecosystem/#firecrawl): A web API and open-source project for search, scrape, crawl, map, and browser interaction. Firecrawl and Cockroach Browser address different centers: managed web data versus authorized stateful browser execution.
-- [Trafilatura](https://cockroachbrowser.com/ecosystem/#trafilatura): Web text, metadata, comments, discovery, and structured output with configurable extraction. Cockroach Crawler's opt-in quality path delegates main-content extraction to exact trafilatura@0.2.0. Cockroach Browser does not replace an extraction specialist.
-- [Docling](https://cockroachbrowser.com/ecosystem/#docling): Conversion of PDFs, office documents, images, HTML, and Markdown into a structured document representation. Docling is a document specialist. Cockroach Browser can acquire a file through an authorized session, but it does not claim Docling's conversion scope.
-- [LangGraph](https://cockroachbrowser.com/ecosystem/#langgraph): A low-level runtime for long-running, stateful agents with durable execution, streaming, and human involvement. LangGraph can orchestrate a browser tool. Cockroach Browser does not replace its workflow state or agent runtime.
-- [OpenAI Agents SDK](https://cockroachbrowser.com/ecosystem/#openai-agents-sdk): A TypeScript SDK for agent loops, tools, handoffs, guardrails, sessions, tracing, and human involvement. The SDK can call Cockroach Browser as a tool. Cockroach Browser does not replace its model loop, handoffs, sessions, or tracing.
-
-## Security boundary
+## Access-challenge boundary
 Cockroach Browser detects login, consent, CAPTCHA, and access challenges, pauses automation, and waits for a human or authorized resolver. It does not bypass CAPTCHAs or access controls.
-
-## Capability states
-- Available: implemented in the 0.3.0 runtime or shipped deployment surface.
-- Adapter: integration contract shipped, external authority or package required.
-- Planned: documented direction, not part of the current release.
