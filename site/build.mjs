@@ -48,6 +48,7 @@ const homepageQuestions = [
 ];
 
 await writePage("index.html", homePage());
+await writePage("what-is-cockroach-browser/index.html", whatIsPage());
 await writePage("docs/index.html", docsIndex());
 for (const page of pages) {
   await writePage(`docs/${page.slug}/index.html`, manualPage(page));
@@ -81,6 +82,12 @@ npm: ${site.npm}
 Technical paper: ${site.origin}/paper/
 Alternatives and product-layer comparison: ${site.origin}/alternatives/
 Open-source governed-agent ecosystem: ${site.origin}/ecosystem/
+
+## Product routes
+- [What is Cockroach Browser?](${site.origin}/what-is-cockroach-browser/)
+- [Features and capabilities](${site.origin}/docs/capabilities/)
+- [Install and get started](${site.origin}/docs/getting-started/)
+- [Complete documentation](${site.origin}/docs/)
 
 ## Documentation
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](${site.origin}/docs/${slug}/)`).join("\n")}
@@ -129,6 +136,7 @@ await writePage(
 await writePage(
   "_redirects",
   `/docs /docs/ 301
+/what-is-cockroach-browser /what-is-cockroach-browser/ 301
 /dashboard /dashboard/ 301
 /paper /paper/ 301
 /alternatives /alternatives/ 301
@@ -136,7 +144,7 @@ await writePage(
 `
 );
 
-process.stdout.write(`Built ${pages.length + 8} HTML pages and ${capabilities.length} capability records.\n`);
+process.stdout.write(`Built ${pages.length + 9} HTML pages and ${capabilities.length} capability records.\n`);
 
 function parseCapabilities(source) {
   const pattern = /^\s*\["([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"([^"]+)",\s*"(available|adapter|planned)",\s*"([^"]+)"\],?$/gm;
@@ -235,9 +243,10 @@ function header(active = "") {
       <span class="version">${site.version}</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
-      <a href="/" ${active === "home" ? 'aria-current="page"' : ""}>Product</a>
+      <a href="/what-is-cockroach-browser/" ${active === "what" ? 'aria-current="page"' : ""}>What it is</a>
+      <a href="/docs/capabilities/">Features</a>
+      <a href="/docs/getting-started/">Install</a>
       <a href="/docs/" ${active === "docs" ? 'aria-current="page"' : ""}>Docs</a>
-      <a href="/docs/capabilities/">Capabilities</a>
       <a href="/alternatives/" ${active === "alternatives" ? 'aria-current="page"' : ""}>Alternatives</a>
       <a href="/ecosystem/" ${active === "ecosystem" ? 'aria-current="page"' : ""}>Ecosystem</a>
       <a href="/dashboard/" ${active === "dashboard" ? 'aria-current="page"' : ""}>Dashboard</a>
@@ -258,6 +267,10 @@ function footer() {
       <p>Local-first browser execution for AI agents. Authorized sessions, snapshot-scoped refs, evidence, and explicit governance hooks.</p>
     </div>
     <div class="footer-links">
+      <a href="/what-is-cockroach-browser/">What it is</a>
+      <a href="/docs/capabilities/">Features</a>
+      <a href="/docs/getting-started/">Install</a>
+      <a href="/docs/">Documentation</a>
       <a href="/docs/security/">Security</a>
       <a href="/alternatives/">Alternatives</a>
       <a href="/ecosystem/">Ecosystem</a>
@@ -298,6 +311,7 @@ function homePage() {
         description: site.description,
         url: site.origin,
         downloadUrl: site.npm,
+        installUrl: `${site.origin}/docs/getting-started/`,
         codeRepository: site.repository,
         license: "https://spdx.org/licenses/AGPL-3.0-or-later.html",
         isAccessibleForFree: true,
@@ -414,6 +428,83 @@ ${header("home")}
 ${footer()}`;
 }
 
+function whatIsPage() {
+  const canonical = `${site.origin}/what-is-cockroach-browser/`;
+  const description = "Cockroach Browser is a local-first TypeScript runtime for authorized Chromium sessions, semantic page references, real interactions, browser evidence, and agent integrations.";
+  return `${baseHead({
+    title: "What is Cockroach Browser?",
+    description,
+    canonical,
+    type: "article",
+    schemas: [
+      {
+        "@type": "AboutPage",
+        "@id": `${canonical}#about`,
+        name: "What is Cockroach Browser?",
+        description,
+        url: canonical,
+        inLanguage: "en",
+        about: {
+          "@type": "SoftwareApplication",
+          "@id": `${site.origin}/#software`,
+          name: site.name,
+          applicationCategory: "DeveloperApplication",
+          operatingSystem: "Windows, macOS, Linux",
+          softwareVersion: site.version,
+          description: site.description,
+          url: site.origin,
+          downloadUrl: site.npm,
+          installUrl: `${site.origin}/docs/getting-started/`,
+          codeRepository: site.repository,
+          license: "https://spdx.org/licenses/AGPL-3.0-or-later.html",
+          isAccessibleForFree: true
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Cockroach Browser", item: `${site.origin}/` },
+          { "@type": "ListItem", position: 2, name: "What is Cockroach Browser?", item: canonical }
+        ]
+      }
+    ]
+  })}
+<body>
+${header("what")}
+<main id="main">
+  <section class="shell page-hero">
+    <p class="eyebrow">Product definition</p>
+    <h1>What is Cockroach Browser?</h1>
+    <p class="kicker">A local-first browser execution and evidence runtime for AI agents.</p>
+    <p class="lede">Cockroach Browser gives a host agent an explicitly authorized Chromium session. It combines semantic page references, real interactions, finite policy budgets, evidence artifacts, and hash-linked receipts in one TypeScript package.</p>
+    <div class="hero-actions">
+      <a class="button button--primary" href="/docs/getting-started/">Install and get started</a>
+      <a class="button" href="/docs/capabilities/">Inspect every capability</a>
+    </div>
+  </section>
+  <section class="section">
+    <div class="shell">
+      <div class="section-head"><h2>The product boundary.</h2><p>The runtime controls one admitted browser session; the operator and host retain the surrounding authority.</p></div>
+      <div class="stack-grid">
+        <article><span class="tag">Session</span><h3>Explicit browser authority</h3><p>Origins, actions, effects, profiles, credentials, time, requests, and byte ceilings are declared before use.</p></article>
+        <article><span class="tag">Observe</span><h3>Semantic page references</h3><p>Bounded snapshots expose stable, snapshot-scoped refs so a host can target page elements without relying only on coordinates.</p></article>
+        <article><span class="tag">Act</span><h3>Real browser interaction</h3><p>Navigate, click, type, select, scroll, upload admitted files, handle state, and capture results inside the session policy.</p></article>
+        <article><span class="tag">Prove</span><h3>Evidence and receipts</h3><p>Link actions to URLs, input and output digests, screenshots, PDFs, traces, network observations, and a hash-chained receipt history.</p></article>
+        <article><span class="tag">Connect</span><h3>Daemon, SDK, and MCP</h3><p>Embed the TypeScript runtime, call an authenticated local daemon, or expose bounded observation and proposal tools through MCP.</p></article>
+        <article><span class="tag">Govern</span><h3>Optional external authority</h3><p>Route selected consequential actions through a separately configured approval boundary while preserving the browser session and evidence record.</p></article>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="shell">
+      <div class="section-head"><h2>What it does not claim.</h2><p>Cockroach Browser is not an autonomous planner, a browser engine, an ambient profile scanner, or an access-control bypass system. Login, consent, CAPTCHA, and denied-access states stop for human or separately authorized handling.</p></div>
+      <div class="hero-actions"><a class="button button--primary" href="/docs/">Read the documentation</a><a class="button" href="/docs/security/">Review the security boundary</a></div>
+    </div>
+  </section>
+</main>
+${footer()}`;
+}
+
 function docsIndex() {
   const groups = navGroups.map((group) => `<section class="manual-section">
     <span class="section-number">${escapeHtml(group.title)}</span>
@@ -473,7 +564,19 @@ ${section.body}${section.code ? `\n${codeBlock(section.code, section.label ?? "e
           { "@type": "ListItem", position: 2, name: "Documentation", item: `${site.origin}/docs/` },
           { "@type": "ListItem", position: 3, name: page.title, item: `${site.origin}/docs/${page.slug}/` }
         ]
-      }
+      },
+      ...(page.slug === "getting-started" ? [{
+        "@type": "HowTo",
+        "@id": `${site.origin}/docs/getting-started/#howto`,
+        name: "Install and start Cockroach Browser",
+        description: page.lede,
+        step: [
+          { "@type": "HowToStep", position: 1, name: "Install the package and Chromium", text: "Install Cockroach Browser, then run the explicit bootstrap command when Chromium is missing." },
+          { "@type": "HowToStep", position: 2, name: "Start the authenticated local daemon", text: "Start the loopback daemon and retain its generated bearer token." },
+          { "@type": "HowToStep", position: 3, name: "Create an authorized session", text: "Declare the purpose, allowed origins, actions, effects, and resource ceilings." },
+          { "@type": "HowToStep", position: 4, name: "Use the SDK or client", text: "Embed the runtime or call the authenticated daemon using the same bounded session contract." }
+        ]
+      }] : [])
     ]
   })}
 <body>
@@ -505,7 +608,42 @@ function capabilityPage() {
   return `${baseHead({
     title: "Capability matrix",
     description: `${capabilities.length} mapped Cockroach Browser capabilities, each marked available, adapter, or planned.`,
-    canonical: `${site.origin}/docs/capabilities/`
+    canonical: `${site.origin}/docs/capabilities/`,
+    schemas: [
+      {
+        "@type": "CollectionPage",
+        "@id": `${site.origin}/docs/capabilities/#features`,
+        name: "Cockroach Browser features and capability matrix",
+        description: `${capabilities.length} source-derived capabilities with available, adapter, and planned status.`,
+        url: `${site.origin}/docs/capabilities/`,
+        about: { "@id": `${site.origin}/#software` }
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${site.origin}/docs/capabilities/#capability-list`,
+        name: "Cockroach Browser capabilities",
+        itemListOrder: "https://schema.org/ItemListUnordered",
+        numberOfItems: capabilities.length,
+        itemListElement: capabilities.map((entry, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          item: {
+            "@type": "DefinedTerm",
+            termCode: entry.id,
+            name: entry.title,
+            description: entry.summary
+          }
+        }))
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Cockroach Browser", item: `${site.origin}/` },
+          { "@type": "ListItem", position: 2, name: "Documentation", item: `${site.origin}/docs/` },
+          { "@type": "ListItem", position: 3, name: "Features", item: `${site.origin}/docs/capabilities/` }
+        ]
+      }
+    ]
   })}
 <body>
 ${header("docs")}
@@ -1024,7 +1162,7 @@ function stripHtml(value) {
 }
 
 function sitemap() {
-  const paths = ["/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/ecosystem/", "/dashboard/", "/paper/"];
+  const paths = ["/", "/what-is-cockroach-browser/", "/docs/", ...navGroups.flatMap((group) => group.items.map(([, slug]) => `/docs/${slug}/`)), "/alternatives/", "/ecosystem/", "/dashboard/", "/paper/"];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${paths.map((path) => `  <url><loc>${site.origin}${path}</loc><lastmod>${path === "/ecosystem/" ? ecosystem.checkedOn : "2026-08-08"}</lastmod><changefreq>weekly</changefreq><priority>${path === "/" ? "1.0" : "0.8"}</priority></url>`).join("\n")}
@@ -1043,6 +1181,13 @@ function searchIndex() {
         kind: "product",
         summary: site.description,
         keywords: ["browser automation", "AI agents", "local-first", "evidence", "MCP", "Maqam"]
+      },
+      {
+        title: "What is Cockroach Browser?",
+        url: `${site.origin}/what-is-cockroach-browser/`,
+        kind: "product-definition",
+        summary: "A local-first TypeScript runtime for explicitly authorized Chromium sessions, semantic page references, real interactions, and verifiable browser evidence.",
+        keywords: ["Cockroach Browser", "browser runtime", "authorized browser sessions", "semantic page references", "browser evidence"]
       },
       {
         title: comparison.title,
