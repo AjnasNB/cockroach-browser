@@ -33,10 +33,9 @@
       "title": "Cockroach Browser alternatives",
       "url": "https://cockroachbrowser.com/alternatives/",
       "kind": "comparison",
-      "summary": "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+      "summary": "Compare Cockroach Browser with browser automation primitives, MCP control servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
       "keywords": [
         "Playwright",
-        "Puppeteer",
         "Selenium",
         "Playwright MCP",
         "Chrome DevTools MCP",
@@ -57,7 +56,6 @@
         "Cockroach Browser",
         "Cockroach Crawler",
         "Playwright",
-        "Puppeteer",
         "Browser Use",
         "Stagehand",
         "Firecrawl",
@@ -118,17 +116,6 @@
       "summary": "Cross-browser automation across Chromium, Firefox, and WebKit with direct APIs and testing tools. Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.",
       "keywords": [
         "Playwright",
-        "Browser automation primitive",
-        "governed AI agents"
-      ]
-    },
-    {
-      "title": "Puppeteer in the governed-agent ecosystem",
-      "url": "https://cockroachbrowser.com/ecosystem/#puppeteer",
-      "kind": "ecosystem-project",
-      "summary": "A JavaScript API for controlling Chrome and Firefox through browser protocols. Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.",
-      "keywords": [
-        "Puppeteer",
         "Browser automation primitive",
         "governed AI agents"
       ]
@@ -222,17 +209,6 @@
       ]
     },
     {
-      "title": "Cockroach Browser and Puppeteer",
-      "url": "https://cockroachbrowser.com/alternatives/#puppeteer",
-      "kind": "alternative",
-      "summary": "A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi. Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.",
-      "keywords": [
-        "Puppeteer",
-        "Automation primitive",
-        "browser automation alternative"
-      ]
-    },
-    {
       "title": "Cockroach Browser and Selenium",
       "url": "https://cockroachbrowser.com/alternatives/#selenium",
       "kind": "alternative",
@@ -302,7 +278,7 @@
       "title": "Cockroach Browser and Browserless",
       "url": "https://cockroachbrowser.com/alternatives/#browserless",
       "kind": "alternative",
-      "summary": "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs. Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.",
+      "summary": "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for browser automation, scraping, screenshots, and PDFs. Cockroach Browser packages local agent-session policy and evidence semantics. Browserless packages browser infrastructure and APIs. The comparison does not score either deployment as universally safer or more reliable.",
       "keywords": [
         "Browserless",
         "Hosted or self-hosted infrastructure",

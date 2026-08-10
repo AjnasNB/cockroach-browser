@@ -12,7 +12,7 @@ export const comparison = {
   checkedOn: "2026-08-08",
   title: "Cockroach Browser alternatives",
   description:
-    "Compare Cockroach Browser with Playwright, Puppeteer, Selenium, browser MCP servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
+    "Compare Cockroach Browser with browser automation primitives, MCP control servers, agent frameworks, and hosted browser infrastructure by product layer and authority model.",
   methodology:
     "This comparison uses each project's official documentation and describes product scope, deployment, and control boundaries. It does not publish a speed, task-success, or security ranking because there is no shared benchmark across these product categories."
 };
@@ -94,20 +94,6 @@ export const ecosystem = {
         "Cockroach Browser depends on playwright-core and adds an agent-oriented authority, transport, and evidence contract above it.",
       sourceLabel: "Playwright documentation",
       source: "https://playwright.dev/"
-    },
-    {
-      id: "puppeteer",
-      name: "Puppeteer",
-      category: "browser-primitive",
-      categoryLabel: "Browser automation primitive",
-      nativeFocus:
-        "A JavaScript API for controlling Chrome and Firefox through browser protocols.",
-      chooseWhen:
-        "The job needs direct JavaScript browser automation without adopting an agent session runtime.",
-      relationship:
-        "Cockroach Browser is not presented as a Puppeteer speed, compatibility, or browser-coverage winner.",
-      sourceLabel: "Puppeteer documentation",
-      source: "https://pptr.dev/"
     },
     {
       id: "browser-use",
@@ -252,20 +238,6 @@ export const alternatives = [
     source: "https://playwright.dev/docs/intro"
   },
   {
-    id: "puppeteer",
-    name: "Puppeteer",
-    category: "primitive",
-    categoryLabel: "Automation primitive",
-    nativeFocus:
-      "A JavaScript API for controlling Chrome or Firefox over the DevTools Protocol or WebDriver BiDi.",
-    chooseWhen:
-      "You want direct JavaScript browser control, screenshots, PDFs, tracing, extension testing, or SPA rendering without adopting an agent runtime.",
-    relationship:
-      "Cockroach Browser adds an authorized session and receipt layer around a browser runtime. It is not presented as a Puppeteer compatibility, speed, or coverage winner.",
-    sourceLabel: "Puppeteer documentation",
-    source: "https://pptr.dev/guides/what-is-puppeteer"
-  },
-  {
     id: "selenium",
     name: "Selenium",
     category: "primitive",
@@ -355,7 +327,7 @@ export const alternatives = [
     category: "infrastructure",
     categoryLabel: "Hosted or self-hosted infrastructure",
     nativeFocus:
-      "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for Puppeteer, Playwright, Selenium, scraping, screenshots, and PDFs.",
+      "Managed headless browsers plus WebSocket, REST, and GraphQL interfaces for browser automation, scraping, screenshots, and PDFs.",
     chooseWhen:
       "You need a remote browser endpoint, browser APIs, or a self-hostable browser service with infrastructure features.",
     relationship:
@@ -367,8 +339,8 @@ export const alternatives = [
 
 export const comparisonQuestions = [
   [
-    "Is Cockroach Browser better than Playwright or Puppeteer?",
-    "That is not a useful universal comparison. Playwright and Puppeteer are browser automation primitives. Cockroach Browser uses playwright-core and adds an agent-oriented session, policy, transport, and evidence layer. Choose the layer your architecture needs."
+    "How does Cockroach Browser relate to browser automation libraries?",
+    "Cockroach Browser uses playwright-core and adds an agent-oriented session, policy, transport, and evidence layer. Choose a direct automation primitive when your application should own browser calls, or the Cockroach Browser runtime when explicit agent-session authority and evidence are required."
   ],
   [
     "Does Cockroach Browser replace Playwright MCP or Chrome DevTools MCP?",
