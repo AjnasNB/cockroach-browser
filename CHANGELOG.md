@@ -1,5 +1,7 @@
 # Changelog
 
+- Fix Windows three-engine bootstrap by invoking the installed Playwright JavaScript CLI through the current Node executable instead of spawning a shell-specific command shim.
+
 All notable changes to Cockroach Browser are documented here.
 
 The format follows Keep a Changelog and the project uses Semantic Versioning.

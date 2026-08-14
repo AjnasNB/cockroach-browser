@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { chromium, firefox, webkit, type BrowserType } from "playwright-core";
@@ -22,6 +21,7 @@ import { startBrowserServer } from "./server.js";
 import { startMcpServer } from "./mcp.js";
 import { discoverBrowserExecutables } from "./browser-discovery.js";
 import { TeamSessionStore } from "./team-sessions.js";
+import { installBrowserEngines } from "./browser-bootstrap.js";
 
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const [command = "help", subcommand, ...rest] = argv;
@@ -371,18 +371,6 @@ async function browserEngineReadiness(): Promise<Record<"chromium" | "firefox" |
     browserTypeReadiness(webkit)
   ]);
   return { chromium: chromiumResult, firefox: firefoxResult, webkit: webkitResult };
-}
-
-async function installBrowserEngines(): Promise<void> {
-  await new Promise<void>((accept, reject) => {
-    const command = process.platform === "win32" ? "npx.cmd" : "npx";
-    const child = spawn(command, ["--no-install", "playwright", "install", "chromium", "firefox", "webkit"], {
-      stdio: "inherit",
-      shell: false
-    });
-    child.once("error", reject);
-    child.once("exit", (code) => code === 0 ? accept() : reject(new Error(`Browser engine setup exited with ${code}.`)));
-  });
 }
 
 async function jsonFile<T>(path: string): Promise<T> {
