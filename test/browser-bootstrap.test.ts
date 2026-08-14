@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
+import { dirname, join } from "node:path";
 import test from "node:test";
 import { browserEngineInstallCommand } from "../src/browser-bootstrap.js";
 
 test("browser installation invokes the Playwright JavaScript CLI through Node", () => {
+  const playwrightEntry = join(process.cwd(), "node_modules", "playwright-core", "index.js");
   const command = browserEngineInstallCommand({
-    execPath: "C:\\Program Files\\nodejs\\node.exe",
-    playwrightEntry: "D:\\app\\node_modules\\playwright-core\\index.js"
+    execPath: process.execPath,
+    playwrightEntry
   });
   assert.deepEqual(command, {
-    command: "C:\\Program Files\\nodejs\\node.exe",
+    command: process.execPath,
     args: [
-      "D:\\app\\node_modules\\playwright-core\\cli.js",
+      join(dirname(playwrightEntry), "cli.js"),
       "install",
       "chromium",
       "firefox",
