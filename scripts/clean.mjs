@@ -3,7 +3,14 @@ import { basename, dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const targets = [resolve(root, "dist"), resolve(root, ".test-dist")];
+const targets = [
+  resolve(root, "dist"),
+  resolve(root, ".test-dist"),
+  resolve(root, "sdks", "python", "cockroach_browser", "__pycache__"),
+  resolve(root, "sdks", "java", "target"),
+  resolve(root, "sdks", "dotnet", "CockroachBrowser", "bin"),
+  resolve(root, "sdks", "dotnet", "CockroachBrowser", "obj")
+];
 for (const entry of await readdir(root, { withFileTypes: true })) {
   if (entry.isFile() && /^cockroach-browser-\d+\.\d+\.\d+.*\.tgz$/.test(entry.name)) {
     targets.push(resolve(root, entry.name));

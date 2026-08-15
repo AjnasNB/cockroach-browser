@@ -7,6 +7,8 @@ import { join, resolve } from "node:path";
 import test from "node:test";
 
 const root = resolve(process.cwd());
+const packageJson = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+const releaseVersion = packageJson.version as string;
 
 test("release assets are deterministic, complete, and checksum-bound", async (t) => {
   const temporaryRoot = await mkdtemp(join(tmpdir(), "cockroach-browser-release-test-"));
@@ -21,10 +23,10 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
   const files = (await readdir(output)).sort();
   assert.deepEqual(files, [
     "SHA256SUMS",
-    "cockroach-browser-0.4.0-browser-api-surface.json",
-    "cockroach-browser-0.4.0-capabilities.json",
-    "cockroach-browser-0.4.0-release-notes.md",
-    "cockroach-browser-0.4.0-sdk-inventory.json"
+    `cockroach-browser-${releaseVersion}-browser-api-surface.json`,
+    `cockroach-browser-${releaseVersion}-capabilities.json`,
+    `cockroach-browser-${releaseVersion}-release-notes.md`,
+    `cockroach-browser-${releaseVersion}-sdk-inventory.json`
   ]);
   const sums = (await readFile(join(output, "SHA256SUMS"), "utf8")).trim().split("\n");
   assert.equal(sums.length, 4);
@@ -36,7 +38,7 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
     const bytes = await readFile(join(output, fileName));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), match[1]);
   }
-  const inventory = JSON.parse(await readFile(join(output, "cockroach-browser-0.4.0-capabilities.json"), "utf8"));
+  const inventory = JSON.parse(await readFile(join(output, `cockroach-browser-${releaseVersion}-capabilities.json`), "utf8"));
   assert.deepEqual(inventory.counts, { total: 124, available: 114, adapter: 10, planned: 0 });
   assert.equal(inventory.actionCount, 65);
 });
@@ -55,6 +57,7 @@ test("release workflow selects stable or prerelease channels and verifies every 
     "dotnet build",
     "ruby -c",
     "go test ./...",
+    "npm run clean && npm run build && npm run check:package",
     "stage-release-assets.mjs",
     "gh release upload"
   ]) {
@@ -63,7 +66,7 @@ test("release workflow selects stable or prerelease channels and verifies every 
 });
 
 test("language SDK package versions match the stable release", async () => {
-  const expected = "0.4.0";
+  const expected = releaseVersion;
   const python = await readFile(resolve(root, "sdks/python/pyproject.toml"), "utf8");
   const java = await readFile(resolve(root, "sdks/java/pom.xml"), "utf8");
   const dotnet = await readFile(resolve(root, "sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj"), "utf8");
@@ -72,4 +75,26 @@ test("language SDK package versions match the stable release", async () => {
   assert.match(java, new RegExp(`<version>${expected.replaceAll(".", "\\.")}</version>`));
   assert.match(dotnet, new RegExp(`<Version>${expected.replaceAll(".", "\\.")}</Version>`));
   assert.match(ruby, new RegExp(`spec\\.version = "${expected.replaceAll(".", "\\.")}"`));
+});
+
+test("release packaging removes and rejects generated SDK build outputs", async () => {
+  const clean = await readFile(resolve(root, "scripts/clean.mjs"), "utf8");
+  const packageCheck = await readFile(resolve(root, "scripts/check-package.mjs"), "utf8");
+  for (const required of [
+    'resolve(root, "sdks", "python", "cockroach_browser", "__pycache__")',
+    'resolve(root, "sdks", "java", "target")',
+    'resolve(root, "sdks", "dotnet", "CockroachBrowser", "bin")',
+    'resolve(root, "sdks", "dotnet", "CockroachBrowser", "obj")'
+  ]) {
+    assert.match(clean, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  for (const forbidden of [
+    "sdks/python/cockroach_browser/__pycache__/",
+    "sdks/java/target/",
+    "sdks/dotnet/CockroachBrowser/bin/",
+    "sdks/dotnet/CockroachBrowser/obj/",
+    ".pyc"
+  ]) {
+    assert.match(packageCheck, new RegExp(forbidden.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
 });

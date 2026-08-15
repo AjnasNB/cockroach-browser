@@ -145,6 +145,15 @@ for (const path of requiredSourceFiles) {
 for (const forbidden of ["src/runtime.ts", ".env", ".git/", "website/", "test/", "dist/test/"]) {
   assert(![...files].some((path) => path === forbidden || path.startsWith(forbidden)), `npm package leaks ${forbidden}`);
 }
+for (const forbidden of [
+  "sdks/python/cockroach_browser/__pycache__/",
+  "sdks/java/target/",
+  "sdks/dotnet/CockroachBrowser/bin/",
+  "sdks/dotnet/CockroachBrowser/obj/"
+]) {
+  assert(![...files].some((path) => path.startsWith(forbidden)), `npm package leaks generated SDK output ${forbidden}`);
+}
+assert(![...files].some((path) => path.endsWith(".pyc")), "npm package leaks generated Python bytecode");
 
 const packedBytes = Number(report[0]?.size ?? 0);
 assert(packedBytes > 0 && packedBytes < 10 * 1024 * 1024, "packed tarball must stay below 10 MiB");

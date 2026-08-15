@@ -60,6 +60,8 @@ jobs:
           dotnet build sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj --configuration Release --nologo
           ruby -c sdks/ruby/lib/cockroach_browser.rb
           (cd sdks/go && go test ./...)
+      - name: Remove generated SDK outputs before packaging
+        run: npm run clean && npm run build && npm run check:package
       - name: Stage deterministic release assets
         shell: bash
         run: |

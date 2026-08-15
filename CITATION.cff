@@ -6,8 +6,8 @@ authors:
   - family-names: "N B"
     given-names: "Ajnas"
     alias: "AjnasNB"
-version: 0.4.0
-date-released: 2026-08-14
+version: 0.4.1
+date-released: 2026-08-15
 license: AGPL-3.0-or-later
 repository-code: "https://github.com/AjnasNB/cockroach-browser"
 url: "https://cockroachbrowser.com"

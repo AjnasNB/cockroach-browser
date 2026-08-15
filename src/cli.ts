@@ -26,7 +26,7 @@ import { installBrowserEngines } from "./browser-bootstrap.js";
 export async function main(argv = process.argv.slice(2)): Promise<void> {
   const [command = "help", subcommand, ...rest] = argv;
   if (command === "help" || command === "--help" || command === "-h") return printHelp();
-  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.4.0" });
+  if (command === "version" || command === "--version" || command === "-v") return print({ version: "0.4.1" });
   if (command === "capabilities") {
     const status = flag(rest, "--status");
     return print(CAPABILITIES.filter((entry) => !status || entry.status === status));
@@ -434,7 +434,7 @@ function printText(value: string): void {
 }
 
 function printHelp(): void {
-  process.stdout.write(`Cockroach Browser 0.4.0
+  process.stdout.write(`Cockroach Browser 0.4.1
 
 Usage:
   cockroach-browser bootstrap [--root PATH] [--check-only]

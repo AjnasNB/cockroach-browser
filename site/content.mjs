@@ -1,6 +1,6 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.4.0",
+  version: "0.4.1",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
@@ -798,7 +798,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.4.0", "mcp"],
+      "args": ["-y", "cockroach-browser@0.4.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -896,14 +896,14 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.4.0 .
+  docker: `docker build -t cockroach-browser:0.4.1 .
 docker run --rm \\
   --read-only \\
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \\
   --shm-size 512m \\
   --tmpfs /data \\
   -p 127.0.0.1:43110:43111 \\
-  cockroach-browser:0.4.0`,
+  cockroach-browser:0.4.1`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\

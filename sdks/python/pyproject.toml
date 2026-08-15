@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cockroach-browser"
-version = "0.4.0"
+version = "0.4.1"
 description = "Python client for the authenticated Cockroach Browser daemon"
 requires-python = ">=3.10"
 license = { text = "AGPL-3.0-or-later" }
