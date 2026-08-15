@@ -1,12 +1,32 @@
 # Changelog
 
-- Fix Windows three-engine bootstrap by invoking the installed Playwright JavaScript CLI through the current Node executable instead of spawning a shell-specific command shim.
-
 All notable changes to Cockroach Browser are documented here.
 
 The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
+
+## [0.4.0] - 2026-08-14
+
+### Added
+
+- stable Chromium, Firefox, and WebKit execution across the bounded runtime,
+  complete pinned Playwright and Puppeteer compatibility surfaces, raw browser
+  protocols, agent/model integration, mobile WebDriver, managed-fleet adapters,
+  language SDKs, and deterministic release inventories first validated in the
+  `0.4.0-rc.1` release candidate
+
+### Fixed
+
+- Windows three-engine bootstrap now invokes the installed Playwright
+  JavaScript CLI through the current Node executable instead of spawning a
+  shell-specific command shim
+
+### Verification
+
+- all three installed engines, the Puppeteer compatibility lane, Node 22/24/26,
+  hardened-container smoke, language SDK builds, generated documentation, and
+  the immutable npm/GitHub release identity are release gates
 
 ## [0.4.0-rc.1] - 2026-08-10
 
@@ -171,7 +191,8 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0-rc.1...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0-rc.1...v0.4.0
 [0.4.0-rc.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...v0.4.0-rc.1
 [0.3.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.0...v0.2.1

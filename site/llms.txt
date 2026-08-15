@@ -24,7 +24,7 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 - [Alternatives and current gaps](https://cockroachbrowser.com/alternatives/)
 - [Complete documentation](https://cockroachbrowser.com/docs/)
 
-## Shipped surface in 0.4.0-rc.1
+## Shipped surface in 0.4.0
 - 114 directly available runtime and deployment surfaces
 - 10 optional adapter-backed surfaces
 - 65 typed browser actions derived from src/contracts.ts

@@ -21,10 +21,10 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
   const files = (await readdir(output)).sort();
   assert.deepEqual(files, [
     "SHA256SUMS",
-    "cockroach-browser-0.4.0-rc.1-browser-api-surface.json",
-    "cockroach-browser-0.4.0-rc.1-capabilities.json",
-    "cockroach-browser-0.4.0-rc.1-release-notes.md",
-    "cockroach-browser-0.4.0-rc.1-sdk-inventory.json"
+    "cockroach-browser-0.4.0-browser-api-surface.json",
+    "cockroach-browser-0.4.0-capabilities.json",
+    "cockroach-browser-0.4.0-release-notes.md",
+    "cockroach-browser-0.4.0-sdk-inventory.json"
   ]);
   const sums = (await readFile(join(output, "SHA256SUMS"), "utf8")).trim().split("\n");
   assert.equal(sums.length, 4);
@@ -36,12 +36,12 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
     const bytes = await readFile(join(output, fileName));
     assert.equal(createHash("sha256").update(bytes).digest("hex"), match[1]);
   }
-  const inventory = JSON.parse(await readFile(join(output, "cockroach-browser-0.4.0-rc.1-capabilities.json"), "utf8"));
+  const inventory = JSON.parse(await readFile(join(output, "cockroach-browser-0.4.0-capabilities.json"), "utf8"));
   assert.deepEqual(inventory.counts, { total: 124, available: 114, adapter: 10, planned: 0 });
   assert.equal(inventory.actionCount, 65);
 });
 
-test("release workflow keeps prereleases on next and verifies every platform lane", async () => {
+test("release workflow selects stable or prerelease channels and verifies every platform lane", async () => {
   const workflow = await readFile(resolve(root, ".github/workflows/release.yml"), "utf8");
   for (const required of [
     "npm_tag=next",
@@ -62,14 +62,14 @@ test("release workflow keeps prereleases on next and verifies every platform lan
   }
 });
 
-test("language SDK package versions match the release candidate", async () => {
-  const expected = "0.4.0-rc.1";
+test("language SDK package versions match the stable release", async () => {
+  const expected = "0.4.0";
   const python = await readFile(resolve(root, "sdks/python/pyproject.toml"), "utf8");
   const java = await readFile(resolve(root, "sdks/java/pom.xml"), "utf8");
   const dotnet = await readFile(resolve(root, "sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj"), "utf8");
   const ruby = await readFile(resolve(root, "sdks/ruby/cockroach-browser.gemspec"), "utf8");
-  assert.match(python, /version = "0\.4\.0rc1"/);
+  assert.match(python, new RegExp(`version = "${expected.replaceAll(".", "\\.")}"`));
   assert.match(java, new RegExp(`<version>${expected.replaceAll(".", "\\.")}</version>`));
   assert.match(dotnet, new RegExp(`<Version>${expected.replaceAll(".", "\\.")}</Version>`));
-  assert.match(ruby, /spec\.version = "0\.4\.0\.rc\.1"/);
+  assert.match(ruby, new RegExp(`spec\\.version = "${expected.replaceAll(".", "\\.")}"`));
 });

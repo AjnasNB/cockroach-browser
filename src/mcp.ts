@@ -22,7 +22,7 @@ export async function startMcpServer(options: BrowserMcpOptions = {}): Promise<v
   const client = options.client ?? (token
     ? new BrowserClient({ ...(baseUrl ? { baseUrl } : {}), token })
     : undefined);
-  const server = new McpServer({ name: "cockroach-browser", version: "0.4.0-rc.1" });
+  const server = new McpServer({ name: "cockroach-browser", version: "0.4.0" });
 
   server.registerTool(
     "browser_capabilities",

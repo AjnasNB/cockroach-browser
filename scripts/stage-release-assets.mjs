@@ -45,6 +45,7 @@ const groups = Object.fromEntries([...new Set(capabilities.map((entry) => entry.
   }
 ]));
 const prefix = `cockroach-browser-${packageJson.version}`;
+const isPrerelease = packageJson.version.includes("-");
 const capabilityAsset = `${prefix}-capabilities.json`;
 const apiAsset = `${prefix}-browser-api-surface.json`;
 const sdkAsset = `${prefix}-sdk-inventory.json`;
@@ -76,7 +77,9 @@ const sdkInventory = {
 };
 const releaseNotes = `# Cockroach Browser ${packageJson.version}
 
-This release candidate expands Cockroach Browser into a multi-engine browser automation platform while preserving the existing bounded runtime, evidence chain, MCP, daemon, dashboard, and integrations.
+${isPrerelease
+    ? "This release candidate expands Cockroach Browser into a multi-engine browser automation platform while preserving the existing bounded runtime, evidence chain, MCP, daemon, dashboard, and integrations."
+    : "This stable release promotes the multi-engine browser automation platform validated in the 0.4.0 release candidate, including the portable Windows three-engine bootstrap fix, while preserving the bounded runtime, evidence chain, MCP, daemon, dashboard, and integrations."}
 
 ## Included
 
@@ -97,7 +100,7 @@ Cockroach Browser does not operate a hosted browser cloud, residential proxy net
 
 ## Evidence boundary
 
-The generated declaration inventory counts API contracts, not independent product features. Cross-engine and Puppeteer execution are proven separately by installed-engine integration tests. This release candidate does not claim universal task success, comparative superiority, or complete native mobile infrastructure.
+The generated declaration inventory counts API contracts, not independent product features. Cross-engine and Puppeteer execution are proven separately by installed-engine integration tests. This ${isPrerelease ? "release candidate" : "stable release"} does not claim universal task success, comparative superiority, or complete native mobile infrastructure.
 `;
 
 await rm(out, { recursive: true, force: true });
