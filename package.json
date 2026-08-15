@@ -1,6 +1,6 @@
 {
   "name": "cockroach-browser",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Open-source local-first Chromium, Firefox, WebKit, Playwright, and Puppeteer automation for AI agents with semantic page snapshots, model-directed execution, MCP, SDKs, and verifiable evidence.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",

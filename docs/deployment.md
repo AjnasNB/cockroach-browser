@@ -23,14 +23,14 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token
 Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.
 
 ```
-docker build -t cockroach-browser:0.4.0 .
+docker build -t cockroach-browser:0.4.1 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \
   --shm-size 512m \
   --tmpfs /data \
   -p 127.0.0.1:43110:43111 \
-  cockroach-browser:0.4.0
+  cockroach-browser:0.4.1
 ```
 
 ## Remote worker
@@ -52,4 +52,4 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 
 ## Release status
 
-This manual targets Cockroach Browser 0.4.0. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.

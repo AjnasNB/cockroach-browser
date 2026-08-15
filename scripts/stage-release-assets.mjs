@@ -79,7 +79,7 @@ const releaseNotes = `# Cockroach Browser ${packageJson.version}
 
 ${isPrerelease
     ? "This release candidate expands Cockroach Browser into a multi-engine browser automation platform while preserving the existing bounded runtime, evidence chain, MCP, daemon, dashboard, and integrations."
-    : "This stable release promotes the multi-engine browser automation platform validated in the 0.4.0 release candidate, including the portable Windows three-engine bootstrap fix, while preserving the bounded runtime, evidence chain, MCP, daemon, dashboard, and integrations."}
+    : "This stable patch preserves the multi-engine browser automation platform while ensuring generated language-SDK build and cache outputs cannot enter the immutable npm artifact."}
 
 ## Included
 

@@ -32,7 +32,7 @@
   <meta name="twitter:description" content="Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
   <meta name="twitter:image:alt" content="Cockroach Browser AI browser automation logo">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#webpage","name":"Deployment | Cockroach Browser","headline":"Deployment | Cockroach Browser","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.4.0","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#article","headline":"Deployment","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","author":{"@type":"Person","name":"Ajnas N B"},"about":{"@id":"https://cockroachbrowser.com/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Product","item":"https://cockroachbrowser.com/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://cockroachbrowser.com/docs/"},{"@type":"ListItem","position":3,"name":"Deployment","item":"https://cockroachbrowser.com/docs/deployment/"}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#webpage","name":"Deployment | Cockroach Browser","headline":"Deployment | Cockroach Browser","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.4.1","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/docs/deployment/#article","headline":"Deployment","description":"Run the TypeScript runtime in-process, use the authenticated localhost daemon, place it in a container, or connect an SDK client to an explicitly configured remote worker.","url":"https://cockroachbrowser.com/docs/deployment/","inLanguage":"en","author":{"@type":"Person","name":"Ajnas N B"},"about":{"@id":"https://cockroachbrowser.com/#software"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Product","item":"https://cockroachbrowser.com/"},{"@type":"ListItem","position":2,"name":"Documentation","item":"https://cockroachbrowser.com/docs/"},{"@type":"ListItem","position":3,"name":"Deployment","item":"https://cockroachbrowser.com/docs/deployment/"}]}]}</script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -41,7 +41,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.4.0</span>
+      <span class="version">0.4.1</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/what-is-cockroach-browser/" >What it is</a>
@@ -87,14 +87,14 @@ npx cockroach-browser session list --token-file .cockroach-browser/auth-token</c
 <p>Pin the package and browser version, use a read-only root filesystem, mount only the data and artifact paths the worker needs, and bind the published port to loopback or a private service network.</p>
 <div class="code-block">
   <div class="code-head"><span>terminal</span><button class="copy-code" type="button" data-copy="#code-37">Copy</button></div>
-  <pre><code id="code-37">docker build -t cockroach-browser:0.4.0 .
+  <pre><code id="code-37">docker build -t cockroach-browser:0.4.1 .
 docker run --rm \
   --read-only \
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \
   --shm-size 512m \
   --tmpfs /data \
   -p 127.0.0.1:43110:43111 \
-  cockroach-browser:0.4.0</code></pre>
+  cockroach-browser:0.4.1</code></pre>
 </div>
   </section><section class="manual-section" id="remote-worker">
     <span class="section-number">03</span>

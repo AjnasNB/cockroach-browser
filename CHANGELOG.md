@@ -6,6 +6,21 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-08-15
+
+### Fixed
+
+- npm packaging now removes Python bytecode, Java `target`, and .NET `bin`/`obj`
+  outputs created by the cross-language SDK verification lane before computing
+  or publishing the immutable package artifact
+- package validation rejects generated SDK build and cache paths so release
+  checks cannot silently attest a dirty post-build package
+
+### Verification
+
+- the tag workflow rebuilds and checks the package after all language SDK
+  builds, before computing npm SHA-1/SHA-512 identity and publishing provenance
+
 ## [0.4.0] - 2026-08-14
 
 ### Added
@@ -191,7 +206,8 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0-rc.1...v0.4.0
 [0.4.0-rc.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...v0.4.0-rc.1
 [0.3.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.2.1...v0.3.0
