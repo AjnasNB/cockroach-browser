@@ -6,12 +6,12 @@
     "url": "https://github.com/AjnasNB/cockroach-browser",
     "source": "github"
   },
-  "version": "0.4.0-rc.1",
+  "version": "0.4.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "cockroach-browser",
-      "version": "0.4.0-rc.1",
+      "version": "0.4.0",
       "transport": {
         "type": "stdio"
       },
