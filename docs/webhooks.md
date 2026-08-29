@@ -85,7 +85,7 @@ Endpoint filters can select browser.session.created, browser.session.closed, bro
 
 ## Verify the signature before parsing or dispatching
 
-Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and v1=<hex> signature. The signature is HMAC-SHA256 over the domain string cockroach-browser.webhook.v1, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. verifyWebhookSignature() checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison. The built-in WebhookReplayGuard is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.
+Each request includes the event type, stable delivery ID, timestamp, 128-bit nonce, key ID, and v1=&lt;hex&gt; signature. The signature is HMAC-SHA256 over the domain string cockroach-browser.webhook.v1, timestamp, nonce, delivery ID, key ID, and exact body, separated by newlines. verifyWebhookSignature() checks syntax, timestamp tolerance, key binding, and the signature with a timing-safe comparison. The built-in WebhookReplayGuard is a bounded in-process nonce guard and fails closed when full. A multi-process or restart-safe receiver should place the same delivery ID and nonce checks in its durable store.
 
 ```
 import {
