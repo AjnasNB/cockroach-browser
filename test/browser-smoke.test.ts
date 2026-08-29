@@ -39,6 +39,7 @@ test(
     const secrets = new Map([
       ["ref:profile-passphrase", "a-strong-profile-passphrase"],
       ["ref:tab-lock", "one-exclusive-tab-token"],
+      ["ref:wrong-tab-lock", "a-different-exclusive-tab-token"],
       ["ref:clipboard", "clipboard fixture value"],
       ["ref:storage-original", JSON.stringify({ localStorage: { fixture: "original" } })]
     ]);
@@ -329,11 +330,26 @@ test(
         error && typeof error === "object" && "code" in error && error.code === "TAB_LOCK_DENIED"
       )
     );
+    await assert.rejects(
+      runtime.act(session.id, {
+        kind: "snapshot",
+        lockTokenRef: "ref:wrong-tab-lock",
+        purpose: "Verify that a different lock secret cannot enter the locked tab"
+      }),
+      (error: unknown) => Boolean(
+        error && typeof error === "object" && "code" in error && error.code === "TAB_LOCK_DENIED"
+      )
+    );
     const lock = await runtime.act(session.id, {
       kind: "tab.lock.status",
       purpose: "Inspect the exclusive fixture tab lock"
     });
-    assert.equal((lock.output as { lock: { owner: string } }).lock.owner, "fixture-worker");
+    const lockSummary = (lock.output as { lock: { owner: string } }).lock;
+    assert.equal(lockSummary.owner, "fixture-worker");
+    assert.deepEqual(
+      Object.keys(lockSummary).sort(),
+      ["acquiredAt", "expiresAt", "owner", "tabId"]
+    );
     await runtime.act(session.id, {
       kind: "tab.unlock",
       lockTokenRef: "ref:tab-lock",

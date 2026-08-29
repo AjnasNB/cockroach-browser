@@ -1,5 +1,5 @@
 import { lstat, mkdir, readFile, readdir, realpath, stat } from "node:fs/promises";
-import { timingSafeEqual } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { homedir } from "node:os";
 import { basename, extname, isAbsolute, join, relative, resolve } from "node:path";
 import pixelmatch from "pixelmatch";
@@ -94,6 +94,7 @@ export interface BrowserRuntimeOptions {
 
 interface InternalTabLock extends TabLockSummary {
   tokenDigest: string;
+  tokenSalt: string;
 }
 
 interface ConsoleRecord {
@@ -1844,12 +1845,14 @@ export class BrowserRuntime {
           "TAB_LOCK_TTL_INVALID"
         );
         const acquiredAt = nowIso();
+        const tokenSalt = randomBytes(16);
         const lock: InternalTabLock = {
           tabId,
           owner,
           acquiredAt,
           expiresAt: new Date(Date.now() + ttlMs).toISOString(),
-          tokenDigest: sha256(token)
+          tokenDigest: deriveTabLockDigest(token, tokenSalt),
+          tokenSalt: tokenSalt.toString("base64")
         };
         session.tabLocks.set(tabId, lock);
         return { lock: publicTabLock(lock) };
@@ -2154,9 +2157,12 @@ export class BrowserRuntime {
       );
     }
     const token = await this.#resolveSecret(tokenReference);
-    const actual = Buffer.from(sha256(token), "hex");
+    const actual = Buffer.from(deriveTabLockDigest(token, Buffer.from(lock.tokenSalt, "base64")), "hex");
     const expected = Buffer.from(lock.tokenDigest, "hex");
-    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+    const accepted = actual.length === expected.length && timingSafeEqual(actual, expected);
+    actual.fill(0);
+    expected.fill(0);
+    if (!accepted) {
       throw new CockroachBrowserError(
         "TAB_LOCK_DENIED",
         `Tab ${tabId} is exclusively locked by ${lock.owner} until ${lock.expiresAt}.`
@@ -2573,6 +2579,15 @@ function publicTabLock(lock: InternalTabLock): TabLockSummary {
     acquiredAt: lock.acquiredAt,
     expiresAt: lock.expiresAt
   };
+}
+
+function deriveTabLockDigest(token: string, salt: Buffer): string {
+  const digest = scryptSync(token, salt, 32);
+  try {
+    return digest.toString("hex");
+  } finally {
+    digest.fill(0);
+  }
 }
 
 function serializeNetworkExport(
