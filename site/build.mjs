@@ -15,6 +15,7 @@ import {
   site,
   snippets
 } from "./content.mjs";
+import { stripHtml } from "./html-text.mjs";
 
 const root = resolve(import.meta.dirname);
 const sourceRoot = resolve(root, "..");
@@ -1534,18 +1535,6 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value).replaceAll("'", "&#39;");
-}
-
-function stripHtml(value) {
-  return String(value)
-    .replace(/<li>/g, "- ")
-    .replace(/<\/li>/g, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .trim();
 }
 
 function sitemap() {

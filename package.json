@@ -108,7 +108,7 @@
     "test:source": "npm test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:package": "node scripts/check-package.mjs",
-    "check:site": "node scripts/check-site.mjs",
+    "check:site": "node --test site/html-text.test.mjs && node scripts/check-site.mjs",
     "api-surface:build": "node scripts/build-api-surface.mjs",
     "api-surface:check": "node scripts/build-api-surface.mjs --check",
     "check": "npm run typecheck && npm run build && npm test && npm run api-surface:check && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
