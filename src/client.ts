@@ -50,7 +50,7 @@ export class BrowserClient {
   readonly fetcher: typeof globalThis.fetch;
 
   constructor(options: BrowserClientOptions) {
-    this.baseUrl = (options.baseUrl ?? "http://127.0.0.1:43110").replace(/\/+$/, "");
+    this.baseUrl = trimTrailingSlashes(options.baseUrl ?? "http://127.0.0.1:43110");
     this.token = options.token;
     this.fetcher = options.fetch ?? globalThis.fetch;
   }
@@ -210,4 +210,10 @@ export class BrowserClient {
     }
     return value as T;
   }
+}
+
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  return value.slice(0, end);
 }
