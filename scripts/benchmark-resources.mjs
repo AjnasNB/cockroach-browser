@@ -249,7 +249,7 @@ async function machineReport() {
     totalMemoryBytes: totalmem(),
     freeMemoryBytesAtReport: freemem(),
     node: process.version,
-    npm: await commandVersion(process.platform === "win32" ? "npm.cmd" : "npm", ["--version"]),
+    npm: await npmVersion(),
     gitCommit: await commandVersion("git", ["rev-parse", "HEAD"]),
     packageVersion: packageMetadata.version,
     playwrightVersion: await packageVersion("playwright-core")
@@ -259,6 +259,16 @@ async function machineReport() {
 async function packageVersion(name) {
   const value = JSON.parse(await readFile(`node_modules/${name}/package.json`, "utf8"));
   return value.version;
+}
+
+async function npmVersion() {
+  if (process.env.npm_execpath) {
+    return commandVersion(process.execPath, [process.env.npm_execpath, "--version"]);
+  }
+  if (process.platform === "win32") {
+    return commandVersion(process.env.ComSpec ?? "cmd.exe", ["/d", "/s", "/c", "npm --version"]);
+  }
+  return commandVersion("npm", ["--version"]);
 }
 
 async function commandVersion(file, commandArgs) {
