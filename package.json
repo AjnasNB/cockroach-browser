@@ -161,8 +161,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.4.0",
     "@types/pngjs": "^6.0.5",
-    "typescript": "^5.9.2"
+    "typescript": "^7.0.2"
   }
 }
