@@ -133,6 +133,16 @@ export function clampBudget(input?: Partial<ResourceBudget>): ResourceBudget {
     maxActions: positive(input?.maxActions, DEFAULT_BUDGET.maxActions, 10_000),
     maxDurationMs: positive(input?.maxDurationMs, DEFAULT_BUDGET.maxDurationMs, 24 * 60 * 60_000),
     maxTabs: positive(input?.maxTabs, DEFAULT_BUDGET.maxTabs, 64),
+    maxProcessRssBytes: positive(
+      input?.maxProcessRssBytes,
+      DEFAULT_BUDGET.maxProcessRssBytes,
+      8 * 1024 ** 3
+    ),
+    maxProcessCpuTimeMs: positive(
+      input?.maxProcessCpuTimeMs,
+      DEFAULT_BUDGET.maxProcessCpuTimeMs,
+      7 * 24 * 60 * 60_000
+    ),
     maxDownloadBytes: positive(input?.maxDownloadBytes, DEFAULT_BUDGET.maxDownloadBytes, 2 * 1024 ** 3),
     maxUploadBytes: positive(input?.maxUploadBytes, DEFAULT_BUDGET.maxUploadBytes, 2 * 1024 ** 3),
     maxSnapshotChars: positive(input?.maxSnapshotChars, DEFAULT_BUDGET.maxSnapshotChars, 2_000_000),

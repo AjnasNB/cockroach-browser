@@ -62,6 +62,10 @@ test(
         });
         assert.equal(session.engine, engine);
         assert.equal(session.tabs.length, 1);
+        assert.equal(session.resources.available, true);
+        assert.equal(session.resources.ownership, "runtime-owned");
+        assert.equal((session.resources.processCount ?? 0) > 0, true);
+        assert.equal((session.resources.rssBytes ?? 0) > 0, true);
         const snapshot = await runtime.snapshot(session.id);
         assert.equal(snapshot.title, "Three engine fixture");
         assert.match(snapshot.text, /ready/);

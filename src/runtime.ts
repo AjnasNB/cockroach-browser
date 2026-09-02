@@ -9,6 +9,7 @@ import type {
   Browser,
   BrowserContext,
   BrowserContextOptions,
+  BrowserServer,
   BrowserType,
   ConsoleMessage,
   Dialog,
@@ -32,6 +33,7 @@ import type {
   BrowserActivityQuery,
   BrowserLifecycleEvent,
   BrowserNetworkRecord,
+  BrowserResourceUsage,
   ChallengeReport,
   ContextRecorder,
   EvidenceRecord,
@@ -72,6 +74,11 @@ import {
 } from "./policy.js";
 import { ProfileVault } from "./profile-vault.js";
 import { PersistentBrowserProfileStore } from "./persistent-profiles.js";
+import {
+  BrowserResourceTracker,
+  unavailableResourceUsage,
+  type ProcessTreeSampler
+} from "./resource-usage.js";
 import { captureSnapshot, locatorFor } from "./snapshot.js";
 
 export interface SecretResolver {
@@ -90,6 +97,10 @@ export interface BrowserRuntimeOptions {
   uploadRoots?: string[];
   now?: () => Date;
   activity?: ActivityLedgerOptions;
+  /** Sampling cadence for runtime-owned browser process trees. */
+  resourceSampleIntervalMs?: number;
+  /** Test or platform override for process-tree sampling. */
+  processTreeSampler?: ProcessTreeSampler;
 }
 
 interface InternalTabLock extends TabLockSummary {
@@ -107,6 +118,7 @@ interface ManagedSession {
   input: SessionCreateInput;
   id: string;
   browser?: Browser;
+  browserServer?: BrowserServer;
   context: BrowserContext;
   attached: boolean;
   state: SessionSummary["state"];
@@ -132,6 +144,10 @@ interface ManagedSession {
   routeHandler?: (route: Route) => Promise<void>;
   pageHandler?: (page: Page) => void;
   persistentProfile?: string;
+  resources: BrowserResourceUsage;
+  resourceTracker?: BrowserResourceTracker;
+  resourceMonitor?: NodeJS.Timeout;
+  resourceLimitReported: boolean;
 }
 
 const CHALLENGE_SAFE_ACTIONS = new Set([
@@ -166,6 +182,8 @@ export class BrowserRuntime {
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
   readonly activity: ActivityLedger;
+  readonly resourceSampleIntervalMs: number;
+  readonly processTreeSampler?: ProcessTreeSampler;
   #sessions = new Map<string, ManagedSession>();
   #activePersistentProfiles = new Map<string, string>();
   #initialized = false;
@@ -198,6 +216,21 @@ export class BrowserRuntime {
       (options.uploadRoots ?? [join(this.root, "uploads")]).map((entry) => resolve(entry))
     );
     this.activity = new ActivityLedger(options.activity);
+    if (
+      options.resourceSampleIntervalMs !== undefined
+      && (!Number.isSafeInteger(options.resourceSampleIntervalMs)
+        || options.resourceSampleIntervalMs < 250
+        || options.resourceSampleIntervalMs > 60_000)
+    ) {
+      throw new CockroachBrowserError(
+        "RESOURCE_SAMPLE_INTERVAL_INVALID",
+        "Resource sample intervals must be between 250 and 60000 milliseconds."
+      );
+    }
+    // Windows process-tree enumeration is materially more expensive than ps.
+    // Keep the monitor sparse there; action boundaries reuse a fresh cached sample.
+    this.resourceSampleIntervalMs = options.resourceSampleIntervalMs ?? (process.platform === "win32" ? 10_000 : 5_000);
+    if (options.processTreeSampler) this.processTreeSampler = options.processTreeSampler;
   }
 
   async initialize(): Promise<void> {
@@ -275,6 +308,7 @@ export class BrowserRuntime {
     if (provider.persistentProfile) this.#activePersistentProfiles.set(provider.persistentProfile, id);
     const createdAt = nowIso();
     let browser: Browser | undefined;
+    let browserServer: BrowserServer | undefined;
     let context: BrowserContext | undefined;
     let attached = false;
     let managedSession: ManagedSession | undefined;
@@ -370,7 +404,8 @@ export class BrowserRuntime {
           });
           browser = context.browser() ?? undefined;
         } else {
-          browser = await browserType.launch(launchOptions);
+          browserServer = await browserType.launchServer(launchOptions);
+          browser = await browserType.connect(browserServer.wsEndpoint());
           context = await browser.newContext(contextOptions);
         }
         // Headers may contain bearer credentials. The browser context has its
@@ -378,10 +413,29 @@ export class BrowserRuntime {
         delete input.extraHTTPHeaders;
       }
 
+      const browserPid = browserServer?.process()?.pid;
+      const resourceTracker = browserPid
+        ? new BrowserResourceTracker({
+            rootPid: browserPid,
+            budget: policy.budget,
+            sampleIntervalMs: this.resourceSampleIntervalMs,
+            ...(this.processTreeSampler ? { sampler: this.processTreeSampler } : {})
+          })
+        : undefined;
+      const resources = resourceTracker
+        ? resourceTracker.current()
+        : unavailableResourceUsage(
+            policy.budget,
+            attached
+              ? "The runtime is attached to a customer-owned CDP browser and cannot account for or terminate its complete process tree."
+              : "This runtime-owned persistent browser does not expose a portable process handle through Playwright.",
+            attached ? "external" : "runtime-owned"
+          );
       const session: ManagedSession = {
         input,
         id,
         ...(browser ? { browser } : {}),
+        ...(browserServer ? { browserServer } : {}),
         context,
         attached,
         state: "starting",
@@ -403,6 +457,9 @@ export class BrowserRuntime {
         dnsPins,
         consumedApprovals: new Set(),
         tabLocks: new Map(),
+        resources,
+        ...(resourceTracker ? { resourceTracker } : {}),
+        resourceLimitReported: false,
         ...(provider.persistentProfile ? { persistentProfile: provider.persistentProfile } : {})
       };
       managedSession = session;
@@ -412,6 +469,14 @@ export class BrowserRuntime {
       this.#registerPage(session, page);
       if (startUrl) await page.goto(startUrl.toString(), { waitUntil: "domcontentloaded" });
       await this.#recordHistory(session, page, "session.start");
+      if (session.resourceTracker) {
+        session.resources = await session.resourceTracker.sample(true);
+        this.#throwIfResourceLimitExceeded(session);
+        session.resourceMonitor = setInterval(() => {
+          void this.#monitorSessionResources(session);
+        }, this.resourceSampleIntervalMs);
+        session.resourceMonitor.unref();
+      }
       session.state = "ready";
       session.updatedAt = nowIso();
       await this.#recordContext(session, "browser.session.created", {
@@ -434,6 +499,7 @@ export class BrowserRuntime {
       }
       if (context && !attached) await context.close().catch(() => undefined);
       if (browser && !attached) await browser.close().catch(() => undefined);
+      if (browserServer) await browserServer.close().catch(() => undefined);
       this.#sessions.delete(id);
       if (provider.persistentProfile) this.#activePersistentProfiles.delete(provider.persistentProfile);
       throw error;
@@ -442,6 +508,7 @@ export class BrowserRuntime {
 
   async session(id: string): Promise<SessionSummary> {
     const session = this.#requireSession(id);
+    session.resources = await this.#sampleSessionResources(session);
     const tabs = await Promise.all(
       [...session.tabs.entries()].map(async ([tabId, page]) => ({
         id: tabId,
@@ -462,6 +529,7 @@ export class BrowserRuntime {
       updatedAt: session.updatedAt,
       actionsUsed: session.actionsUsed,
       budget: { ...session.budget },
+      resources: structuredClone(session.resources),
       tabs,
       ...(session.challenge ? { challenge: structuredClone(session.challenge) } : {})
     };
@@ -469,6 +537,14 @@ export class BrowserRuntime {
 
   async sessions(): Promise<SessionSummary[]> {
     return Promise.all([...this.#sessions.keys()].map((id) => this.session(id)));
+  }
+
+  async resourceUsage(id: string): Promise<BrowserResourceUsage> {
+    const session = this.#requireSession(id);
+    if (!session.resourceLimitReported) {
+      session.resources = await this.#sampleSessionResources(session, true);
+    }
+    return structuredClone(session.resources);
   }
 
   activities(query: BrowserActivityQuery = {}): BrowserLifecycleEvent[] {
@@ -530,6 +606,8 @@ export class BrowserRuntime {
 
   async closeSession(id: string, options: { saveProfile?: boolean; passphrase?: string } = {}): Promise<void> {
     const session = this.#requireSession(id);
+    if (session.resourceMonitor) clearInterval(session.resourceMonitor);
+    session.resources = await this.#sampleSessionResources(session, true);
     if (options.saveProfile && session.input.profile) {
       const passphrase = options.passphrase;
       if (!passphrase) {
@@ -582,13 +660,16 @@ export class BrowserRuntime {
       }
     }
     if (!session.attached && session.browser) await session.browser.close();
+    if (session.browserServer) await session.browserServer.close().catch(() => undefined);
     if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
     session.state = "closed";
     session.updatedAt = nowIso();
     await this.#recordContext(session, "browser.session.closed", {});
     await this.#publishEvent(session, "browser.session.closed", {
       actionsUsed: session.actionsUsed,
-      evidenceBytes: session.evidenceBytes
+      evidenceBytes: session.evidenceBytes,
+      peakRssBytes: session.resources.peakRssBytes ?? null,
+      peakCpuTimeMs: session.resources.peakCpuTimeMs ?? null
     });
     this.#sessions.delete(id);
   }
@@ -679,7 +760,7 @@ export class BrowserRuntime {
     });
 
     try {
-      this.#assertSessionBudget(session);
+      await this.#assertSessionBudget(session);
       session.actionsUsed += 1;
       session.updatedAt = nowIso();
       if (!action.purpose?.trim() || action.purpose.trim().length > 500) {
@@ -2405,13 +2486,51 @@ export class BrowserRuntime {
     return page;
   }
 
-  #assertSessionBudget(session: ManagedSession): void {
+  async #assertSessionBudget(session: ManagedSession): Promise<void> {
     if (session.actionsUsed >= session.budget.maxActions) {
       throw new CockroachBrowserError("ACTION_BUDGET_EXCEEDED", "The session action limit has been reached.");
     }
     if (Date.now() - Date.parse(session.createdAt) > session.budget.maxDurationMs) {
       throw new CockroachBrowserError("DURATION_BUDGET_EXCEEDED", "The session duration limit has been reached.");
     }
+    session.resources = await this.#sampleSessionResources(session);
+    this.#throwIfResourceLimitExceeded(session);
+  }
+
+  async #sampleSessionResources(session: ManagedSession, force = false): Promise<BrowserResourceUsage> {
+    if (!session.resourceTracker) return structuredClone(session.resources);
+    return session.resourceTracker.sample(force);
+  }
+
+  #throwIfResourceLimitExceeded(session: ManagedSession): void {
+    if (session.resources.limitState !== "exceeded") return;
+    if ((session.resources.rssBytes ?? 0) > session.budget.maxProcessRssBytes) {
+      throw new CockroachBrowserError(
+        "PROCESS_RSS_BUDGET_EXCEEDED",
+        `The browser process tree uses ${session.resources.rssBytes} bytes, above its ${session.budget.maxProcessRssBytes}-byte limit.`
+      );
+    }
+    throw new CockroachBrowserError(
+      "PROCESS_CPU_BUDGET_EXCEEDED",
+      `The browser process tree has used ${session.resources.cpuTimeMs} ms of CPU time, above its ${session.budget.maxProcessCpuTimeMs}-ms limit.`
+    );
+  }
+
+  async #monitorSessionResources(session: ManagedSession): Promise<void> {
+    if (session.state === "closed" || session.resourceLimitReported) return;
+    session.resources = await this.#sampleSessionResources(session, true);
+    if (session.resources.limitState !== "exceeded") return;
+    session.resourceLimitReported = true;
+    session.state = "failed";
+    session.updatedAt = nowIso();
+    if (session.resourceMonitor) clearInterval(session.resourceMonitor);
+    await this.#publishEvent(session, "browser.session.resource-limit-exceeded", {
+      rssBytes: session.resources.rssBytes ?? null,
+      cpuTimeMs: session.resources.cpuTimeMs ?? null,
+      maxProcessRssBytes: session.budget.maxProcessRssBytes,
+      maxProcessCpuTimeMs: session.budget.maxProcessCpuTimeMs
+    });
+    await session.browserServer?.close().catch(() => undefined);
   }
 
   async #assertPageAdmitted(session: ManagedSession, page: Page): Promise<void> {
