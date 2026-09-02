@@ -18,6 +18,13 @@ export interface ProcessTreeSample {
 
 export type ProcessTreeSampler = (rootPid: number) => Promise<ProcessTreeSample>;
 
+export interface SharedProcessTreeSamplerOptions {
+  /** Reuse one host process inventory for near-simultaneous session samples. */
+  cacheMs?: number;
+  /** Test/platform override for collecting the host process inventory. */
+  recordsSampler?: () => Promise<ProcessRecord[]>;
+}
+
 const WINDOWS_PROCESS_SCRIPT = [
   "$ErrorActionPreference='Stop'",
   "$items=Get-CimInstance Win32_Process | ForEach-Object {",
@@ -60,10 +67,38 @@ export function aggregateProcessTree(rootPid: number, records: readonly ProcessR
 
 export async function sampleProcessTree(rootPid: number): Promise<ProcessTreeSample> {
   assertPid(rootPid);
-  const records = process.platform === "win32"
-    ? await windowsProcessRecords()
-    : await posixProcessRecords();
+  const records = await sampleProcessRecords();
   return aggregateProcessTree(rootPid, records);
+}
+
+export function createSharedProcessTreeSampler(
+  options: SharedProcessTreeSamplerOptions = {}
+): ProcessTreeSampler {
+  const cacheMs = options.cacheMs ?? 250;
+  if (!Number.isSafeInteger(cacheMs) || cacheMs < 0 || cacheMs > 10_000) {
+    throw new TypeError("Shared process inventory cache must be between 0 and 10000 milliseconds.");
+  }
+  const recordsSampler = options.recordsSampler ?? sampleProcessRecords;
+  let cachedAt = 0;
+  let cachedRecords: ProcessRecord[] | undefined;
+  let inFlight: Promise<ProcessRecord[]> | undefined;
+
+  const records = async (): Promise<ProcessRecord[]> => {
+    if (cachedRecords && Date.now() - cachedAt <= cacheMs) return cachedRecords;
+    if (inFlight) return inFlight;
+    inFlight = recordsSampler().then((value) => {
+      cachedRecords = value;
+      cachedAt = Date.now();
+      return value;
+    });
+    try {
+      return await inFlight;
+    } finally {
+      inFlight = undefined;
+    }
+  };
+
+  return async (rootPid) => aggregateProcessTree(rootPid, await records());
 }
 
 export class BrowserResourceTracker {
@@ -165,6 +200,12 @@ export function unavailableResourceUsage(
   };
 }
 
+async function sampleProcessRecords(): Promise<ProcessRecord[]> {
+  return process.platform === "win32"
+    ? windowsProcessRecords()
+    : posixProcessRecords();
+}
+
 async function windowsProcessRecords(): Promise<ProcessRecord[]> {
   const output = await run("powershell.exe", [
     "-NoLogo",
@@ -185,9 +226,13 @@ async function windowsProcessRecords(): Promise<ProcessRecord[]> {
 
 async function posixProcessRecords(): Promise<ProcessRecord[]> {
   const output = await run("ps", ["-e", "-o", "pid=", "-o", "ppid=", "-o", "rss=", "-o", "time="]);
+  return parsePosixProcessRecords(output);
+}
+
+export function parsePosixProcessRecords(output: string): ProcessRecord[] {
   const records: ProcessRecord[] = [];
   for (const line of output.split(/\r?\n/)) {
-    const match = line.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+([\d:-]+)$/);
+    const match = line.trim().match(/^(\d+)\s+(\d+)\s+(\d+)\s+([\d:.-]+)$/);
     if (!match) continue;
     records.push({
       pid: Number(match[1]),

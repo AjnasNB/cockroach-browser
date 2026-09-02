@@ -76,6 +76,7 @@ import { ProfileVault } from "./profile-vault.js";
 import { PersistentBrowserProfileStore } from "./persistent-profiles.js";
 import {
   BrowserResourceTracker,
+  createSharedProcessTreeSampler,
   unavailableResourceUsage,
   type ProcessTreeSampler
 } from "./resource-usage.js";
@@ -183,7 +184,7 @@ export class BrowserRuntime {
   readonly uploadRoots: readonly string[];
   readonly activity: ActivityLedger;
   readonly resourceSampleIntervalMs: number;
-  readonly processTreeSampler?: ProcessTreeSampler;
+  readonly processTreeSampler: ProcessTreeSampler;
   #sessions = new Map<string, ManagedSession>();
   #activePersistentProfiles = new Map<string, string>();
   #initialized = false;
@@ -230,7 +231,7 @@ export class BrowserRuntime {
     // Windows process-tree enumeration is materially more expensive than ps.
     // Keep the monitor sparse there; action boundaries reuse a fresh cached sample.
     this.resourceSampleIntervalMs = options.resourceSampleIntervalMs ?? (process.platform === "win32" ? 10_000 : 5_000);
-    if (options.processTreeSampler) this.processTreeSampler = options.processTreeSampler;
+    this.processTreeSampler = options.processTreeSampler ?? createSharedProcessTreeSampler();
   }
 
   async initialize(): Promise<void> {
@@ -247,8 +248,21 @@ export class BrowserRuntime {
     await this.initialize();
     const input = structuredClone(rawInput);
     const engine = input.engine ?? "chromium";
+    if (engine !== "chromium" && engine !== "firefox" && engine !== "webkit") {
+      throw new CockroachBrowserError(
+        "BROWSER_ENGINE_INVALID",
+        "Browser engine must be chromium, firefox, or webkit."
+      );
+    }
     input.engine = engine;
-    input.performanceProfile = input.performanceProfile ?? "balanced";
+    const performanceProfile = input.performanceProfile ?? "balanced";
+    if (performanceProfile !== "balanced" && performanceProfile !== "lean") {
+      throw new CockroachBrowserError(
+        "PERFORMANCE_PROFILE_INVALID",
+        "Browser performance profile must be balanced or lean."
+      );
+    }
+    input.performanceProfile = performanceProfile;
     const browserType = browserTypeFor(engine);
     const policy = normalizePolicy(input.policy);
     input.policy = policy;
@@ -433,7 +447,7 @@ export class BrowserRuntime {
             rootPid: browserPid,
             budget: policy.budget,
             sampleIntervalMs: this.resourceSampleIntervalMs,
-            ...(this.processTreeSampler ? { sampler: this.processTreeSampler } : {})
+            sampler: this.processTreeSampler
           })
         : undefined;
       const resources = resourceTracker
@@ -2385,12 +2399,20 @@ export class BrowserRuntime {
           });
           return;
         }
-        if (
-          session.input.performanceProfile === "lean"
-          && ["image", "media", "font"].includes(request.resourceType())
-        ) {
-          await route.abort("blockedbyclient");
-          return;
+        if (session.input.performanceProfile === "lean") {
+          const resourceType = request.resourceType();
+          // Playwright WebKit currently reports video range requests as
+          // `other`; Sec-Fetch-Dest preserves the browser's actual intent.
+          const fetchDestination = resourceType === "other"
+            ? (await request.allHeaders())["sec-fetch-dest"]?.toLowerCase()
+            : undefined;
+          if (
+            ["image", "media", "font"].includes(resourceType)
+            || ["image", "audio", "video", "font"].includes(fetchDestination ?? "")
+          ) {
+            await route.abort("blockedbyclient");
+            return;
+          }
         }
         await route.continue();
       } catch {
@@ -2520,6 +2542,7 @@ export class BrowserRuntime {
   }
 
   async #sampleSessionResources(session: ManagedSession, force = false): Promise<BrowserResourceUsage> {
+    if (session.resourceLimitReported) return structuredClone(session.resources);
     if (!session.resourceTracker) return structuredClone(session.resources);
     return session.resourceTracker.sample(force);
   }

@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { BrowserResourceTracker, aggregateProcessTree, unavailableResourceUsage } from "../src/resource-usage.js";
+import {
+  BrowserResourceTracker,
+  aggregateProcessTree,
+  createSharedProcessTreeSampler,
+  parsePosixProcessRecords,
+  sampleProcessTree,
+  unavailableResourceUsage
+} from "../src/resource-usage.js";
 
 test("aggregates only the owned process tree", () => {
   const sample = aggregateProcessTree(10, [
@@ -15,6 +22,24 @@ test("aggregates only the owned process tree", () => {
   assert.equal(sample.processCount, 3);
   assert.equal(sample.rssBytes, 600);
   assert.equal(sample.cpuTimeMs, 18);
+});
+
+test("parses BSD fractional and Linux whole-second process CPU times", () => {
+  assert.deepEqual(parsePosixProcessRecords([
+    "  10  1  2048  00:01.25",
+    "  20  1  4096  1-02:03:04"
+  ].join("\n")), [
+    { pid: 10, parentPid: 1, rssBytes: 2_097_152, cpuTimeMs: 1_250 },
+    { pid: 20, parentPid: 1, rssBytes: 4_194_304, cpuTimeMs: 93_784_000 }
+  ]);
+});
+
+test("samples the current host process through the platform collector", async () => {
+  const sample = await sampleProcessTree(process.pid);
+  assert.equal(sample.rootPid, process.pid);
+  assert.equal(sample.processCount > 0, true);
+  assert.equal(sample.rssBytes > 0, true);
+  assert.equal(sample.cpuTimeMs >= 0, true);
 });
 
 test("tracks peaks, caches samples, and reports resource limit breaches", async () => {
@@ -72,6 +97,33 @@ test("coalesces concurrent operating-system samples", async () => {
   release();
   assert.deepEqual(await first, await second);
   assert.equal(calls, 1);
+});
+
+test("shares one host process inventory across concurrent browser sessions", async () => {
+  let inventories = 0;
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  const sampler = createSharedProcessTreeSampler({
+    cacheMs: 250,
+    recordsSampler: async () => {
+      inventories += 1;
+      await gate;
+      return [
+        { pid: 10, parentPid: 1, rssBytes: 100, cpuTimeMs: 5 },
+        { pid: 11, parentPid: 10, rssBytes: 200, cpuTimeMs: 6 },
+        { pid: 20, parentPid: 1, rssBytes: 300, cpuTimeMs: 7 }
+      ];
+    }
+  });
+
+  const first = sampler(10);
+  const second = sampler(20);
+  release();
+  assert.equal((await first).rssBytes, 300);
+  assert.equal((await second).rssBytes, 300);
+  assert.equal(inventories, 1);
+  assert.equal((await sampler(10)).processCount, 2);
+  assert.equal(inventories, 1);
 });
 
 test("resource sampling failures remain explicit instead of becoming zero usage", async () => {
