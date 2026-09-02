@@ -2,8 +2,10 @@ import { spawnSync } from "node:child_process";
 import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { htmlToPlainText } from "../site/plain-text.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+assertPlainTextConversion();
 if (await exists(resolve(root, "site", "build.mjs"))) {
   const build = spawnSync(process.execPath, ["site/build.mjs"], { cwd: root, encoding: "utf8", shell: false });
   if (build.status !== 0) throw new Error(`Site build failed:\n${build.stdout}\n${build.stderr}`);
@@ -105,5 +107,17 @@ async function exists(path) {
     return true;
   } catch {
     return false;
+  }
+}
+
+function assertPlainTextConversion() {
+  const nestedTag = "<scr<script>ipt>alert(1)</script>";
+  const converted = htmlToPlainText(`<ul><li>A &amp; B</li><li>${nestedTag}</li></ul>`);
+  if (converted.includes("<script") || converted !== "- A & B\n- ipt>alert(1)") {
+    throw new Error(`Plain-text conversion regression: ${JSON.stringify(converted)}`);
+  }
+  const onceDecoded = htmlToPlainText("&amp;lt;script&amp;gt;");
+  if (onceDecoded !== "&lt;script&gt;") {
+    throw new Error(`HTML entities must be decoded exactly once: ${JSON.stringify(onceDecoded)}`);
   }
 }
