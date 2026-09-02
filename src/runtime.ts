@@ -149,6 +149,7 @@ interface ManagedSession {
   resourceTracker?: BrowserResourceTracker;
   resourceMonitor?: NodeJS.Timeout;
   resourceLimitReported: boolean;
+  closing: boolean;
 }
 
 const CHALLENGE_SAFE_ACTIONS = new Set([
@@ -488,6 +489,7 @@ export class BrowserRuntime {
         resources,
         ...(resourceTracker ? { resourceTracker } : {}),
         resourceLimitReported: false,
+        closing: false,
         ...(provider.persistentProfile ? { persistentProfile: provider.persistentProfile } : {})
       };
       managedSession = session;
@@ -647,6 +649,7 @@ export class BrowserRuntime {
       }
       await this.profiles.saveContext(session.input.profile, session.context, passphrase);
     }
+    session.closing = true;
     if (session.traceActive) {
       await session.context.tracing.stop().catch(() => undefined);
     }
@@ -654,7 +657,9 @@ export class BrowserRuntime {
       if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
       if (session.pageHandler) session.context.off("page", session.pageHandler);
     } else if (session.input.recordHar) {
-      await session.context.close();
+      await session.context.close().catch((error) => {
+        if (!session.resourceLimitReported) throw error;
+      });
       const harPath = join(this.root, "session-artifacts", id, "network.har");
       try {
         await this.#assertEvidenceFileBudget(session, harPath);
@@ -670,7 +675,9 @@ export class BrowserRuntime {
         // A context may not produce a HAR if no navigation occurred.
       }
     } else {
-      await session.context.close();
+      await session.context.close().catch((error) => {
+        if (!session.resourceLimitReported) throw error;
+      });
     }
     if (session.input.recordVideo && !session.attached) {
       const videoRoot = join(this.root, "session-artifacts", id, "video");
@@ -688,7 +695,11 @@ export class BrowserRuntime {
         });
       }
     }
-    if (!session.attached && session.browser) await session.browser.close();
+    if (!session.attached && session.browser) {
+      await session.browser.close().catch((error) => {
+        if (!session.resourceLimitReported) throw error;
+      });
+    }
     if (session.browserServer) await session.browserServer.close().catch(() => undefined);
     if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
     session.state = "closed";
@@ -2562,8 +2573,12 @@ export class BrowserRuntime {
   }
 
   async #monitorSessionResources(session: ManagedSession): Promise<void> {
-    if (session.state === "closed" || session.resourceLimitReported) return;
-    session.resources = await this.#sampleSessionResources(session, true);
+    if (session.closing || session.state === "closed" || session.resourceLimitReported) return;
+    const resources = await this.#sampleSessionResources(session, true);
+    // Several interval callbacks can await the same slow operating-system
+    // sample. Only the first resumed callback may commit a terminal breach.
+    if (session.closing || session.resourceLimitReported) return;
+    session.resources = resources;
     if (session.resources.limitState !== "exceeded") return;
     session.resourceLimitReported = true;
     session.state = "failed";

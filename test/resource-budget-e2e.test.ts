@@ -66,6 +66,7 @@ test(
   async () => {
     const root = await mkdtemp(join(tmpdir(), "cockroach-browser-terminal-resource-"));
     let samples = 0;
+    let resourceEvents = 0;
     let resolveBreach!: () => void;
     const breach = new Promise<void>((resolve) => { resolveBreach = resolve; });
     const runtime = new BrowserRuntime({
@@ -74,6 +75,7 @@ test(
       processTreeSampler: async (rootPid) => {
         samples += 1;
         if (samples >= 3) throw new Error("browser process exited");
+        if (samples === 2) await new Promise((resolve) => setTimeout(resolve, 800));
         return {
           sampledAt: new Date().toISOString(),
           rootPid,
@@ -84,7 +86,10 @@ test(
       },
       eventPublisher: {
         async publish(event) {
-          if (event.type === "browser.session.resource-limit-exceeded") resolveBreach();
+          if (event.type === "browser.session.resource-limit-exceeded") {
+            resourceEvents += 1;
+            resolveBreach();
+          }
         }
       }
     });
@@ -96,10 +101,17 @@ test(
           budget: { maxProcessRssBytes: 500 }
         }
       });
-      await Promise.race([
-        breach,
-        new Promise<never>((_resolve, reject) => setTimeout(() => reject(new Error("resource monitor timed out")), 5_000))
-      ]);
+      let timeout!: NodeJS.Timeout;
+      try {
+        await Promise.race([
+          breach,
+          new Promise<never>((_resolve, reject) => {
+            timeout = setTimeout(() => reject(new Error("resource monitor timed out")), 5_000);
+          })
+        ]);
+      } finally {
+        clearTimeout(timeout);
+      }
 
       const terminal = await runtime.session(created.id);
       assert.equal(terminal.state, "failed");
@@ -107,6 +119,8 @@ test(
       assert.equal(terminal.resources.limitState, "exceeded");
       assert.equal(terminal.resources.rssBytes, 1_000);
       assert.equal(samples, 2);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.equal(resourceEvents, 1);
       await assert.rejects(
         runtime.act(created.id, { kind: "snapshot", purpose: "Reject work after the resource breach" }),
         (error: unknown) => Boolean(
@@ -114,6 +128,16 @@ test(
           && typeof error === "object"
           && "code" in error
           && error.code === "PROCESS_RSS_BUDGET_EXCEEDED"
+        )
+      );
+      await runtime.closeSession(created.id);
+      await assert.rejects(
+        runtime.session(created.id),
+        (error: unknown) => Boolean(
+          error
+          && typeof error === "object"
+          && "code" in error
+          && error.code === "SESSION_NOT_FOUND"
         )
       );
     } finally {
