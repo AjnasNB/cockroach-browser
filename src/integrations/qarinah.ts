@@ -1,12 +1,17 @@
 import type { ActionReceipt, ContextRecorder } from "../contracts.js";
+import { sha256 } from "../canonical.js";
+import type {
+  BrowserAgentContextPack,
+  BrowserAgentContextProvider
+} from "../agent.js";
 
 export interface QarinahBrowserSink {
   appendBrowserOutcome(event: {
-    schemaVersion: "cockroach.browser-memory.v1";
+    schemaVersion: "cockroach.browser-memory.v2";
     type: string;
     sessionId: string;
     actor?: string;
-    purpose: string;
+    purposeDigest: string;
     timestamp: string;
     inputDigest?: string;
     outputDigest?: string;
@@ -16,19 +21,55 @@ export interface QarinahBrowserSink {
   }): Promise<void>;
 }
 
+export interface QarinahBrowserMemorySource {
+  retrieveBrowserContext(input: {
+    sessionId: string;
+    query: string;
+    maxChars: number;
+    limit: number;
+    signal?: AbortSignal;
+  }): Promise<BrowserAgentContextPack | undefined>;
+}
+
+/**
+ * Adapts a Qarinah browser-memory query to the agent's bounded cited-context
+ * boundary. The agent labels the returned pack as historical evidence rather
+ * than executable instructions.
+ */
+export function createQarinahAgentContextProvider(
+  source: QarinahBrowserMemorySource,
+  options: { limit?: number } = {}
+): BrowserAgentContextProvider {
+  const limit = options.limit ?? 24;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 128) {
+    throw new RangeError("Qarinah browser context limits must be between 1 and 128.");
+  }
+  return {
+    retrieve(input) {
+      return source.retrieveBrowserContext({
+        sessionId: input.sessionId,
+        query: input.task,
+        maxChars: input.maxChars,
+        limit,
+        ...(input.signal ? { signal: input.signal } : {})
+      });
+    }
+  };
+}
+
 /**
  * Converts browser outcomes to a metadata-only Qarinah capture surface.
- * It never records cookies, storage values, form values, hidden reasoning, or profile data.
+ * It never records raw purposes, cookies, storage values, form values, hidden reasoning, or profile data.
  */
 export function createQarinahContextRecorder(sink: QarinahBrowserSink): ContextRecorder {
   return {
     async record(event) {
       await sink.appendBrowserOutcome({
-        schemaVersion: "cockroach.browser-memory.v1",
+        schemaVersion: "cockroach.browser-memory.v2",
         type: event.type,
         sessionId: event.sessionId,
         ...(event.actor ? { actor: event.actor } : {}),
-        purpose: event.purpose,
+        purposeDigest: sha256(event.purpose),
         timestamp: event.timestamp,
         ...(event.inputDigest ? { inputDigest: event.inputDigest } : {}),
         ...(event.outputDigest ? { outputDigest: event.outputDigest } : {}),
@@ -98,7 +139,6 @@ const QARINAH_METADATA_KEYS = new Set([
   "evidenceIds",
   "policyDigest",
   "mode",
-  "profile",
   "effect",
   "risk",
   "completedAt"

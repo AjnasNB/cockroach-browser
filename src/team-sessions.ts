@@ -45,8 +45,8 @@ export class TeamSessionStore {
 
   async claim(sessionId: string, owner: string): Promise<TeamSessionAccess> {
     await this.initialize();
-    return this.#mutate(() => {
-      if (this.#entries.has(sessionId)) throw new CockroachBrowserError("SESSION_ACCESS_EXISTS", `Access record for ${sessionId} already exists.`);
+    return this.#mutate((entries) => {
+      if (entries.has(sessionId)) throw new CockroachBrowserError("SESSION_ACCESS_EXISTS", `Access record for ${sessionId} already exists.`);
       const entry: TeamSessionAccess = {
         sessionId,
         owner: actorId(owner),
@@ -54,15 +54,15 @@ export class TeamSessionStore {
         createdAt: nowIso(),
         grants: [{ actor: actorId(owner), role: "owner", grantedAt: nowIso() }]
       };
-      this.#entries.set(sessionId, entry);
+      entries.set(sessionId, entry);
       return structuredClone(entry);
     });
   }
 
   async grant(sessionId: string, requester: string, actor: string, role: Exclude<TeamSessionRole, "owner">): Promise<TeamSessionAccess> {
     await this.initialize();
-    return this.#mutate(() => {
-      const entry = this.#require(sessionId);
+    return this.#mutate((entries) => {
+      const entry = this.#require(sessionId, entries);
       this.#assert(entry, requester, "owner");
       const target = actorId(actor);
       const previous = entry.grants.find((grant) => grant.actor === target && !grant.revokedAt);
@@ -75,8 +75,8 @@ export class TeamSessionStore {
 
   async revoke(sessionId: string, requester: string, actor: string): Promise<TeamSessionAccess> {
     await this.initialize();
-    return this.#mutate(() => {
-      const entry = this.#require(sessionId);
+    return this.#mutate((entries) => {
+      const entry = this.#require(sessionId, entries);
       this.#assert(entry, requester, "owner");
       const target = actorId(actor);
       if (target === entry.owner) throw new CockroachBrowserError("SESSION_OWNER_REVOKE_DENIED", "Transfer ownership before revoking the owner.");
@@ -88,7 +88,7 @@ export class TeamSessionStore {
 
   async remove(sessionId: string): Promise<void> {
     await this.initialize();
-    await this.#mutate(() => { this.#entries.delete(sessionId); });
+    await this.#mutate((entries) => { entries.delete(sessionId); });
   }
 
   async get(sessionId: string): Promise<TeamSessionAccess | undefined> {
@@ -111,23 +111,27 @@ export class TeamSessionStore {
     }
   }
 
-  #require(sessionId: string): TeamSessionAccess {
-    const entry = this.#entries.get(sessionId);
+  #require(sessionId: string, entries = this.#entries): TeamSessionAccess {
+    const entry = entries.get(sessionId);
     if (!entry) throw new CockroachBrowserError("SESSION_ACCESS_NOT_FOUND", `No access record exists for ${sessionId}.`);
     return entry;
   }
 
-  async #mutate<T>(operation: () => T): Promise<T> {
+  async #mutate<T>(operation: (entries: Map<string, TeamSessionAccess>) => T): Promise<T> {
     let resolveGate!: () => void;
     const gate = new Promise<void>((resolve) => { resolveGate = resolve; });
     const previous = this.#tail;
     this.#tail = previous.then(() => gate);
     await previous;
     try {
-      const result = operation();
+      const draft = new Map(
+        [...this.#entries.entries()].map(([sessionId, entry]) => [sessionId, structuredClone(entry)] as const)
+      );
+      const result = operation(draft);
       const temp = `${this.path}.tmp`;
-      await writeFile(temp, `${canonicalJson({ version: 1, sessions: [...this.#entries.values()] })}\n`, { mode: 0o600 });
+      await writeFile(temp, `${canonicalJson({ version: 1, sessions: [...draft.values()] })}\n`, { mode: 0o600 });
       await rename(temp, this.path);
+      this.#entries = draft;
       return result;
     } finally {
       resolveGate();

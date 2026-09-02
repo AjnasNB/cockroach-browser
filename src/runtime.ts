@@ -15,10 +15,12 @@ import type {
   Dialog,
   Download,
   FileChooser,
+  Frame,
   Page,
   Request,
   Response,
-  Route
+  Route,
+  WebSocketRoute
 } from "playwright-core";
 import type {
   ActionReceipt,
@@ -33,6 +35,7 @@ import type {
   BrowserActivityQuery,
   BrowserLifecycleEvent,
   BrowserNetworkRecord,
+  BrowserProviderSummary,
   BrowserResourceUsage,
   ChallengeReport,
   ContextRecorder,
@@ -47,6 +50,7 @@ import type {
   TabSummary
 } from "./contracts.js";
 import { ActivityLedger, type ActivityLedgerOptions } from "./activity.js";
+import { validatedBrowserAction } from "./action-validation.js";
 import { resolveBrowserProvider } from "./browser-discovery.js";
 import { canonicalJson, newId, nowIso, sha256 } from "./canonical.js";
 import {
@@ -75,12 +79,23 @@ import {
 import { ProfileVault } from "./profile-vault.js";
 import { PersistentBrowserProfileStore } from "./persistent-profiles.js";
 import {
+  launchLightweightCdp,
+  type ManagedLightweightCdpProcess
+} from "./lightweight-cdp.js";
+import {
   BrowserResourceTracker,
   createSharedProcessTreeSampler,
   unavailableResourceUsage,
   type ProcessTreeSampler
 } from "./resource-usage.js";
-import { captureSnapshot, locatorFor } from "./snapshot.js";
+import { captureSnapshot, frameFor, locatorFor } from "./snapshot.js";
+import {
+  extractStructuredFromLocator,
+  extractStructuredFromPage,
+  normalizeStructuredExtractionLimits,
+  structuredExtractionContentChars,
+  type StructuredExtractionLimits
+} from "./structured-extraction.js";
 
 export interface SecretResolver {
   resolve(reference: string): Promise<string>;
@@ -90,7 +105,11 @@ export interface BrowserRuntimeOptions {
   root?: string;
   approvalProvider?: ApprovalProvider;
   contextRecorder?: ContextRecorder;
+  /** Maximum time context recording may delay browser work. Defaults to 1000 ms. */
+  contextRecorderTimeoutMs?: number;
   eventPublisher?: BrowserEventPublisher;
+  /** Maximum time lifecycle delivery may delay browser work. Defaults to 1000 ms. */
+  eventPublisherTimeoutMs?: number;
   secretResolver?: SecretResolver;
   challengeResolver?: AuthorizedChallengeResolver;
   challengeResolverTimeoutMs?: number;
@@ -102,6 +121,10 @@ export interface BrowserRuntimeOptions {
   resourceSampleIntervalMs?: number;
   /** Test or platform override for process-tree sampling. */
   processTreeSampler?: ProcessTreeSampler;
+  /** Test override for starting a reviewed runtime-owned lightweight CDP engine. */
+  lightweightCdpLauncher?: typeof launchLightweightCdp;
+  /** Test-only fault injection immediately before a runtime-owned termination attempt. */
+  ownedTerminationHook?: (input: { sessionId: string; force: boolean }) => void;
 }
 
 interface InternalTabLock extends TabLockSummary {
@@ -115,13 +138,20 @@ interface ConsoleRecord {
   location?: { url?: string; lineNumber?: number; columnNumber?: number };
 }
 
+interface SessionTerminationResult {
+  verified: boolean;
+  failures: string[];
+}
+
 interface ManagedSession {
   input: SessionCreateInput;
   id: string;
   browser?: Browser;
   browserServer?: BrowserServer;
+  lightweightProcess?: ManagedLightweightCdpProcess;
   context: BrowserContext;
   attached: boolean;
+  provider: BrowserProviderSummary;
   state: SessionSummary["state"];
   createdAt: string;
   updatedAt: string;
@@ -148,7 +178,12 @@ interface ManagedSession {
   resources: BrowserResourceUsage;
   resourceTracker?: BrowserResourceTracker;
   resourceMonitor?: NodeJS.Timeout;
+  durationTimer?: NodeJS.Timeout;
   resourceLimitReported: boolean;
+  terminalError?: { code: string; message: string };
+  terminalization?: Promise<void>;
+  terminationAttempt?: Promise<SessionTerminationResult>;
+  terminationVerified: boolean;
   closing: boolean;
 }
 
@@ -158,6 +193,7 @@ const CHALLENGE_SAFE_ACTIONS = new Set([
   "capture.paired",
   "pdf",
   "extract",
+  "extract.structured",
   "wait",
   "challenge.resolve",
   "tab.switch",
@@ -177,7 +213,9 @@ export class BrowserRuntime {
   readonly evidence: EvidenceStore;
   readonly approvalProvider?: ApprovalProvider;
   readonly contextRecorder?: ContextRecorder;
+  readonly contextRecorderTimeoutMs: number;
   readonly eventPublisher?: BrowserEventPublisher;
+  readonly eventPublisherTimeoutMs: number;
   readonly secretResolver?: SecretResolver;
   readonly challengeResolver?: AuthorizedChallengeResolver;
   readonly challengeResolverTimeoutMs: number;
@@ -186,6 +224,8 @@ export class BrowserRuntime {
   readonly activity: ActivityLedger;
   readonly resourceSampleIntervalMs: number;
   readonly processTreeSampler: ProcessTreeSampler;
+  readonly lightweightCdpLauncher: typeof launchLightweightCdp;
+  readonly ownedTerminationHook?: NonNullable<BrowserRuntimeOptions["ownedTerminationHook"]>;
   #sessions = new Map<string, ManagedSession>();
   #activePersistentProfiles = new Map<string, string>();
   #initialized = false;
@@ -197,7 +237,31 @@ export class BrowserRuntime {
     this.evidence = new EvidenceStore({ root: join(this.root, "evidence"), maxBytes: 10 * 1024 ** 3 });
     if (options.approvalProvider) this.approvalProvider = options.approvalProvider;
     if (options.contextRecorder) this.contextRecorder = options.contextRecorder;
+    if (
+      options.contextRecorderTimeoutMs !== undefined
+      && (!Number.isSafeInteger(options.contextRecorderTimeoutMs)
+        || options.contextRecorderTimeoutMs < 1
+        || options.contextRecorderTimeoutMs > 120_000)
+    ) {
+      throw new CockroachBrowserError(
+        "CONTEXT_RECORDER_TIMEOUT_INVALID",
+        "Context recorder timeouts must be an integer between 1 and 120000 milliseconds."
+      );
+    }
+    this.contextRecorderTimeoutMs = options.contextRecorderTimeoutMs ?? 1_000;
     if (options.eventPublisher) this.eventPublisher = options.eventPublisher;
+    if (
+      options.eventPublisherTimeoutMs !== undefined
+      && (!Number.isSafeInteger(options.eventPublisherTimeoutMs)
+        || options.eventPublisherTimeoutMs < 1
+        || options.eventPublisherTimeoutMs > 120_000)
+    ) {
+      throw new CockroachBrowserError(
+        "EVENT_PUBLISHER_TIMEOUT_INVALID",
+        "Lifecycle event publisher timeouts must be an integer between 1 and 120000 milliseconds."
+      );
+    }
+    this.eventPublisherTimeoutMs = options.eventPublisherTimeoutMs ?? 1_000;
     if (options.secretResolver) this.secretResolver = options.secretResolver;
     if (options.challengeResolver) this.challengeResolver = options.challengeResolver;
     if (
@@ -233,6 +297,8 @@ export class BrowserRuntime {
     // Keep the monitor sparse there; action boundaries reuse a fresh cached sample.
     this.resourceSampleIntervalMs = options.resourceSampleIntervalMs ?? (process.platform === "win32" ? 10_000 : 5_000);
     this.processTreeSampler = options.processTreeSampler ?? createSharedProcessTreeSampler();
+    this.lightweightCdpLauncher = options.lightweightCdpLauncher ?? launchLightweightCdp;
+    if (options.ownedTerminationHook) this.ownedTerminationHook = options.ownedTerminationHook;
   }
 
   async initialize(): Promise<void> {
@@ -294,10 +360,22 @@ export class BrowserRuntime {
       ...(input.executablePath ? { executablePath: input.executablePath } : {}),
       ...(input.cdpEndpoint ? { cdpEndpoint: input.cdpEndpoint } : {})
     });
-    if (engine !== "chromium" && provider.cdpEndpoint) {
+    if (engine !== "chromium" && (provider.cdpEndpoint || provider.lightweight)) {
       throw new CockroachBrowserError(
         "CDP_ENGINE_UNSUPPORTED",
         "CDP attachment is available only for Chromium. Use the public BiDi module or a Firefox/WebKit launch instead."
+      );
+    }
+    if (provider.lightweight && (input.mode ?? "headless") !== "headless") {
+      throw new CockroachBrowserError(
+        "LIGHTWEIGHT_CDP_HEADLESS_REQUIRED",
+        "The managed lightweight lane is headless-only. Use a full Playwright engine for headed review."
+      );
+    }
+    if (provider.lightweight && input.proxy) {
+      throw new CockroachBrowserError(
+        "LIGHTWEIGHT_CDP_PROXY_UNSUPPORTED",
+        "The managed lightweight lane does not accept proxy credentials or launch arguments. Use a full Playwright engine or an explicitly governed remote fleet."
       );
     }
     if (engine !== "chromium" && input.browserProvider?.kind === "system") {
@@ -325,22 +403,41 @@ export class BrowserRuntime {
     const createdAt = nowIso();
     let browser: Browser | undefined;
     let browserServer: BrowserServer | undefined;
+    let lightweightProcess: ManagedLightweightCdpProcess | undefined;
     let context: BrowserContext | undefined;
     let attached = false;
     let managedSession: ManagedSession | undefined;
+    const providerSummary = summarizeBrowserProvider(input);
     try {
-      if (provider.cdpEndpoint) {
-        await assertCdpEndpoint(provider.cdpEndpoint, Boolean(policy.allowRemote), this.dnsResolver);
+      if (provider.cdpEndpoint || provider.lightweight) {
+        const endpoint = provider.lightweight
+          ? (lightweightProcess = await this.lightweightCdpLauncher({
+              executablePath: provider.lightweight.executablePath,
+              implementation: provider.lightweight.implementation,
+              rendering: provider.lightweight.rendering,
+              resourceProfile: provider.lightweight.resourceProfile,
+              allowPrivateNetwork: Boolean(policy.allowPrivateNetwork),
+              // The owned route always creates/navigates a page and installs
+              // intercepted HTTP(S) origin checks. Authorization is not an
+              // assertion that every allowed action must be supported; all
+              // caller actions are checked again before dispatch.
+              requiredActions: ["navigate", "network.route.add", "snapshot"],
+              allowExperimentalCapabilities: provider.lightweight.allowExperimentalCapabilities,
+              ...(provider.lightweight.expectedSha256 ? { expectedSha256: provider.lightweight.expectedSha256 } : {}),
+              ...(provider.lightweight.startupTimeoutMs ? { startupTimeoutMs: provider.lightweight.startupTimeoutMs } : {})
+            })).endpoint
+          : provider.cdpEndpoint!;
+        await assertCdpEndpoint(endpoint, provider.lightweight ? false : Boolean(policy.allowRemote), this.dnsResolver);
         if (input.recordHar || input.recordVideo) {
           throw new CockroachBrowserError(
             "ATTACHED_CAPTURE_DENIED",
-            "HAR and video recording require a runtime-owned browser context, not an attached CDP context."
+            "HAR and video recording require a full Playwright-created context; attached and lightweight CDP default contexts do not provide that contract."
           );
         }
-        browser = await chromium.connectOverCDP(provider.cdpEndpoint);
-        // From this point the runtime is a guest of a host-owned browser. A
-        // failed admission check must never close the host context.
-        attached = true;
+        browser = await chromium.connectOverCDP(endpoint);
+        // External CDP remains host-owned. The lightweight lane is a distinct
+        // owned process and is always closed by this runtime.
+        attached = !provider.lightweight;
         context = browser.contexts()[0];
         if (!context) throw new CockroachBrowserError("CDP_CONTEXT_MISSING", "The CDP browser has no default context.");
         for (const existingPage of context.pages()) {
@@ -404,7 +501,13 @@ export class BrowserRuntime {
         await mkdir(sessionArtifactRoot, { recursive: true });
         const contextOptions: BrowserContextOptions = {
           acceptDownloads: Boolean(policy.allowDownloads),
-          serviceWorkers: input.performanceProfile === "lean" ? "block" : "allow",
+          // The bounded runtime's HTTP(S) origin policy is implemented with
+          // context routing. Service workers can originate traffic outside
+          // that interception surface, so they remain disabled here. This is
+          // not a general UDP/WebRTC/WebTransport egress sandbox. The raw
+          // Playwright/Puppeteer exports still expose unrestricted workers to
+          // an operator-owned process.
+          serviceWorkers: "block",
           locale: input.locale ?? "en-US",
           ...(input.timezoneId ? { timezoneId: input.timezoneId } : {}),
           ...(input.colorScheme ? { colorScheme: input.colorScheme } : {}),
@@ -442,7 +545,7 @@ export class BrowserRuntime {
         delete input.extraHTTPHeaders;
       }
 
-      const browserPid = browserServer?.process()?.pid;
+      const browserPid = lightweightProcess?.pid ?? browserServer?.process()?.pid;
       const resourceTracker = browserPid
         ? new BrowserResourceTracker({
             rootPid: browserPid,
@@ -465,8 +568,10 @@ export class BrowserRuntime {
         id,
         ...(browser ? { browser } : {}),
         ...(browserServer ? { browserServer } : {}),
+        ...(lightweightProcess ? { lightweightProcess } : {}),
         context,
         attached,
+        provider: providerSummary,
         state: "starting",
         createdAt,
         updatedAt: createdAt,
@@ -489,6 +594,7 @@ export class BrowserRuntime {
         resources,
         ...(resourceTracker ? { resourceTracker } : {}),
         resourceLimitReported: false,
+        terminationVerified: false,
         closing: false,
         ...(provider.persistentProfile ? { persistentProfile: provider.persistentProfile } : {})
       };
@@ -506,10 +612,10 @@ export class BrowserRuntime {
       }
       session.state = "ready";
       session.updatedAt = nowIso();
+      this.#armDurationLimit(session);
       await this.#recordContext(session, "browser.session.created", {
         policyDigest: policyDigest(policy),
-        mode: input.mode ?? "headless",
-        profile: input.profile ?? null
+        mode: input.mode ?? "headless"
       });
       await this.#publishEvent(session, "browser.session.created", {
         policyDigest: policyDigest(policy),
@@ -518,15 +624,19 @@ export class BrowserRuntime {
       });
       return await this.session(id);
     } catch (error) {
-      if (context && attached && managedSession?.routeHandler) {
-        await context.unroute("**/*", managedSession.routeHandler).catch(() => undefined);
-      }
-      if (context && attached && managedSession?.pageHandler) {
-        context.off("page", managedSession.pageHandler);
+      if (managedSession) {
+        this.#disarmDurationLimit(managedSession);
+        this.#disarmResourceMonitor(managedSession);
+        const termination = await this.#terminateSessionResources(managedSession, true);
+        if (!termination.verified) throw this.#markTerminationUnverified(managedSession, termination);
+        this.#sessions.delete(id);
+        if (provider.persistentProfile) this.#activePersistentProfiles.delete(provider.persistentProfile);
+        throw error;
       }
       if (context && !attached) await context.close().catch(() => undefined);
       if (browser && !attached) await browser.close().catch(() => undefined);
       if (browserServer) await browserServer.close().catch(() => undefined);
+      if (lightweightProcess) await lightweightProcess.close().catch(() => undefined);
       this.#sessions.delete(id);
       if (provider.persistentProfile) this.#activePersistentProfiles.delete(provider.persistentProfile);
       throw error;
@@ -550,6 +660,7 @@ export class BrowserRuntime {
       ...(session.input.profile ? { profile: session.input.profile } : {}),
       mode: session.input.mode ?? "headless",
       engine: session.input.engine ?? "chromium",
+      provider: structuredClone(session.provider),
       performanceProfile: session.input.performanceProfile ?? "balanced",
       purpose: session.input.purpose,
       ...(session.input.actor ? { actor: session.input.actor } : {}),
@@ -650,17 +761,14 @@ export class BrowserRuntime {
     session.resources = await this.#sampleSessionResources(session, true);
     session.closing = true;
     this.#disarmResourceMonitor(session);
+    this.#disarmDurationLimit(session);
     try {
       if (session.traceActive) {
         await session.context.tracing.stop().catch(() => undefined);
       }
-      if (session.attached) {
-        if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
-        if (session.pageHandler) session.context.off("page", session.pageHandler);
-      } else if (session.input.recordHar) {
-        await session.context.close().catch((error) => {
-          if (!session.resourceLimitReported) throw error;
-        });
+      const termination = await this.#terminateSessionResources(session, false);
+      if (!termination.verified) throw this.#markTerminationUnverified(session, termination);
+      if (session.input.recordHar && !session.attached) {
         const harPath = join(this.root, "session-artifacts", id, "network.har");
         try {
           await this.#assertEvidenceFileBudget(session, harPath);
@@ -675,10 +783,6 @@ export class BrowserRuntime {
         } catch {
           // A context may not produce a HAR if no navigation occurred.
         }
-      } else {
-        await session.context.close().catch((error) => {
-          if (!session.resourceLimitReported) throw error;
-        });
       }
       if (session.input.recordVideo && !session.attached) {
         const videoRoot = join(this.root, "session-artifacts", id, "video");
@@ -696,12 +800,6 @@ export class BrowserRuntime {
           });
         }
       }
-      if (!session.attached && session.browser) {
-        await session.browser.close().catch((error) => {
-          if (!session.resourceLimitReported) throw error;
-        });
-      }
-      if (session.browserServer) await session.browserServer.close().catch(() => undefined);
       if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
       session.state = "closed";
       session.updatedAt = nowIso();
@@ -715,13 +813,16 @@ export class BrowserRuntime {
       this.#sessions.delete(id);
     } catch (error) {
       session.closing = false;
-      this.#armResourceMonitor(session);
+      if (!session.terminalError && !session.terminationVerified) {
+        this.#armResourceMonitor(session);
+        this.#armDurationLimit(session);
+      }
       throw error;
     }
   }
 
   async act(sessionId: string, action: BrowserAction): Promise<{ output: unknown; receipt: ActionReceipt }> {
-    return this.#queueAction(sessionId, action);
+    return this.#queueAction(sessionId, validatedBrowserAction(action));
   }
 
   async actBatch(sessionId: string, input: BrowserActionBatchInput): Promise<BrowserActionBatchResult> {
@@ -754,7 +855,7 @@ export class BrowserRuntime {
     action: BrowserAction,
     governance: GovernanceDispatch
   ): Promise<{ output: unknown; receipt: ActionReceipt }> {
-    return this.#queueAction(sessionId, action, governance);
+    return this.#queueAction(sessionId, validatedBrowserAction(action), governance);
   }
 
   async #queueAction(
@@ -812,6 +913,7 @@ export class BrowserRuntime {
       if (!action.purpose?.trim() || action.purpose.trim().length > 500) {
         throw new CockroachBrowserError("ACTION_PURPOSE_REQUIRED", "Every browser action requires a concise purpose.");
       }
+      session.lightweightProcess?.assertActions([action.kind]);
       if (session.state === "challenge" && !CHALLENGE_SAFE_ACTIONS.has(action.kind)) {
         throw new CockroachBrowserError(
           "CHALLENGE_REQUIRES_HUMAN",
@@ -1172,6 +1274,7 @@ export class BrowserRuntime {
 
   async snapshot(sessionId: string, tabId?: string): Promise<PageSnapshot> {
     const session = this.#requireSession(sessionId);
+    session.lightweightProcess?.assertActions(["snapshot"]);
     const page = this.#page(session, tabId);
     await this.#assertPageAdmitted(session, page);
     const snapshot = await captureSnapshot({
@@ -1199,6 +1302,9 @@ export class BrowserRuntime {
     ]
   ): Promise<{ report: Record<string, unknown>; evidence: EvidenceRecord }> {
     const session = this.#requireSession(sessionId);
+    if (kinds.some((kind) => kind === "accessibility" || kind === "performance" || kind === "security")) {
+      session.lightweightProcess?.assertActions(["evaluate"]);
+    }
     const page = this.#page(session);
     await this.#assertPageAdmitted(session, page);
     const report: Record<string, unknown> = {
@@ -1273,6 +1379,7 @@ export class BrowserRuntime {
     options: { threshold?: number; fullPage?: boolean } = {}
   ): Promise<{ mismatchPixels: number; mismatchRatio: number; evidence: EvidenceRecord }> {
     const session = this.#requireSession(sessionId);
+    session.lightweightProcess?.assertActions(["screenshot"]);
     const page = this.#page(session);
     await this.#assertPageAdmitted(session, page);
     const actualBuffer = await page.screenshot({ fullPage: options.fullPage ?? true, type: "png" });
@@ -1320,6 +1427,7 @@ export class BrowserRuntime {
 
   async resumeAfterHuman(sessionId: string): Promise<ChallengeReport> {
     const session = this.#requireSession(sessionId);
+    session.lightweightProcess?.assertActions(["snapshot"]);
     const wasChallenge = Boolean(session.challenge?.detected);
     const report = await detectChallenge(this.#page(session));
     session.challenge = report;
@@ -1361,13 +1469,26 @@ export class BrowserRuntime {
         await page.reload({ waitUntil: action.waitUntil ?? "domcontentloaded", timeout });
         return { url: page.url(), title: await page.title() };
       case "click":
-        await (await target()).click({ timeout });
+        if (session.lightweightProcess?.rendering === "none") {
+          // A route declaring no visual actions has no usable actionability
+          // geometry. Obscura 0.2.1 can also leave Playwright's navigation tracker pending
+          // while Fetch interception is enabled even though the DOM is ready.
+          // A direct, exact-target frame evaluation avoids waiting on visual
+          // actionability and preserves the declared DOM-only semantics.
+          await executeNoRenderDomAction(page, action, "click");
+        } else {
+          await (await target()).click({ timeout });
+        }
         return { clicked: targetDescription(action) };
       case "doubleClick":
         await (await target()).dblclick({ timeout });
         return { doubleClicked: targetDescription(action) };
       case "fill":
-        await (await target()).fill(action.value ?? "", { timeout });
+        if (session.lightweightProcess?.rendering === "none") {
+          await executeNoRenderDomAction(page, action, "fill", action.value ?? "");
+        } else {
+          await (await target()).fill(action.value ?? "", { timeout });
+        }
         return { filled: targetDescription(action), length: (action.value ?? "").length };
       case "type":
         await (await target()).pressSequentially(action.value ?? "", { timeout });
@@ -1772,6 +1893,40 @@ export class BrowserRuntime {
           value: result,
           sourceUrl: page.url(),
           metadata: { extraction: true }
+        });
+        evidenceIds.push(evidence.id);
+        return { ...result, evidenceId: evidence.id };
+      }
+      case "extract.structured": {
+        if (action.frame && !(action.ref || action.selector || action.xpath)) {
+          throw new CockroachBrowserError(
+            "FRAME_TARGET_REQUIRES_ELEMENT",
+            "Structured extraction can use a frame only with an exact ref, selector, or XPath target."
+          );
+        }
+        const limits = normalizeStructuredExtractionLimits(
+          action.extraction,
+          session.budget.maxSnapshotChars
+        );
+        const result = action.ref || action.selector || action.xpath
+          ? await extractStructuredFromLocator(await target(), limits)
+          : await extractStructuredFromPage(page, limits);
+        const contentChars = structuredExtractionContentChars(result);
+        if (contentChars > limits.maxTotalChars!) {
+          throw new CockroachBrowserError(
+            "STRUCTURED_EXTRACTION_BUDGET_EXCEEDED",
+            "Structured extraction exceeded its aggregate content ceiling."
+          );
+        }
+        const evidence = await this.#addJsonEvidence(session, {
+          kind: "snapshot",
+          value: result,
+          sourceUrl: page.url(),
+          metadata: {
+            structuredExtraction: true,
+            contentChars,
+            contentCharCeiling: limits.maxTotalChars
+          }
         });
         evidenceIds.push(evidence.id);
         return { ...result, evidenceId: evidence.id };
@@ -2438,6 +2593,21 @@ export class BrowserRuntime {
     };
     session.routeHandler = routeHandler;
     await session.context.route("**/*", routeHandler);
+    if (!session.attached && !session.lightweightProcess) {
+      await session.context.routeWebSocket("**/*", async (socket: WebSocketRoute) => {
+        try {
+          const admitted = new URL(socket.url());
+          if (admitted.protocol !== "ws:" && admitted.protocol !== "wss:") {
+            throw new CockroachBrowserError("PROTOCOL_DENIED", `Protocol ${admitted.protocol} is not allowed.`);
+          }
+          admitted.protocol = admitted.protocol === "wss:" ? "https:" : "http:";
+          await assertUrlResolvedAllowed(session.input.policy, admitted.toString(), session.dnsPins, this.dnsResolver);
+          socket.connectToServer();
+        } catch {
+          await socket.close({ code: 1008, reason: "Outside session origin policy" }).catch(() => undefined);
+        }
+      });
+    }
     for (const page of session.context.pages()) this.#registerPage(session, page);
     const pageHandler = (page: Page): void => {
       if (session.tabs.size >= session.budget.maxTabs) {
@@ -2548,14 +2718,34 @@ export class BrowserRuntime {
   }
 
   async #assertSessionBudget(session: ManagedSession): Promise<void> {
+    if (session.terminalError) this.#throwTerminalError(session);
     if (session.actionsUsed >= session.budget.maxActions) {
       throw new CockroachBrowserError("ACTION_BUDGET_EXCEEDED", "The session action limit has been reached.");
     }
-    if (Date.now() - Date.parse(session.createdAt) > session.budget.maxDurationMs) {
-      throw new CockroachBrowserError("DURATION_BUDGET_EXCEEDED", "The session duration limit has been reached.");
+    if (Date.now() - Date.parse(session.createdAt) >= session.budget.maxDurationMs) {
+      await this.#terminalizeSession(
+        session,
+        { code: "DURATION_BUDGET_EXCEEDED", message: "The session duration limit has been reached." },
+        "browser.session.duration-limit-exceeded",
+        {
+          maxDurationMs: session.budget.maxDurationMs,
+          elapsedMs: Math.max(0, Date.now() - Date.parse(session.createdAt))
+        }
+      );
+      this.#throwTerminalError(session);
     }
-    session.resources = await this.#sampleSessionResources(session);
-    this.#throwIfResourceLimitExceeded(session);
+    session.resources = await this.#sampleSessionResources(session, true);
+    if (!session.resourceTracker) return;
+    const resourceFailure = this.#resourceLimitFailure(session);
+    if (!resourceFailure) return;
+    session.resourceLimitReported = true;
+    await this.#terminalizeSession(
+      session,
+      resourceFailure,
+      "browser.session.resource-limit-exceeded",
+      this.#resourceLimitMetadata(session, resourceFailure.code)
+    );
+    this.#throwTerminalError(session);
   }
 
   async #sampleSessionResources(session: ManagedSession, force = false): Promise<BrowserResourceUsage> {
@@ -2565,17 +2755,28 @@ export class BrowserRuntime {
   }
 
   #throwIfResourceLimitExceeded(session: ManagedSession): void {
-    if (session.resources.limitState !== "exceeded") return;
-    if ((session.resources.rssBytes ?? 0) > session.budget.maxProcessRssBytes) {
-      throw new CockroachBrowserError(
-        "PROCESS_RSS_BUDGET_EXCEEDED",
-        `The browser process tree uses ${session.resources.rssBytes} bytes, above its ${session.budget.maxProcessRssBytes}-byte limit.`
-      );
+    const failure = this.#resourceLimitFailure(session);
+    if (failure) throw new CockroachBrowserError(failure.code, failure.message);
+  }
+
+  #resourceLimitFailure(session: ManagedSession): { code: string; message: string } | undefined {
+    if (!session.resources.available || session.resources.limitState === "unavailable") {
+      return {
+        code: "PROCESS_RESOURCE_TELEMETRY_UNAVAILABLE",
+        message: "The runtime-owned browser process tree could not be sampled, so its resource ceiling cannot be enforced."
+      };
     }
-    throw new CockroachBrowserError(
-      "PROCESS_CPU_BUDGET_EXCEEDED",
-      `The browser process tree has used ${session.resources.cpuTimeMs} ms of CPU time, above its ${session.budget.maxProcessCpuTimeMs}-ms limit.`
-    );
+    if (session.resources.limitState !== "exceeded") return undefined;
+    if ((session.resources.rssBytes ?? 0) > session.budget.maxProcessRssBytes) {
+      return {
+        code: "PROCESS_RSS_BUDGET_EXCEEDED",
+        message: `The browser process tree uses ${session.resources.rssBytes} bytes, above its ${session.budget.maxProcessRssBytes}-byte limit.`
+      };
+    }
+    return {
+      code: "PROCESS_CPU_BUDGET_EXCEEDED",
+      message: `The browser process tree has used ${session.resources.cpuTimeMs} ms of CPU time, above its ${session.budget.maxProcessCpuTimeMs}-ms limit.`
+    };
   }
 
   #armResourceMonitor(session: ManagedSession): void {
@@ -2584,6 +2785,7 @@ export class BrowserRuntime {
       || session.resourceMonitor
       || session.closing
       || session.state === "closed"
+      || session.terminalError
       || session.resourceLimitReported
     ) return;
     session.resourceMonitor = setInterval(() => {
@@ -2598,25 +2800,196 @@ export class BrowserRuntime {
     delete session.resourceMonitor;
   }
 
+  #armDurationLimit(session: ManagedSession): void {
+    if (session.durationTimer || session.closing || session.state === "closed" || session.terminalError) return;
+    const expiresAt = Date.parse(session.createdAt) + session.budget.maxDurationMs;
+    session.durationTimer = setTimeout(() => {
+      delete session.durationTimer;
+      void this.#expireSessionDuration(session);
+    }, Math.max(0, expiresAt - Date.now()));
+    session.durationTimer.unref();
+  }
+
+  #disarmDurationLimit(session: ManagedSession): void {
+    if (!session.durationTimer) return;
+    clearTimeout(session.durationTimer);
+    delete session.durationTimer;
+  }
+
+  async #expireSessionDuration(session: ManagedSession): Promise<void> {
+    if (session.closing || session.state === "closed") return;
+    await this.#terminalizeSession(
+      session,
+      { code: "DURATION_BUDGET_EXCEEDED", message: "The session duration limit has been reached." },
+      "browser.session.duration-limit-exceeded",
+      {
+        maxDurationMs: session.budget.maxDurationMs,
+        elapsedMs: Math.max(0, Date.now() - Date.parse(session.createdAt))
+      }
+    );
+  }
+
   async #monitorSessionResources(session: ManagedSession): Promise<void> {
-    if (session.closing || session.state === "closed" || session.resourceLimitReported) return;
+    if (session.closing || session.state === "closed" || session.terminalError || session.resourceLimitReported) return;
     const resources = await this.#sampleSessionResources(session, true);
     // Several interval callbacks can await the same slow operating-system
     // sample. Only the first resumed callback may commit a terminal breach.
-    if (session.closing || session.resourceLimitReported) return;
+    if (session.closing || session.terminalError || session.resourceLimitReported) return;
     session.resources = resources;
-    if (session.resources.limitState !== "exceeded") return;
+    const resourceFailure = this.#resourceLimitFailure(session);
+    if (!resourceFailure) return;
     session.resourceLimitReported = true;
-    session.state = "failed";
-    session.updatedAt = nowIso();
-    this.#disarmResourceMonitor(session);
-    await this.#publishEvent(session, "browser.session.resource-limit-exceeded", {
+    await this.#terminalizeSession(
+      session,
+      resourceFailure,
+      "browser.session.resource-limit-exceeded",
+      this.#resourceLimitMetadata(session, resourceFailure.code)
+    );
+  }
+
+  #resourceLimitMetadata(session: ManagedSession, errorCode: string): Record<string, unknown> {
+    return {
       rssBytes: session.resources.rssBytes ?? null,
       cpuTimeMs: session.resources.cpuTimeMs ?? null,
       maxProcessRssBytes: session.budget.maxProcessRssBytes,
-      maxProcessCpuTimeMs: session.budget.maxProcessCpuTimeMs
+      maxProcessCpuTimeMs: session.budget.maxProcessCpuTimeMs,
+      telemetryAvailable: session.resources.available,
+      errorCode
+    };
+  }
+
+  async #terminalizeSession(
+    session: ManagedSession,
+    failure: { code: string; message: string },
+    eventType: "browser.session.duration-limit-exceeded" | "browser.session.resource-limit-exceeded",
+    metadata: Record<string, unknown>
+  ): Promise<void> {
+    if (session.terminalization) return session.terminalization;
+    if (session.terminalError || session.state === "closed") return;
+    session.terminalError = { ...failure };
+    session.state = "failed";
+    session.updatedAt = nowIso();
+    session.closing = true;
+    this.#disarmDurationLimit(session);
+    this.#disarmResourceMonitor(session);
+    const terminalization = (async () => {
+      const termination = await this.#terminateSessionResources(session, true);
+      if (termination.verified) {
+        if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
+      } else {
+        this.#markTerminationUnverified(session, termination);
+      }
+      session.closing = false;
+      await this.#publishEvent(session, eventType, {
+        ...metadata,
+        terminationVerified: termination.verified
+      });
+    })();
+    session.terminalization = terminalization;
+    try {
+      await terminalization;
+    } finally {
+      if (session.terminalization === terminalization) delete session.terminalization;
+      session.closing = false;
+    }
+  }
+
+  async #terminateSessionResources(session: ManagedSession, force: boolean): Promise<SessionTerminationResult> {
+    if (session.terminationVerified) return { verified: true, failures: [] };
+    if (session.terminationAttempt) return session.terminationAttempt;
+    const attempt = this.#performSessionTermination(session, force);
+    session.terminationAttempt = attempt;
+    try {
+      const result = await attempt;
+      if (result.verified) session.terminationVerified = true;
+      return result;
+    } finally {
+      if (session.terminationAttempt === attempt) delete session.terminationAttempt;
+    }
+  }
+
+  async #performSessionTermination(session: ManagedSession, force: boolean): Promise<SessionTerminationResult> {
+    if (session.attached) {
+      if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
+      if (session.pageHandler) session.context.off("page", session.pageHandler);
+      return { verified: true, failures: [] };
+    }
+
+    const failures: string[] = [];
+    const run = async (label: string, operation: () => Promise<void>): Promise<boolean> => {
+      try {
+        await operation();
+        return true;
+      } catch (error) {
+        failures.push(`${label}: ${errorMessage(error)}`.slice(0, 500));
+        return false;
+      }
+    };
+    if (this.ownedTerminationHook) {
+      const allowed = await run("termination hook", async () => this.ownedTerminationHook!({ sessionId: session.id, force }));
+      if (!allowed) return { verified: false, failures };
+    }
+
+    const closeContext = () => run("browser context close", () => session.context.close());
+    const closeBrowser = () => session.browser
+      ? run("browser connection close", () => session.browser!.close())
+      : Promise.resolve(false);
+    const primaryResults: boolean[] = [];
+    let contextClosed = false;
+    let browserClosed = false;
+
+    if (force) {
+      // Terminal enforcement stops owned processes before any cleanup or
+      // telemetry that could stall on a degraded integration.
+      if (session.browserServer) {
+        let stopped = await run("browser server kill", () => session.browserServer!.kill());
+        if (!stopped) stopped = await run("browser server close", () => session.browserServer!.close());
+        primaryResults.push(stopped);
+      }
+      if (session.lightweightProcess) {
+        primaryResults.push(await run("lightweight process close", () => session.lightweightProcess!.close()));
+      }
+      contextClosed = await closeContext();
+      browserClosed = await closeBrowser();
+    } else {
+      contextClosed = await closeContext();
+      browserClosed = await closeBrowser();
+      if (session.browserServer) {
+        let stopped = await run("browser server close", () => session.browserServer!.close());
+        if (!stopped) stopped = await run("browser server kill", () => session.browserServer!.kill());
+        primaryResults.push(stopped);
+      }
+      if (session.lightweightProcess) {
+        primaryResults.push(await run("lightweight process close", () => session.lightweightProcess!.close()));
+      }
+    }
+
+    const verified = primaryResults.length > 0
+      ? primaryResults.every(Boolean)
+      : contextClosed || browserClosed;
+    return { verified, failures };
+  }
+
+  #markTerminationUnverified(
+    session: ManagedSession,
+    termination: SessionTerminationResult
+  ): CockroachBrowserError {
+    const message = "Runtime-owned browser termination could not be verified. The failed session remains retained for an explicit close retry.";
+    session.terminalError = { code: "TERMINATION_UNVERIFIED", message };
+    session.state = "failed";
+    session.updatedAt = nowIso();
+    return new CockroachBrowserError("TERMINATION_UNVERIFIED", message, {
+      sessionId: session.id,
+      failures: termination.failures.slice(0, 8)
     });
-    await session.browserServer?.close().catch(() => undefined);
+  }
+
+  #throwTerminalError(session: ManagedSession): never {
+    const failure = session.terminalError ?? {
+      code: "SESSION_TERMINAL",
+      message: "The browser session is terminal."
+    };
+    throw new CockroachBrowserError(failure.code, failure.message);
   }
 
   async #assertPageAdmitted(session: ManagedSession, page: Page): Promise<void> {
@@ -2694,18 +3067,40 @@ export class BrowserRuntime {
     } = {}
   ): Promise<void> {
     if (!this.contextRecorder) return;
-    await this.contextRecorder.record({
-      type,
+    const recorded = await this.#settleOperational(
+      () => this.contextRecorder!.record({
+        type,
+        sessionId: session.id,
+        ...(session.input.actor ? { actor: session.input.actor } : {}),
+        purpose: session.input.purpose,
+        timestamp: nowIso(),
+        ...(links.inputDigest ? { inputDigest: links.inputDigest } : {}),
+        ...(links.outputDigest ? { outputDigest: links.outputDigest } : {}),
+        ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
+        ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
+        metadata
+      }),
+      this.contextRecorderTimeoutMs
+    );
+    if (recorded) return;
+    const event: BrowserLifecycleEvent = {
+      id: newId("event"),
+      type: "browser.context.recording-failed",
+      occurredAt: nowIso(),
       sessionId: session.id,
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       purpose: session.input.purpose,
-      timestamp: nowIso(),
-      ...(links.inputDigest ? { inputDigest: links.inputDigest } : {}),
-      ...(links.outputDigest ? { outputDigest: links.outputDigest } : {}),
       ...(links.receiptHash ? { receiptHash: links.receiptHash } : {}),
       ...(links.evidenceIds?.length ? { evidenceIds: [...links.evidenceIds] } : {}),
-      metadata
-    });
+      metadata: { contextEventType: type, errorCode: "CONTEXT_RECORDER_FAILED" }
+    };
+    try {
+      this.activity.append(event);
+      await this.#deliverEvent(event);
+    } catch {
+      // Context recording is operational memory only. Reporting its failure
+      // must never replace the result of browser work or cleanup.
+    }
   }
 
   async #publishEvidenceEvent(session: ManagedSession, record: EvidenceRecord): Promise<void> {
@@ -2744,12 +3139,31 @@ export class BrowserRuntime {
       metadata
     };
     this.activity.append(event);
+    await this.#deliverEvent(event);
+  }
+
+  async #deliverEvent(event: BrowserLifecycleEvent): Promise<void> {
     if (!this.eventPublisher) return;
+    await this.#settleOperational(
+      () => this.eventPublisher!.publish(structuredClone(event)),
+      this.eventPublisherTimeoutMs
+    );
+  }
+
+  async #settleOperational(operation: () => void | Promise<void>, timeoutMs: number): Promise<boolean> {
+    const delivery = Promise.resolve()
+      .then(operation)
+      .then(() => true, () => false);
+    let deadline: NodeJS.Timeout | undefined;
     try {
-      await this.eventPublisher.publish(structuredClone(event));
-    } catch {
-      // Lifecycle delivery is operational telemetry. A failed endpoint must
-      // never change the result of a browser action or evidence capture.
+      return await Promise.race([
+        delivery,
+        new Promise<false>((resolveDeadline) => {
+          deadline = setTimeout(() => resolveDeadline(false), timeoutMs);
+        })
+      ]);
+    } finally {
+      if (deadline) clearTimeout(deadline);
     }
   }
 }
@@ -2860,6 +3274,29 @@ function sanitizeUrl(input: string): string {
   }
 }
 
+function summarizeBrowserProvider(input: SessionCreateInput): BrowserProviderSummary {
+  if (input.browserProvider?.kind === "lightweight") {
+    return {
+      kind: "lightweight",
+      ownership: "runtime-owned",
+      ...(input.browserProvider.implementation ? { implementation: input.browserProvider.implementation } : {}),
+      rendering: input.browserProvider.rendering ?? "none",
+      resourceProfile: input.browserProvider.resourceProfile ?? "standard",
+      maturity: "experimental"
+    };
+  }
+  if (input.browserProvider?.kind === "cdp" || input.cdpEndpoint) {
+    return { kind: "cdp", ownership: "external", maturity: "external" };
+  }
+  if (input.browserProvider) {
+    return { kind: input.browserProvider.kind, ownership: "runtime-owned", maturity: "supported" };
+  }
+  if (input.executablePath) {
+    return { kind: "custom", ownership: "runtime-owned", maturity: "supported" };
+  }
+  return { kind: "bundled", ownership: "runtime-owned", maturity: "supported" };
+}
+
 function redactSnapshot(snapshot: PageSnapshot): PageSnapshot {
   return {
     ...structuredClone(snapshot),
@@ -2911,6 +3348,120 @@ function boundedHeaders(value: Record<string, string>): Record<string, string> {
     result[name] = rawValue;
   }
   return result;
+}
+
+async function executeNoRenderDomAction(
+  page: Page,
+  action: BrowserAction,
+  operation: "click" | "fill",
+  value = ""
+): Promise<void> {
+  const supplied = [Boolean(action.ref), Boolean(action.selector), Boolean(action.xpath)].filter(Boolean).length;
+  if (supplied !== 1) {
+    throw new CockroachBrowserError(
+      "TARGET_REQUIRED",
+      "This action requires exactly one semantic ref, CSS selector, or XPath target."
+    );
+  }
+  let frame: Frame;
+  let selectorKind: "css" | "xpath";
+  let selectorValue: string;
+  if (action.ref) {
+    if (action.frame) {
+      throw new CockroachBrowserError(
+        "FRAME_REF_CONFLICT",
+        "Semantic references already identify their frame and cannot be combined with a frame target."
+      );
+    }
+    if (!/^f\d+-[a-f0-9]{32}$/i.test(action.ref)) {
+      throw new CockroachBrowserError("INVALID_REF", `Invalid semantic reference: ${action.ref}`);
+    }
+    const frameIndex = Number(action.ref.slice(1, action.ref.indexOf("-")));
+    const origin = safeHttpOrigin(page.url());
+    const frames = page.frames().filter((candidate) => (
+      candidate === page.mainFrame() || (origin !== undefined && safeHttpOrigin(candidate.url()) === origin)
+    ));
+    frame = frames[frameIndex]!;
+    if (!frame) throw new CockroachBrowserError("STALE_REF", `Frame for ${action.ref} no longer exists.`);
+    selectorKind = "css";
+    selectorValue = `[data-cockroach-ref="${action.ref}"]`;
+  } else {
+    frame = await frameFor(page, action.frame);
+    if (action.selector) {
+      if (action.selector.length > 2_048 || action.selector.includes("\0")) {
+        throw new CockroachBrowserError("SELECTOR_INVALID", "CSS selectors must be at most 2048 characters.");
+      }
+      selectorKind = "css";
+      selectorValue = action.selector;
+    } else {
+      if (!action.xpath || action.xpath.length > 2_048 || action.xpath.includes("\0")) {
+        throw new CockroachBrowserError("XPATH_INVALID", "XPath targets must contain 1 to 2048 characters.");
+      }
+      selectorKind = "xpath";
+      selectorValue = action.xpath;
+    }
+  }
+  const result = await frame.evaluate(
+    ({ operation: selectedOperation, selectorKind: selectedKind, selectorValue: selectedValue, value: selectedValueInput }) => {
+      let element: Element | null;
+      try {
+        element = selectedKind === "css"
+          ? document.querySelector(selectedValue)
+          : document.evaluate(
+              selectedValue,
+              document,
+              null,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null
+            ).singleNodeValue as Element | null;
+      } catch (error) {
+        return { status: "invalid", message: error instanceof Error ? error.message : String(error) };
+      }
+      if (!element) return { status: "missing" };
+      if (selectedOperation === "click") {
+        if (!(element instanceof HTMLElement)) return { status: "wrong-type" };
+        element.click();
+        return { status: "ok" };
+      }
+      const prototype = element instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : element instanceof HTMLInputElement
+          ? HTMLInputElement.prototype
+          : undefined;
+      const setter = prototype ? Object.getOwnPropertyDescriptor(prototype, "value")?.set : undefined;
+      if (!setter) return { status: "wrong-type" };
+      setter.call(element, selectedValueInput);
+      element.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+      element.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+      return { status: "ok" };
+    },
+    { operation, selectorKind, selectorValue, value }
+  );
+  if (result.status === "ok") return;
+  if (result.status === "missing") {
+    throw new CockroachBrowserError(action.ref ? "STALE_REF" : "TARGET_NOT_FOUND", "The exact DOM target no longer exists.");
+  }
+  if (result.status === "invalid") {
+    throw new CockroachBrowserError(
+      selectorKind === "css" ? "SELECTOR_INVALID" : "XPATH_INVALID",
+      `The exact DOM target is invalid: ${String(result.message ?? "unknown syntax error").slice(0, 500)}`
+    );
+  }
+  throw new CockroachBrowserError(
+    "TARGET_TYPE_UNSUPPORTED",
+    operation === "fill"
+      ? "The fill target is not a text input or textarea."
+      : "The click target is not an HTML element."
+  );
+}
+
+function safeHttpOrigin(input: string): string | undefined {
+  try {
+    const parsed = new URL(input);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.origin : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function targetDescription(action: BrowserAction): string {

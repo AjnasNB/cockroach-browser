@@ -7,11 +7,13 @@ import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 import { BrowserRuntime, type BrowserRuntimeOptions } from "./runtime.js";
 import { CAPABILITIES } from "./capabilities.js";
-import { CockroachBrowserError } from "./errors.js";
+import { newId } from "./canonical.js";
+import { CockroachBrowserError, errorMessage } from "./errors.js";
 import type { BrowserAction, BrowserActionBatchInput, SessionCreateInput, SessionSummary } from "./contracts.js";
 import type { TeamSessionRole } from "./team-sessions.js";
 import { TeamSessionStore } from "./team-sessions.js";
 import { JobQueue, type BrowserJob } from "./job-queue.js";
+import { BROWSER_ENGINE_IDS, ENGINE_CAPABILITY_MANIFEST, engineCapabilities } from "./engine-capabilities.js";
 
 export interface BrowserServerOptions extends BrowserRuntimeOptions {
   runtime?: BrowserRuntime;
@@ -23,6 +25,10 @@ export interface BrowserServerOptions extends BrowserRuntimeOptions {
   allowRemote?: boolean;
   tls?: { certFile: string; keyFile: string };
   maxRequestBytes?: number;
+  /** Maximum simultaneous non-closed sessions admitted by this daemon. Defaults to 32. */
+  maxSessions?: number;
+  /** Maximum simultaneous non-closed sessions assigned to one actor. Defaults to 8. */
+  maxSessionsPerActor?: number;
   /**
    * Exposes the generic action route. Disabled by default because production
    * mutations should enter through the Maqam-bound driver.
@@ -37,10 +43,97 @@ export interface BrowserServerOptions extends BrowserRuntimeOptions {
   actorTokens?: Record<string, string>;
   /** Optional persistent session ownership, sharing, and revocation store. */
   teamSessions?: TeamSessionStore;
+  /**
+   * Host-owned factory for actor-requested sessions. Actor tokens cannot create
+   * sessions unless this callback constructs the authoritative session input.
+   * Build the result from reviewed fields instead of spreading the request.
+   */
+  actorSessionFactory?: (request: ActorSessionRequest) => SessionCreateInput | Promise<SessionCreateInput>;
   /** Enables the bounded, crash-resumable local job API. Disabled unless explicitly configured. */
   enableJobs?: boolean;
   /** Optional caller-owned queue implementation for local or embedded deployments. */
   jobQueue?: JobQueue;
+}
+
+export interface ActorSessionRequest {
+  actor: string;
+  requested: Readonly<SessionCreateInput>;
+}
+
+interface BrowserSessionAdmissionReservation {
+  sessionId: string;
+  actor?: string;
+}
+
+class BrowserSessionAdmission {
+  readonly runtime: BrowserRuntime;
+  readonly maxSessions: number;
+  readonly maxSessionsPerActor: number;
+  #reservations = new Map<string, BrowserSessionAdmissionReservation>();
+  #tail: Promise<void> = Promise.resolve();
+
+  constructor(runtime: BrowserRuntime, maxSessions: number, maxSessionsPerActor: number) {
+    this.runtime = runtime;
+    this.maxSessions = maxSessions;
+    this.maxSessionsPerActor = maxSessionsPerActor;
+  }
+
+  async reserve(requestedId?: string, actor?: string): Promise<BrowserSessionAdmissionReservation> {
+    return this.#locked(async () => {
+      const sessionId = requestedId ?? newId("session");
+      if (this.#reservations.has(sessionId)) {
+        throw new CockroachBrowserError("SESSION_EXISTS", `Session ${sessionId} already has a pending admission.`);
+      }
+      const active = (await this.runtime.sessions())
+        .filter((session) => session.state !== "closed" && !this.#reservations.has(session.id));
+      const total = active.length + this.#reservations.size;
+      if (total >= this.maxSessions) {
+        throw new CockroachBrowserError(
+          "SESSION_GLOBAL_LIMIT_EXCEEDED",
+          `The browser daemon has reached its configured ${this.maxSessions}-session ceiling.`,
+          { limit: this.maxSessions, active: total }
+        );
+      }
+      if (actor) {
+        const actorTotal = active.filter((session) => session.actor === actor).length
+          + [...this.#reservations.values()].filter((reservation) => reservation.actor === actor).length;
+        if (actorTotal >= this.maxSessionsPerActor) {
+          throw new CockroachBrowserError(
+            "SESSION_ACTOR_LIMIT_EXCEEDED",
+            `Actor ${actor} has reached the configured ${this.maxSessionsPerActor}-session ceiling.`,
+            { actor, limit: this.maxSessionsPerActor, active: actorTotal }
+          );
+        }
+      }
+      const reservation: BrowserSessionAdmissionReservation = {
+        sessionId,
+        ...(actor ? { actor } : {})
+      };
+      this.#reservations.set(sessionId, reservation);
+      return reservation;
+    });
+  }
+
+  async release(reservation: BrowserSessionAdmissionReservation): Promise<void> {
+    await this.#locked(() => {
+      if (this.#reservations.get(reservation.sessionId) === reservation) {
+        this.#reservations.delete(reservation.sessionId);
+      }
+    });
+  }
+
+  async #locked<T>(operation: () => T | Promise<T>): Promise<T> {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const previous = this.#tail;
+    this.#tail = previous.catch(() => undefined).then(() => gate);
+    await previous.catch(() => undefined);
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  }
 }
 
 export interface RunningBrowserServer {
@@ -76,16 +169,31 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
   if (!loopback && !options.tls) {
     throw new CockroachBrowserError("REMOTE_TLS_REQUIRED", "Remote browser servers require a TLS certificate and key.");
   }
+  const maxSessions = serverSessionCeiling(options.maxSessions, 32, "maxSessions", "MAX_SESSIONS_INVALID");
+  const maxSessionsPerActor = serverSessionCeiling(
+    options.maxSessionsPerActor,
+    8,
+    "maxSessionsPerActor",
+    "MAX_SESSIONS_PER_ACTOR_INVALID"
+  );
+  const maxRequestBytes = serverRequestByteLimit(options.maxRequestBytes);
 
   const runtime = options.runtime ?? new BrowserRuntime(options);
-  await runtime.initialize();
+  const actorTokens = normalizeActorTokens(options.actorTokens ?? {});
+  if (actorTokens.size > 0 && !options.teamSessions) {
+    throw new CockroachBrowserError(
+      "ACTOR_SESSION_STORE_REQUIRED",
+      "Actor tokens require TeamSessionStore so every session, event, job, and evidence read remains ownership-scoped."
+    );
+  }
   const token = options.token ?? await loadOrCreateToken(options.tokenFile ?? join(runtime.root, "auth-token"));
   if (Buffer.byteLength(token) < 32) {
     throw new CockroachBrowserError("WEAK_SERVER_TOKEN", "The browser daemon token must contain at least 32 bytes.");
   }
+  assertDistinctAuthenticationTokens(token, actorTokens);
+  await runtime.initialize();
+  const sessionAdmission = new BrowserSessionAdmission(runtime, maxSessions, maxSessionsPerActor);
   const allowedCorsOrigins = new Set(options.allowedCorsOrigins ?? []);
-  const maxRequestBytes = Math.min(Math.max(options.maxRequestBytes ?? 1_048_576, 1_024), 16_777_216);
-  const actorTokens = normalizeActorTokens(options.actorTokens ?? {});
   await options.teamSessions?.initialize();
   const jobQueue = options.jobQueue ?? (options.enableJobs ? new JobQueue({
     path: join(runtime.root, "jobs", "queue.json"),
@@ -128,10 +236,16 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
     try {
       const segments = url.pathname.split("/").filter(Boolean);
       if (request.method === "GET" && url.pathname === "/v1/health") {
+        if (!identity.admin) {
+          throw new CockroachBrowserError(
+            "SERVER_DIAGNOSTICS_ADMIN_REQUIRED",
+            "Global runtime and evidence health requires daemon administrator authority."
+          );
+        }
         return sendJson(response, 200, {
           ok: true,
           name: "cockroach-browser",
-          version: "0.4.1",
+          version: "0.5.0-rc.1",
           sessions: (await runtime.sessions()).length,
           evidence: await runtime.evidence.verify()
         });
@@ -139,10 +253,27 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
       if (request.method === "GET" && url.pathname === "/v1/capabilities") {
         return sendJson(response, 200, { capabilities: CAPABILITIES });
       }
+      if (request.method === "GET" && url.pathname === "/v1/engines") {
+        const requestedEngine = url.searchParams.get("engine");
+        if (requestedEngine && !BROWSER_ENGINE_IDS.includes(requestedEngine as typeof BROWSER_ENGINE_IDS[number])) {
+          throw new CockroachBrowserError("ENGINE_INVALID", `Unknown browser engine: ${requestedEngine}.`);
+        }
+        return sendJson(response, 200, {
+          engines: requestedEngine
+            ? [engineCapabilities(requestedEngine as typeof BROWSER_ENGINE_IDS[number])]
+            : BROWSER_ENGINE_IDS.map((engine) => ENGINE_CAPABILITY_MANIFEST[engine])
+        });
+      }
       if (request.method === "GET" && url.pathname === "/v1/openapi.json") {
         return sendJson(response, 200, openApiDocument());
       }
       if (request.method === "GET" && url.pathname === "/v1/metrics") {
+        if (!identity.admin) {
+          throw new CockroachBrowserError(
+            "SERVER_DIAGNOSTICS_ADMIN_REQUIRED",
+            "Global runtime metrics require daemon administrator authority."
+          );
+        }
         const sessions = await runtime.sessions();
         const activity = runtime.activities({ limit: 10_000 });
         const completed = activity.filter((entry) => entry.type === "browser.action.completed");
@@ -161,8 +292,15 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         ].join("\n"), "text/plain; version=0.0.4; charset=utf-8");
       }
       if (request.method === "GET" && url.pathname === "/v1/errors") {
-        const errors = runtime.activities({ limit: Math.min(Number(url.searchParams.get("limit") ?? 100), 1_000) })
+        let errors = runtime.activities({ limit: Math.min(Number(url.searchParams.get("limit") ?? 100), 1_000) })
           .filter((entry) => entry.type === "browser.action.completed" && entry.metadata?.status !== "succeeded");
+        if (!identity.admin && options.teamSessions) {
+          const visible = [];
+          for (const entry of errors) {
+            if (await canAccess(options.teamSessions, entry.sessionId, identity.actor!, "viewer")) visible.push(entry);
+          }
+          errors = visible;
+        }
         return sendJson(response, 200, { errors });
       }
       if (segments[0] === "v1" && segments[1] === "jobs") {
@@ -213,12 +351,52 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, { sessions: visible });
       }
       if (request.method === "POST" && url.pathname === "/v1/sessions") {
-        const input = await readJson<SessionCreateInput>(request, maxRequestBytes);
-        assertSessionAuthority(input, Boolean(options.allowSessionHostConfiguration));
-        if (!identity.admin) input.actor = identity.actor!;
-        const created = await runtime.createSession(input);
-        if (options.teamSessions) await options.teamSessions.claim(created.id, identity.actor ?? input.actor ?? "local-owner");
-        return sendJson(response, 201, created);
+        const requested = await readJson<SessionCreateInput>(request, maxRequestBytes);
+        let input: SessionCreateInput;
+        if (identity.admin) {
+          assertSessionAuthority(requested, Boolean(options.allowSessionHostConfiguration));
+          input = requested;
+        } else {
+          if (!options.actorSessionFactory) {
+            throw new CockroachBrowserError(
+              "SESSION_CREATE_UNAUTHORIZED",
+              "Actor tokens cannot choose browser origins or policy. The daemon host must create the session or configure actorSessionFactory."
+            );
+          }
+          input = structuredClone(await options.actorSessionFactory({
+            actor: identity.actor!,
+            requested: structuredClone(requested)
+          }));
+          input.actor = identity.actor!;
+        }
+        const admission = await sessionAdmission.reserve(input.id, input.actor);
+        input.id = admission.sessionId;
+        try {
+          const created = await runtime.createSession(input);
+          if (options.teamSessions) {
+            try {
+              await options.teamSessions.claim(created.id, identity.actor ?? input.actor ?? "local-owner");
+            } catch (claimError) {
+              try {
+                await runtime.closeSession(created.id);
+              } catch (rollbackError) {
+                throw new CockroachBrowserError(
+                  "SESSION_ACCESS_CLAIM_ROLLBACK_FAILED",
+                  "The session access claim failed and the newly created browser session could not be rolled back.",
+                  {
+                    sessionId: created.id,
+                    claimFailure: errorMessage(claimError),
+                    rollbackFailure: errorMessage(rollbackError)
+                  }
+                );
+              }
+              throw claimError;
+            }
+          }
+          return sendJson(response, 201, created);
+        } finally {
+          await sessionAdmission.release(admission);
+        }
       }
       if (request.method === "GET" && url.pathname === "/v1/activity") {
         const sessionId = url.searchParams.get("sessionId") ?? undefined;
@@ -270,6 +448,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         if (request.method === "DELETE" && segments.length === 3) {
           await requireSessionAccess(options.teamSessions, identity, sessionId, "owner");
           await runtime.closeSession(sessionId);
+          await options.teamSessions?.remove(sessionId);
           return sendJson(response, 200, { closed: sessionId });
         }
         if (request.method === "GET" && segments[3] === "navigation-graph") {
@@ -415,6 +594,12 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         return sendJson(response, 200, { evidence });
       }
       if (request.method === "GET" && url.pathname === "/v1/evidence/verify") {
+        if (!identity.admin) {
+          throw new CockroachBrowserError(
+            "EVIDENCE_VERIFY_ADMIN_REQUIRED",
+            "Global evidence and receipt-chain verification requires daemon administrator authority."
+          );
+        }
         return sendJson(response, 200, await runtime.evidence.verify());
       }
       if (request.method === "GET" && segments[0] === "v1" && segments[1] === "artifacts" && segments[2]) {
@@ -516,6 +701,20 @@ function normalizeActorTokens(input: Record<string, string>): Map<string, string
     output.set(actor, token);
   }
   return output;
+}
+
+function assertDistinctAuthenticationTokens(adminToken: string, actors: Map<string, string>): void {
+  const owners = new Map<string, string>([[adminToken, "administrator"]]);
+  for (const [actor, token] of actors) {
+    const existing = owners.get(token);
+    if (existing) {
+      throw new CockroachBrowserError(
+        "AUTH_TOKEN_COLLISION",
+        `Authentication tokens must be unique; ${actor} collides with ${existing}.`
+      );
+    }
+    owners.set(token, actor);
+  }
 }
 
 async function requireSessionAccess(
@@ -636,28 +835,139 @@ async function drainJobs(queue: JobQueue): Promise<void> {
 }
 
 function openApiDocument(): Record<string, unknown> {
+  const operation = (
+    operationId: string,
+    summary: string,
+    status = "200",
+    extensions: Record<string, unknown> = {}
+  ): Record<string, unknown> => ({
+    operationId,
+    summary,
+    responses: {
+      [status]: {
+        description: status === "201" ? "Created" : status === "202" ? "Accepted" : "Success"
+      }
+    },
+    ...extensions
+  });
+  const sessionParameter = { $ref: "#/components/parameters/sessionId" };
+  const jobParameter = { $ref: "#/components/parameters/jobId" };
+  const profileParameter = { $ref: "#/components/parameters/profileName" };
+  const artifactParameter = { $ref: "#/components/parameters/artifactId" };
   return {
     openapi: "3.1.0",
-    info: { title: "Cockroach Browser local daemon", version: "0.4.1" },
-    servers: [{ url: "http://127.0.0.1:43110" }],
+    info: { title: "Cockroach Browser local daemon", version: "0.5.0-rc.1" },
+    servers: [{ url: "/", description: "The authenticated daemon origin that served this document." }],
     components: {
-      securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } }
+      securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } },
+      parameters: {
+        sessionId: { name: "id", in: "path", required: true, schema: { type: "string", minLength: 1, maxLength: 128 } },
+        jobId: { name: "id", in: "path", required: true, schema: { type: "string", minLength: 1, maxLength: 128 } },
+        profileName: { name: "name", in: "path", required: true, schema: { type: "string", minLength: 1, maxLength: 128 } },
+        artifactId: { name: "id", in: "path", required: true, schema: { type: "string", minLength: 1, maxLength: 128 } }
+      }
     },
     security: [{ bearerAuth: [] }],
     paths: {
-      "/v1/health": { get: { summary: "Runtime health" } },
-      "/v1/capabilities": { get: { summary: "Machine-readable capabilities" } },
-      "/v1/sessions": { get: { summary: "List admitted sessions" }, post: { summary: "Create an admitted session" } },
-      "/v1/sessions/{id}/resources": { get: { summary: "Read a fresh owned-browser process resource sample" } },
-      "/v1/sessions/{id}/actions": { post: { summary: "Run one exact policy-evaluated action" } },
-      "/v1/sessions/{id}/actions/batch": { post: { summary: "Run a bounded ordered action batch" } },
-      "/v1/activity": { get: { summary: "Read the bounded activity ledger" } },
-      "/v1/activity/stream": { get: { summary: "Stream activity over SSE" } },
-      "/v1/metrics": { get: { summary: "Prometheus metrics" } },
-      "/v1/profiles": { get: { summary: "List runtime-owned persistent browser profiles" } },
-      "/v1/jobs": { get: { summary: "List visible bounded jobs" }, post: { summary: "Queue one bounded browser job" } },
-      "/v1/jobs/{id}": { get: { summary: "Inspect one bounded browser job" } },
-      "/v1/jobs/{id}/cancel": { post: { summary: "Cancel one queued or running job" } }
+      "/v1/health": { get: operation("getHealth", "Runtime, session, and evidence health") },
+      "/v1/capabilities": { get: operation("listCapabilities", "Machine-readable product capabilities") },
+      "/v1/engines": { get: operation("listEngineCapabilities", "Machine-readable per-engine capability negotiation") },
+      "/v1/openapi.json": { get: operation("getOpenApi", "This authenticated OpenAPI route index") },
+      "/v1/metrics": { get: operation("getMetrics", "Prometheus metrics") },
+      "/v1/errors": { get: operation("listErrors", "List actor-scoped failed or denied actions") },
+      "/v1/jobs": {
+        get: operation("listJobs", "List visible bounded jobs", "200", { "x-cockroach-option": "enableJobs" }),
+        post: operation("enqueueJob", "Queue one bounded browser job", "202", { "x-cockroach-option": "enableJobs and allowRawActions" })
+      },
+      "/v1/jobs/{id}": {
+        parameters: [jobParameter],
+        get: operation("getJob", "Inspect one bounded browser job", "200", { "x-cockroach-option": "enableJobs" })
+      },
+      "/v1/jobs/{id}/cancel": {
+        parameters: [jobParameter],
+        post: operation("cancelJob", "Cancel one queued or running job", "200", { "x-cockroach-option": "enableJobs" })
+      },
+      "/v1/profiles": {
+        get: operation("listPersistentProfiles", "List runtime-owned persistent browser profiles", "200", { "x-cockroach-role": "admin" })
+      },
+      "/v1/profiles/{name}": {
+        parameters: [profileParameter],
+        post: operation("createPersistentProfile", "Prepare a runtime-owned persistent profile", "201", { "x-cockroach-role": "admin" }),
+        delete: operation("archivePersistentProfile", "Archive a runtime-owned persistent profile", "200", { "x-cockroach-role": "admin" })
+      },
+      "/v1/sessions": {
+        get: operation("listSessions", "List actor-visible admitted sessions"),
+        post: operation("createSession", "Create a host-authorized admitted session", "201")
+      },
+      "/v1/activity": { get: operation("listActivity", "Read the actor-scoped bounded activity ledger") },
+      "/v1/activity/stream": { get: operation("streamActivity", "Stream actor-scoped activity over SSE") },
+      "/v1/sessions/{id}": {
+        parameters: [sessionParameter],
+        get: operation("getSession", "Read one admitted session"),
+        delete: operation("closeSession", "Close one owned session and remove its access record")
+      },
+      "/v1/sessions/{id}/resources": {
+        parameters: [sessionParameter],
+        get: operation("getSessionResources", "Read a fresh owned-browser process resource sample")
+      },
+      "/v1/sessions/{id}/navigation-graph": {
+        parameters: [sessionParameter],
+        get: operation("getNavigationGraph", "Read the bounded navigation graph")
+      },
+      "/v1/sessions/{id}/access": {
+        parameters: [sessionParameter],
+        get: operation("getSessionAccess", "Read session ownership and grants", "200", { "x-cockroach-option": "teamSessions" })
+      },
+      "/v1/sessions/{id}/access/grant": {
+        parameters: [sessionParameter],
+        post: operation("grantSessionAccess", "Grant viewer or operator access", "200", { "x-cockroach-option": "teamSessions" })
+      },
+      "/v1/sessions/{id}/access/revoke": {
+        parameters: [sessionParameter],
+        post: operation("revokeSessionAccess", "Revoke actor access", "200", { "x-cockroach-option": "teamSessions" })
+      },
+      "/v1/sessions/{id}/actions": {
+        parameters: [sessionParameter],
+        post: operation("runAction", "Run one exact policy-evaluated action", "200", { "x-cockroach-option": "allowRawActions" })
+      },
+      "/v1/sessions/{id}/actions/batch": {
+        parameters: [sessionParameter],
+        post: operation("runActionBatch", "Run a bounded ordered action batch", "200", { "x-cockroach-option": "allowRawActions" })
+      },
+      "/v1/sessions/{id}/snapshot": {
+        parameters: [sessionParameter],
+        post: operation("captureSnapshot", "Capture a bounded semantic snapshot")
+      },
+      "/v1/sessions/{id}/capture": {
+        parameters: [sessionParameter],
+        post: operation("capturePairedEvidence", "Capture paired visual and semantic evidence")
+      },
+      "/v1/sessions/{id}/network": {
+        parameters: [sessionParameter],
+        post: operation("inspectNetwork", "Inspect the bounded redacted network ledger")
+      },
+      "/v1/sessions/{id}/network/export": {
+        parameters: [sessionParameter],
+        post: operation("exportNetwork", "Export bounded network observations as evidence")
+      },
+      "/v1/sessions/{id}/audit": {
+        parameters: [sessionParameter],
+        post: operation("auditSession", "Run bounded read-only page audits")
+      },
+      "/v1/sessions/{id}/compare": {
+        parameters: [sessionParameter],
+        post: operation("compareSession", "Compare a page screenshot with a host baseline")
+      },
+      "/v1/sessions/{id}/challenge/resume": {
+        parameters: [sessionParameter],
+        post: operation("resumeChallenge", "Recheck a session after authorized human handling")
+      },
+      "/v1/evidence": { get: operation("listEvidence", "List actor-visible evidence metadata") },
+      "/v1/evidence/verify": { get: operation("verifyEvidence", "Verify the evidence and receipt hash chains") },
+      "/v1/artifacts/{id}": {
+        parameters: [artifactParameter],
+        get: operation("downloadArtifact", "Download an authorized evidence artifact")
+      }
     }
   };
 }
@@ -674,9 +984,34 @@ function sendError(
 
 function statusFor(code: string): number {
   if (code.includes("NOT_FOUND")) return 404;
-  if (code.includes("UNAUTHORIZED") || code.includes("APPROVAL") || code === "DIRECT_ACTION_DISABLED") return 403;
+  if (
+    code.includes("UNAUTHORIZED")
+    || code.includes("APPROVAL")
+    || code.endsWith("_ADMIN_REQUIRED")
+    || code === "DIRECT_ACTION_DISABLED"
+  ) return 403;
+  if (code === "SESSION_GLOBAL_LIMIT_EXCEEDED" || code === "SESSION_ACTOR_LIMIT_EXCEEDED") return 429;
   if (code.includes("DENIED") || code.includes("REQUIRED") || code.includes("INVALID") || code.includes("EXCEEDED")) return 400;
   return 409;
+}
+
+function serverSessionCeiling(value: number | undefined, fallback: number, name: string, code: string): number {
+  const ceiling = value ?? fallback;
+  if (!Number.isSafeInteger(ceiling) || ceiling < 1 || ceiling > 10_000) {
+    throw new CockroachBrowserError(code, `${name} must be an integer between 1 and 10000.`);
+  }
+  return ceiling;
+}
+
+function serverRequestByteLimit(value: number | undefined): number {
+  const limit = value ?? 1_048_576;
+  if (!Number.isSafeInteger(limit) || limit < 1_024 || limit > 16_777_216) {
+    throw new CockroachBrowserError(
+      "MAX_REQUEST_BYTES_INVALID",
+      "maxRequestBytes must be an integer between 1024 and 16777216."
+    );
+  }
+  return limit;
 }
 
 function assertSessionAuthority(input: SessionCreateInput, allowHostConfiguration: boolean): void {

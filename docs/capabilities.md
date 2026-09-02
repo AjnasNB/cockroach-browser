@@ -12,6 +12,8 @@ This file is generated from `src/capabilities.ts`.
 | `sessions.executable` | sessions | Custom browser executable | **available** | `engine and executablePath` |
 | `sessions.discovery` | sessions | Cross-platform browser discovery | **available** | `browser discover and discoverBrowserExecutables` |
 | `sessions.providers` | sessions | Explicit browser providers | **available** | `browserProvider` |
+| `sessions.lightweight_cdp` | sessions | Runtime-owned lightweight CDP engine | **adapter** | `browserProvider.kind=lightweight and /v1/engines` |
+| `sessions.engine_negotiation` | sessions | Machine-readable engine negotiation | **available** | `/v1/engines and browser_engine_preflight` |
 | `sessions.raw_playwright` | sessions | Complete raw Playwright API | **available** | `cockroach-browser/automation` |
 | `sessions.raw_puppeteer` | sessions | Complete raw Puppeteer Core API | **available** | `cockroach-browser/puppeteer` |
 | `sessions.raw_cdp` | sessions | Raw Chrome DevTools Protocol sessions | **available** | `cockroach-browser/cdp` |
@@ -26,7 +28,7 @@ This file is generated from `src/capabilities.ts`.
 | `sessions.clipboard` | sessions | Policy-gated clipboard | **available** | `clipboard.*` |
 | `sessions.proxy` | sessions | User-supplied proxy | **available** | `proxy` |
 | `sessions.locale` | sessions | Locale and timezone | **available** | `locale/timezoneId` |
-| `sessions.emulation` | sessions | Device and network emulation | **available** | `emulation.set/clear` |
+| `sessions.emulation` | sessions | Bounded page emulation | **available** | `emulation.set/clear` |
 | `sessions.raw_emulation` | sessions | Complete upstream emulation controls | **available** | `cockroach-browser/automation and cockroach-browser/puppeteer` |
 | `tabs.multiple` | interaction | Tabs and popups | **available** | `tab.*` |
 | `tabs.lock` | interaction | Exclusive tab locks | **available** | `tab.lock/unlock/status` |
@@ -74,7 +76,8 @@ This file is generated from `src/capabilities.ts`.
 | `evidence.network_inspect` | evidence | Network inspection | **available** | `network.inspect and browser_network` |
 | `evidence.network_export` | evidence | Network export | **available** | `network.export` |
 | `evidence.receipts` | evidence | Hash-chained receipts | **available** | `ActionReceipt` |
-| `evidence.extract` | evidence | Text and HTML extraction | **available** | `extract` |
+| `evidence.extract` | evidence | Text and raw HTML extraction | **available** | `extract` |
+| `evidence.extract_structured` | evidence | Sanitized structured extraction | **available** | `extract.structured` |
 | `evidence.coverage` | evidence | JavaScript and CSS coverage | **available** | `cockroach-browser/puppeteer Page.coverage` |
 | `evidence.heap` | evidence | Heap snapshots and runtime object queries | **available** | `cockroach-browser/cdp and cockroach-browser/puppeteer` |
 | `evidence.screencast` | evidence | Screencasting, metrics, and profiling | **available** | `cockroach-browser/cdp and cockroach-browser/puppeteer` |
@@ -95,7 +98,7 @@ This file is generated from `src/capabilities.ts`.
 | `security.effects` | security | Effect-level policy | **available** | `allowedEffects` |
 | `security.budgets` | security | Finite budgets | **available** | `budget` |
 | `security.process_resources` | security | Owned browser process-tree governor | **available** | `session resources, CLI, dashboard, and Prometheus` |
-| `security.network_routes` | security | Policy-bounded network routes | **available** | `network.route.*` |
+| `security.network_routes` | security | Policy-bounded HTTP routes | **available** | `network.route.*` |
 | `security.approvals` | security | Exact action approvals | **adapter** | `MaqamApprovalProvider` |
 | `security.secrets` | security | Secret references | **adapter** | `SecretResolver` |
 | `deploy.cli` | deployment | Command-line interface | **available** | `cockroach-browser` |
@@ -134,6 +137,6 @@ This file is generated from `src/capabilities.ts`.
 
 ## Status model
 
-- **available**: implemented in Cockroach Browser 0.4.1
+- **available**: implemented on current `main` for the next release; this does not by itself prove publication in Cockroach Browser 0.5.0-rc.1
 - **adapter**: integration contract is present, but another package or host authority is required
-- **planned**: documented direction, not part of the current release
+- **planned**: documented direction, not implemented in the current source tree

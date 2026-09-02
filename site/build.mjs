@@ -19,10 +19,12 @@ import { htmlToPlainText } from "./plain-text.mjs";
 
 const root = resolve(import.meta.dirname);
 const sourceRoot = resolve(root, "..");
+const siteOnly = process.env.COCKROACH_BROWSER_SITE_ONLY === "1";
 
 const capabilities = parseCapabilities(await readFile(resolve(sourceRoot, "src/capabilities.ts"), "utf8"));
 const actionKinds = parseActionKinds(await readFile(resolve(sourceRoot, "src/contracts.ts"), "utf8"));
 const apiSurface = JSON.parse(await readFile(resolve(sourceRoot, "docs/compatibility/browser-api-surface.json"), "utf8"));
+const publicSchemaFiles = ["action.schema.json", "browser-memory.schema.json", "session.schema.json"];
 const capabilityCounts = capabilities.reduce(
   (counts, capability) => {
     counts[capability.status] += 1;
@@ -57,23 +59,33 @@ await writePage("use-cases/index.html", useCasesPage());
 await writePage("browser-vs-crawler/index.html", browserVsCrawlerPage());
 await writePage("api-surface/index.html", apiSurfacePage());
 await writePage("api/browser-api-surface.json", `${JSON.stringify(apiSurface, null, 2)}\n`);
+await mkdir(resolve(root, "schemas"), { recursive: true });
+for (const schemaFile of publicSchemaFiles) {
+  await copyFile(resolve(sourceRoot, "schemas", schemaFile), resolve(root, "schemas", schemaFile));
+}
 await writePage("docs/index.html", docsIndex());
 for (const page of pages) {
   await writePage(`docs/${page.slug}/index.html`, manualPage(page));
-  await writeRootDoc(`${page.slug}.md`, markdownManual(page));
+  if (!siteOnly) await writeRootDoc(`${page.slug}.md`, markdownManual(page));
 }
 await writePage("docs/capabilities/index.html", capabilityPage());
-await writeRootDoc("capabilities.md", capabilityMarkdown());
-await writeRootDoc("README.md", docsReadme());
+if (!siteOnly) {
+  await writeRootDoc("capabilities.md", capabilityMarkdown());
+  await writeRootDoc("README.md", docsReadme());
+}
 await writePage("alternatives/index.html", alternativesPage());
 await writePage("ecosystem/index.html", ecosystemPage());
 await writePage("dashboard/index.html", publicDashboard());
 await writePage("paper/index.html", publicationPage());
 await mkdir(resolve(root, "paper"), { recursive: true });
-await copyFile(
-  resolve(sourceRoot, "docs", "Cockroach-Browser-Technical-White-Paper-v1.1.pdf"),
-  resolve(root, "paper", "Cockroach-Browser-Technical-White-Paper-v1.1.pdf")
-);
+for (const paperFile of [
+  "Cockroach-Browser-Technical-White-Paper-v1.2.pdf",
+  "Cockroach-Browser-Technical-White-Paper-v1.2.sha256",
+  "Cockroach-Browser-Technical-White-Paper-v1.2-build.json",
+  "Cockroach-Browser-Technical-White-Paper-v1.1.pdf"
+]) {
+  await copyFile(resolve(sourceRoot, "docs", paperFile), resolve(root, "paper", paperFile));
+}
 await writePage("404.html", notFound());
 await writePage("robots.txt", `User-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: Claude-SearchBot\nAllow: /\n\nUser-agent: Claude-User\nAllow: /\n\nUser-agent: PerplexityBot\nAllow: /\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: ClaudeBot\nDisallow: /\n\nUser-agent: Google-Extended\nDisallow: /\n\nUser-agent: *\nAllow: /\n\nSitemap: ${site.origin}/sitemap.xml\n`);
 await writePage("sitemap.xml", sitemap());
@@ -106,14 +118,18 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 - [Alternatives and current gaps](${site.origin}/alternatives/)
 - [Complete documentation](${site.origin}/docs/)
 
-## Shipped surface in ${site.version}
+## Current main / next-release source surface
+This inventory is generated from the current source tree. It does not claim that source-only additions have already been published in Cockroach Browser ${site.version}.
+
 - ${capabilityCounts.available} directly available runtime and deployment surfaces
 - ${capabilityCounts.adapter} optional adapter-backed surfaces
 - ${actionKinds.length} typed browser actions derived from src/contracts.ts
 - ${actionKinds.length} bounded browser actions in the policy-evaluated runtime
-- OpenAI-compatible model gateway and finite-step browser agent
-- Chromium, Firefox, or WebKit execution in the bounded runtime
-- Real Chromium, Firefox, and WebKit in headed or headless mode
+- OpenAI-compatible model gateway with independent request/response byte ceilings and finite-step browser agent with bounded context/tool output
+- Daemon admission defaults to 32 non-closed sessions globally and 8 per actor, with concurrency-safe pending reservations and stable HTTP 429 codes
+- Full-fidelity Chromium, Firefox, or WebKit execution in headed or headless mode
+- Experimental runtime-owned Obscura execution for compatible non-visual DOM/JavaScript actions under visual-action preflight; Lightpanda manifest and preflight only
+- Machine-readable engine manifests at /v1/engines plus browser_engines and browser_engine_preflight through MCP
 - Complete pinned Playwright and Puppeteer Core exports, Playwright Test, code generation, raw CDP, and raw WebDriver BiDi
 - Semantic snapshots and snapshot-scoped references
 - Tabs, forms, keyboard, pointer, drag, files, dialogs, profiles, state, and downloads
@@ -125,6 +141,10 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 - No Cockroach-operated elastic browser fleet, residential proxy network, static-IP inventory, billing platform, or hosted live-view service
 - No covert stealth or bundled CAPTCHA bypass engine; provider challenge services remain explicit operator-selected adapters
 - No cross-product task-success benchmark or universal autonomous recovery claim
+- No whole-app, coordinator, rendered-page, full-browser, or arbitrary-page memory claim; the frozen RC1 Obscura 0.2.1 non-visual fixture passed 30 MiB at a 29,622,272-byte maximum, or 28.25 MiB, and failed 25 MiB at a 29,679,616-byte maximum, or 28.30 MiB
+- The frozen proof retains 478 observations for the 30 MiB target and 480 for the 25 MiB target, for 958 total observations
+- RC1 artifacts: obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json SHA-256 f90b31d6f5d5096300ac2722ed835db0483a76dc4d51ee85e86604a6634c0aa7; obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json SHA-256 581eb93577d6b52c71e02d7e0b71914f88acd0920a6e0e06925aae0a4575d2df
+- RC1 source tree SHA-256 fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279; runtime build SHA-256 6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025; benchmark harness SHA-256 08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86
 - Non-TypeScript SDKs are authenticated daemon clients, not reimplementations of every upstream browser object
 
 ## External-service boundary
@@ -150,11 +170,11 @@ await writePage(
 
 ${site.description}
 
-Cockroach Browser is the AjnasNB browser automation project at cockroachbrowser.com. The bounded runtime launches Chromium, Firefox, or WebKit. Separate unrestricted modules re-export the complete pinned Playwright and Puppeteer Core APIs, Playwright Test, raw CDP, raw WebDriver BiDi, and mobile WebDriver/Appium transport. Cockroach Crawler is a separate public-web acquisition product.
+Cockroach Browser is the AjnasNB browser automation project at cockroachbrowser.com. Its full-fidelity bounded lane launches Chromium, Firefox, or WebKit. Its separate experimental lightweight lane can launch a pinned Obscura process for compatible non-visual DOM and JavaScript actions under visual-action preflight; this policy does not assert that the engine renderer is disabled. Lightpanda is manifest/preflight only on current main. Separate unrestricted modules re-export the complete pinned Playwright and Puppeteer Core APIs, Playwright Test, raw CDP, raw WebDriver BiDi, and mobile WebDriver/Appium transport. Cockroach Crawler is a separate public-web acquisition product.
 
 ## AI-agent integration
 
-Cockroach Browser includes an optional OpenAI-compatible model gateway and a finite-step browser agent over semantic snapshots, exact actions, evidence, and receipts. A host may instead use its own agent through MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API.
+Cockroach Browser includes an optional OpenAI-compatible model gateway with independent request/response byte ceilings and a finite-step browser agent with bounded context, bounded tool output, optional cited history, semantic snapshots, exact actions, evidence, and receipts. Retrieved history is labeled untrusted observation, not instruction or authority. A host may instead use its own agent through MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API.
 
 ## ${actionKinds.length} bounded browser actions
 
@@ -403,12 +423,11 @@ function footer() {
 }
 
 function homePage() {
-  const proof = [
-    [capabilities.length, "mapped capabilities"],
-    [capabilityCounts.available, "available runtime surfaces"],
-    [capabilityCounts.adapter, "adapter-backed surfaces"],
-    [capabilityCounts.planned, "planned surfaces"]
-  ].map(([value, label]) => `<div class="proof"><strong>${value}</strong><span>${label}</span></div>`).join("");
+  const benchmarkRecord = `${site.repository}/blob/main/docs/benchmarks/obscura-non-visual-2026-09-03.md`;
+  const artifact30Name = "obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json";
+  const artifact25Name = "obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json";
+  const artifact30Url = `${site.repository}/blob/main/docs/benchmarks/artifacts/${artifact30Name}`;
+  const artifact25Url = `${site.repository}/blob/main/docs/benchmarks/artifacts/${artifact25Name}`;
   return `${baseHead({
     title: "AI browser automation",
     description: site.description,
@@ -418,72 +437,227 @@ function homePage() {
 <body>
 ${header("home")}
 <main id="main">
-  <section class="shell hero">
+  <section class="shell hero home-hero">
     <div class="hero-copy-column">
-      <img class="hero-mark" src="/assets/logo.png" alt="Cockroach Browser AI browser automation logo" width="180" height="180">
-      <p class="eyebrow">Lightweight browser runtime for AI agents</p>
+      <div class="hero-identity">
+        <img class="hero-mark" src="/assets/logo.png" alt="Cockroach Browser AI browser automation logo" width="180" height="180">
+        <span>Release candidate ${site.version}</span>
+      </div>
+      <p class="eyebrow">Governed browser execution for AI agents</p>
       <h1>${homepage.title}</h1>
       <p class="hero-copy">${homepage.lede}</p>
       <div class="hero-actions">
-        <a class="button button--primary" href="/install/">Install Cockroach Browser</a>
-        <a class="button" href="/features/">Explore every Browser feature</a>
+        <a class="button button--primary" href="#quickstart">Run ${site.version}</a>
+        <a class="button" href="${benchmarkRecord}">Inspect the measured proof</a>
       </div>
       <div class="hero-boundary" aria-label="Default authority boundary">
-        <span>Real Chromium</span><span>${actionKinds.length} typed actions</span><span>MCP + SDK + API</span><span>${capabilities.length} mapped capabilities</span>
+        <span>Chromium + Firefox + WebKit</span><span>Experimental Obscura lane</span><span>${actionKinds.length} typed actions</span><span>MCP + SDK + API</span>
       </div>
-      <p class="release-note">Free and open-source npm package under AGPL-3.0-or-later. Price: $0.</p>
+      <p class="release-note">Open source under AGPL-3.0-or-later. Price: $0. No hosted browser, proxy network, or CAPTCHA bypass is claimed.</p>
     </div>
+    <aside class="benchmark-panel" aria-labelledby="benchmark-title">
+      <div class="benchmark-panel__head"><span id="benchmark-title">Measured lightweight result</span><strong>PASS</strong></div>
+      <p class="benchmark-value"><strong>28.25</strong><span>MiB</span></p>
+      <p class="benchmark-definition">Maximum complete owned Obscura browser process-tree RSS in the pinned 30 MiB non-visual fixture.</p>
+      <dl class="benchmark-facts">
+        <div><dt>Exact maximum</dt><dd>29,622,272 bytes</dd></div>
+        <div><dt>Measured launches</dt><dd>20</dd></div>
+        <div><dt>Retained observations</dt><dd>478</dd></div>
+        <div><dt>Engine</dt><dd>Obscura 0.2.1</dd></div>
+        <div><dt>Target verdict</dt><dd>30 MiB PASS</dd></div>
+        <div><dt>Recorded</dt><dd>2026-09-03</dd></div>
+      </dl>
+      <p class="scope-warning"><strong>Scope:</strong> owned browser process tree only. This is not whole-app memory and does not cover the Node coordinator, arbitrary pages, rendered pages, or full browsers.</p>
+      <a class="text-link" href="${benchmarkRecord}">Open method, raw artifact hashes, and limits</a>
+    </aside>
   </section>
-  <section class="shell hero-runtime-section" aria-label="Local runtime preview">
-    <div class="hero-runtime">
-      <div class="terminal" aria-label="Cockroach Browser terminal example">
-        <pre data-terminal-output><span class="prompt">$</span> npm i -g cockroach-browser
+
+  <section class="section section--compact" id="quickstart">
+    <div class="shell">
+      <div class="section-head section-head--indexed">
+        <p class="section-index">01 / RUN IT</p>
+        <div><h2>Install, diagnose, then verify the claim.</h2><p>Use the release candidate for the runtime. Use the repository verifier to bind the checked-in benchmark artifacts to their source, binary digest, narrative, and exact pass and fail verdicts.</p></div>
+      </div>
+      <div class="quickstart-grid">
+        <article class="command-panel">
+          <header><div><span>Terminal</span><strong>Install and diagnose</strong></div><button type="button" data-copy="#quickstart-install">Copy</button></header>
+          <pre id="quickstart-install"><span class="prompt">$</span> npm install --global cockroach-browser@${site.version}
 <span class="prompt">$</span> cockroach-browser bootstrap
 <span class="prompt">$</span> cockroach-browser doctor</pre>
-        <div class="terminal-status"><span>Loopback</span><span>Token auth</span><span>Evidence on</span></div>
+          <footer><span>Local first</span><span>Loopback default</span><span>Token authenticated</span></footer>
+        </article>
+        <article class="command-panel command-panel--proof">
+          <header><div><span>Repository</span><strong>Verify checked-in proof</strong></div><button type="button" data-copy="#quickstart-proof">Copy</button></header>
+          <pre id="quickstart-proof"><span class="prompt">$</span> git clone ${site.repository}.git
+<span class="prompt">$</span> cd cockroach-browser
+<span class="prompt">$</span> npm ci
+<span class="prompt">$</span> npm run verify:lightweight-proof</pre>
+          <footer><a href="${artifact30Url}">30 MiB artifact</a><a href="${artifact25Url}">25 MiB artifact</a></footer>
+        </article>
       </div>
     </div>
   </section>
-  <section class="shell proof-strip" aria-label="Product surface">${proof}</section>
+
   <section class="section">
     <div class="shell">
-      <div class="section-head">
-        <h2>Connect. Observe. Interact. Capture. Continue.</h2>
-        <p>Cockroach Browser gives a host AI agent a direct, structured route from semantic page state to a real Chromium, Firefox, or WebKit action and a reviewable result.</p>
+      <div class="section-head section-head--indexed">
+        <p class="section-index">02 / ROUTE</p>
+        <div><h2>Two execution lanes. One explicit capability contract.</h2><p>Choose from machine-readable support data before launch. Cockroach Browser does not silently trade fidelity for memory inside a governed session.</p></div>
       </div>
-      <div class="workflow">
-        <article><b>01</b><h3>Connect</h3><p>Use MCP, BrowserRuntime, BrowserClient, the authenticated HTTP API, or the CLI.</p></article>
-        <article><b>02</b><h3>Observe</h3><p>Capture visible text, page state, roles, accessible names, frames, and snapshot-scoped references.</p></article>
-        <article><b>03</b><h3>Interact</h3><p>Navigate, use forms, tabs, keyboard, pointer, drag, files, dialogs, downloads, and exact element targets.</p></article>
-        <article><b>04</b><h3>Capture</h3><p>Keep screenshots, PDFs, paired captures, traces, HAR, video, console, network, audits, and visual diffs.</p></article>
-        <article><b>05</b><h3>Continue</h3><p>Return structured outcomes and receipt hashes to the host agent, then refresh page state before the next step.</p></article>
+      <div class="lane-grid">
+        <article class="lane-card lane-card--full">
+          <div class="lane-card__label"><span>Lane A</span><strong>Full fidelity</strong></div>
+          <h3>Chromium, Firefox, and WebKit</h3>
+          <p>Use the full engines when the job requires rendered behavior, screenshots, PDFs, traces, HAR, video, frames, uploads, downloads, profiles, extensions, or upstream operator APIs.</p>
+          <ul><li>Headless or headed sessions</li><li>Complete pinned Playwright and Puppeteer Core re-exports</li><li>Semantic snapshots, actions, evidence, and receipts</li></ul>
+          <a class="text-link" href="/docs/sessions/">Configure a full-engine session</a>
+        </article>
+        <article class="lane-card lane-card--light">
+          <div class="lane-card__label"><span>Lane B</span><strong>Measured lightweight</strong></div>
+          <h3>Experimental Obscura for compatible non-visual work</h3>
+          <p>Use the separately installed, digest-pinned provider only after exact capability preflight. Compatible work includes bounded navigation, JavaScript, DOM inspection, forms, and structured extraction.</p>
+          <ul><li>Explicit experimental opt-in</li><li>Visual actions denied by Cockroach policy</li><li>Lightpanda remains manifest and preflight only</li></ul>
+          <a class="text-link" href="/docs/sessions/#negotiate-the-engine-before-launch">Inspect engine negotiation</a>
+        </article>
+      </div>
+      <p class="lane-rule"><strong>Routing rule:</strong> use the lightweight lane only when every required capability is admitted. Use a full engine for visual output, browser fidelity, persistent state, or unsupported work.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-head section-head--indexed">
+        <p class="section-index">03 / PREFLIGHT</p>
+        <div><h2>Unsupported work fails before launch.</h2><p>Inspect exact engine capabilities without creating a session. Supported requirements pass. Experimental requirements need explicit acceptance. Unsupported requirements always reject.</p></div>
+      </div>
+      <div class="preflight-grid">
+        <article class="command-panel command-panel--code">
+          <header><div><span>TypeScript</span><strong>Exact action preflight</strong></div><button type="button" data-copy="#preflight-code">Copy</button></header>
+          <pre id="preflight-code">import { preflightEngineActions } from "cockroach-browser";
+
+const check = preflightEngineActions({
+  engine: "obscura",
+  actions: ["navigate", "extract.structured"]
+});
+
+if (!check.ok) {
+  console.error(check.unmet);
+}</pre>
+        </article>
+        <ol class="preflight-rules">
+          <li><span class="state state--supported">supported</span><div><strong>Admitted</strong><p>The exact engine requirement is implemented for that lane.</p></div></li>
+          <li><span class="state state--experimental">experimental</span><div><strong>Denied by default</strong><p>Set <code>allowExperimental: true</code> only after the host accepts the boundary.</p></div></li>
+          <li><span class="state state--unsupported">unsupported</span><div><strong>Always rejected</strong><p>Choose another engine. Preflight never silently changes lanes.</p></div></li>
+        </ol>
+      </div>
+      <div class="preflight-surfaces"><span><code>GET /v1/engines</code></span><span><code>BrowserClient.engines()</code></span><span><code>browser_engines</code></span><span><code>browser_engine_preflight</code></span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-head section-head--indexed">
+        <p class="section-index">04 / GOVERN</p>
+        <div><h2>Authority, action, evidence, and memory stay distinct.</h2><p>The runtime keeps browser execution bounded and reviewable. Optional integrations add approval or cited project memory without inheriting browser authority.</p></div>
+      </div>
+      <div class="governance-path" aria-label="Governed browser action path">
+        <article><b>01</b><span>Session contract</span><p>Owner, purpose, origins, actions, effects, credentials, and finite budgets.</p></article>
+        <article><b>02</b><span>Browser dispatch</span><p>One typed action against one admitted engine and session.</p></article>
+        <article><b>03</b><span>Evidence record</span><p>Structured outcome, artifact IDs, input and output digests, and receipt hash.</p></article>
+        <article><b>04</b><span>Optional cited memory</span><p>Qarinah receives versioned metadata through a host-supplied sink. It cannot dispatch actions.</p></article>
+      </div>
+      <div class="governance-notes">
+        <article><span class="tag">Maqam</span><h3>Approval when consequence demands it</h3><p>A separately configured Maqam adapter can own exact approval, replay protection, dispatch, and governance receipts for selected browser operations.</p><a class="text-link" href="/docs/maqam/">Review the approval boundary</a></article>
+        <article><span class="tag">Qarinah</span><h3>Cited history without ambient authority</h3><p>The optional adapter emits metadata-only outcomes with evidence IDs and receipt hashes. Retrieved history is untrusted observation, not instruction or authorization.</p><a class="text-link" href="/docs/qarinah/">Review the memory boundary</a></article>
       </div>
     </div>
   </section>
+
   <section class="section">
     <div class="shell">
-      <div class="section-head">
-        <h2>One Browser runtime. Four practical jobs.</h2>
-        <p>The homepage stays focused on Cockroach Browser: stateful automation, AI-agent control, evidence, and operator deployment.</p>
+      <div class="section-head section-head--indexed">
+        <p class="section-index">05 / CONNECT</p>
+        <div><h2>Keep the browser surface your tools already expect.</h2><p>Use governed sessions for agent work or import the complete pinned upstream operator APIs when unrestricted library compatibility is the job.</p></div>
       </div>
-      <div class="stack-grid">
-        <article><span class="tag">Automate</span><h3>Stateful web applications</h3><p>Use profiles, tabs, semantic refs, forms, input, files, downloads, dialogs, and JavaScript rendering.</p><a href="/use-cases/">Explore use cases</a></article>
-        <article><span class="tag">Connect</span><h3>AI and coding agents</h3><p>Expose Browser observation and action tools through MCP, TypeScript, HTTP, or CLI without bundling a model.</p><a href="/ai-agents/">AI-agent integration</a></article>
-        <article><span class="tag">Inspect</span><h3>QA and diagnostics</h3><p>Capture screenshots, PDFs, traces, HAR, video, console, network, accessibility, performance, assets, and visual diffs.</p><a href="/features/">Feature inventory</a></article>
-        <article><span class="tag">Operate</span><h3>Local or owned workers</h3><p>Run a loopback daemon, Docker worker, dashboard, metrics, activity stream, team roles, jobs, or a capacity-aware worker pool.</p><a href="/install/">Installation options</a></article>
+      <div class="compatibility-grid">
+        <article class="compatibility-card compatibility-card--engines"><span>Full engines</span><h3>Chromium, Firefox, WebKit</h3><p>Headless or headed sessions through the bounded runtime.</p></article>
+        <article class="compatibility-card"><span>Operator APIs</span><h3>Playwright and Puppeteer Core</h3><p>Complete re-exports from the exact pinned declaration sets, kept separate from bounded policy claims.</p><a href="/api-surface/">Browse the generated API inventory</a></article>
+        <article class="compatibility-card"><span>Agent and app clients</span><h3>MCP, TypeScript, HTTP, CLI</h3><p>Plus authenticated Python, Java, .NET, Ruby, and Go daemon clients.</p></article>
+        <article class="compatibility-card"><span>Protocols</span><h3>CDP, WebDriver BiDi, mobile WebDriver</h3><p>Explicit CDP attachment, raw BiDi transport, and Appium-compatible mobile transport.</p></article>
+      </div>
+      <div class="compatibility-source"><span>${apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.owners, 0)} generated class and interface owners</span><span>${apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.groupedOwnerMembers, 0)} grouped members</span><span>${apiSurface.packages.reduce((sum, pkg) => sum + pkg.summary.ownerMemberSignatures, 0)} signatures</span><a href="/api/browser-api-surface.json">Machine-readable inventory</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-head section-head--indexed">
+        <p class="section-index">06 / DEPLOY</p>
+        <div><h2>Start local. Move only into infrastructure you control.</h2><p>The package ships runtime and operator surfaces, not a Cockroach-operated browser cloud. Choose the deployment shape that matches your host, evidence, and capacity boundary.</p></div>
+      </div>
+      <div class="deployment-grid">
+        <article><b>01</b><h3>Embedded runtime</h3><p>Construct <code>BrowserRuntime</code> inside a TypeScript process and keep orchestration in the host.</p></article>
+        <article><b>02</b><h3>Loopback daemon</h3><p>Run the authenticated local API, dashboard, metrics, jobs, and activity stream on the operator machine.</p></article>
+        <article><b>03</b><h3>Owned container</h3><p>Package a Docker worker with explicit storage, memory, shared-memory, and network boundaries.</p></article>
+        <article><b>04</b><h3>Reviewed worker pool</h3><p>Route to healthy authenticated workers by declared capacity, weight, and tags. Keep profiles local to their owner.</p></article>
+      </div>
+      <div class="hero-actions"><a class="button button--primary" href="/install/">Choose an install path</a><a class="button" href="/docs/deployment/">Read deployment controls</a></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="section-head section-head--indexed">
+        <p class="section-index">07 / APPLY</p>
+        <div><h2>Built around the jobs browser operators repeat.</h2><p>The same runtime can serve agent interaction, release evidence, stateful local workflows, and owned browser infrastructure without pretending those jobs have one universal engine.</p></div>
+      </div>
+      <div class="use-case-ledger">
+        <article><span>AI agent builders</span><h3>Observe, target, act, and return a cited result</h3><p>Give a planner bounded semantic snapshots, snapshot-scoped references, typed actions, challenge state, and receipt-linked outcomes.</p><a href="/ai-agents/">Connect an agent</a></article>
+        <article><span>QA and release engineering</span><h3>Keep visual and diagnostic evidence together</h3><p>Capture screenshots, PDFs, paired captures, traces, HAR, video, console, network, audits, and visual diffs on full engines.</p><a href="/features/">Inspect evidence features</a></article>
+        <article><span>Local and controlled environments</span><h3>Automate stateful applications without a hosted dependency</h3><p>Use named isolated profiles, storage checkpoints, files, downloads, forms, tabs, and explicit secrets in your own process or worker.</p><a href="/use-cases/">Explore workflow patterns</a></article>
+        <article><span>Browser platform maintainers</span><h3>Expose one governed contract across several engines</h3><p>Preflight capabilities, enforce per-session budgets, monitor workers, and retain machine-readable evidence for each admitted operation.</p><a href="/docs/operator-runtime/">Operate the runtime</a></article>
       </div>
     </div>
   </section>
-  <section class="section">
+
+  <section class="section proof-limits">
     <div class="shell">
-      <div class="section-head">
-        <h2>Challenges are a handoff, not a bypass target.</h2>
-        <p>The runtime detects login, consent, CAPTCHA, and access challenges, records the state, pauses automation, and waits for a human or authorized resolver. It does not defeat site controls or claim access after a site denies it.</p>
+      <div class="section-head section-head--indexed">
+        <p class="section-index">08 / VERIFY</p>
+        <div><h2>Exact proof, including the failed target.</h2><p>The 30 MiB fixture passed. The 25 MiB fixture did not. Together they preserve 958 raw process-tree observations, every measured launch, conformance checks, source identity, and artifact digests.</p></div>
       </div>
-      <div class="hero-actions">
-        <a class="button button--primary" href="/docs/security/">Read the security model</a>
-        <a class="button" href="/use-cases/">Choose a Browser use case</a>
+      <div class="proof-limit-grid">
+        <div class="proof-table-wrap">
+          <table class="proof-table">
+            <caption>Obscura 0.2.1 constrained non-visual fixture recorded 2026-09-03</caption>
+            <thead><tr><th scope="col">Target</th><th scope="col">Verdict</th><th scope="col">Min</th><th scope="col">Median</th><th scope="col">p95</th><th scope="col">Max</th><th scope="col">Observations</th></tr></thead>
+            <tbody><tr><th scope="row">30 MiB</th><td><span class="verdict verdict--pass">PASS</span></td><td>28,893,184</td><td>29,347,840</td><td>29,569,024</td><td>29,622,272<br><small>28.25 MiB</small></td><td>478</td></tr><tr><th scope="row">25 MiB</th><td><span class="verdict verdict--fail">FAIL</span></td><td>28,831,744</td><td>29,323,264</td><td>29,634,560</td><td>29,679,616<br><small>28.30 MiB</small></td><td>480</td></tr></tbody>
+          </table>
+          <div class="proof-links"><a class="button button--primary" href="${benchmarkRecord}">Audit the proof record</a><a class="button" href="${artifact30Url}">30 MiB JSON</a><a class="button" href="${artifact25Url}">25 MiB JSON</a></div>
+        </div>
+        <aside class="limit-list" aria-label="Claim limits">
+          <h3>What 28.25 MiB does not mean</h3>
+          <ul><li>Not whole-app or Node coordinator memory</li><li>Not an arbitrary-page or rendered-page result</li><li>Not a Chromium, Firefox, or WebKit result</li><li>Not a guarantee for persistent or attached sessions</li><li>Not evidence that the Obscura renderer was disabled</li></ul>
+          <p>It is the maximum complete owned browser process-tree RSS observed in one pinned, compatible, non-visual fixture at the passing 30 MiB target.</p>
+        </aside>
       </div>
+      <div class="evidence-identity" aria-label="Frozen RC1 evidence identity">
+        <div><span class="tag">Frozen RC1 evidence</span><h3>Every public number binds to exact artifacts and source.</h3><p>478 observations at 30 MiB plus 480 at 25 MiB equals 958 retained observations.</p></div>
+        <dl>
+          <div><dt>30 MiB artifact</dt><dd><a href="${artifact30Url}">${artifact30Name}</a><code>f90b31d6f5d5096300ac2722ed835db0483a76dc4d51ee85e86604a6634c0aa7</code></dd></div>
+          <div><dt>25 MiB artifact</dt><dd><a href="${artifact25Url}">${artifact25Name}</a><code>581eb93577d6b52c71e02d7e0b71914f88acd0920a6e0e06925aae0a4575d2df</code></dd></div>
+          <div><dt>Source tree SHA-256</dt><dd><code>fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279</code></dd></div>
+          <div><dt>Runtime build SHA-256</dt><dd><code>6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025</code></dd></div>
+          <div><dt>Benchmark harness SHA-256</dt><dd><code>08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86</code></dd></div>
+        </dl>
+      </div>
+      <div class="shellless-proof-strip" aria-label="Source-derived product proof">
+        <div class="proof"><strong>${capabilities.length}</strong><span>mapped capabilities on current main</span></div>
+        <div class="proof"><strong>${capabilityCounts.available}</strong><span>available surfaces on current main</span></div>
+        <div class="proof"><strong>${actionKinds.length}</strong><span>typed browser actions from source</span></div>
+        <div class="proof"><strong>2</strong><span>immutable benchmark artifacts</span></div>
+      </div>
+      <div class="challenge-boundary"><div><span class="tag">Access boundary</span><h3>Challenges are a handoff, not a bypass target.</h3></div><p>The runtime detects login, consent, CAPTCHA, and denied-access states, records the state, pauses automation, and waits for a human or an explicitly authorized resolver. It does not defeat site controls or promise access after denial.</p><a class="text-link" href="/docs/security/">Read the security model</a></div>
     </div>
   </section>
 </main>
@@ -524,7 +698,7 @@ ${header("what")}
     <p class="eyebrow">Product definition</p>
     <h1>What is Cockroach Browser?</h1>
     <p class="kicker">A local-first browser execution and evidence runtime for AI agents.</p>
-    <p class="lede">Cockroach Browser gives a host agent an explicitly authorized Chromium session. It combines semantic page references, real interactions, finite policy budgets, evidence artifacts, and hash-linked receipts in one TypeScript package.</p>
+    <p class="lede">Cockroach Browser gives a host agent an explicitly authorized browser session: full-fidelity Chromium, Firefox, or WebKit, or an explicitly preflighted experimental lightweight route. It combines semantic page references, real interactions, finite policy budgets, evidence artifacts, and hash-linked receipts in one TypeScript package.</p>
     <div class="hero-actions">
       <a class="button button--primary" href="/docs/getting-started/">Install and get started</a>
       <a class="button" href="/docs/capabilities/">Inspect every capability</a>
@@ -616,13 +790,13 @@ function featuresPage() {
 ${header("features")}
 <main id="main">
   <section class="shell page-hero">
-    <p class="eyebrow">Cockroach Browser ${site.version} / source-derived inventory</p>
+    <p class="eyebrow">Current main / next-release source inventory</p>
     <h1>Every Browser capability, organized by the job it completes.</h1>
-    <p class="kicker">${capabilityCounts.available} available surfaces. ${capabilityCounts.adapter} optional adapter-backed surfaces. ${capabilityCounts.planned} planned.</p>
+    <p class="kicker">${capabilityCounts.available} available on current main. ${capabilityCounts.adapter} optional adapter-backed surfaces. ${capabilityCounts.planned} planned.</p>
     <p class="lede">This overview explains the direct Browser surface in human terms. The exact registry preserves all ${capabilities.length} capability IDs, status values, summaries, and activation surfaces.</p>
     <div class="hero-actions"><a class="button button--primary" href="/docs/capabilities/">Open all ${capabilities.length} registry entries</a><a class="button" href="/install/">Install Cockroach Browser</a></div>
   </section>
-  <section class="shell proof-strip" aria-label="Feature inventory"><div class="proof"><strong>${capabilities.length}</strong><span>mapped capabilities</span></div><div class="proof"><strong>${capabilityCounts.available}</strong><span>directly available</span></div><div class="proof"><strong>${capabilityCounts.adapter}</strong><span>optional adapters</span></div><div class="proof"><strong>${actionKinds.length}</strong><span>typed browser actions</span></div></section>
+  <section class="shell proof-strip" aria-label="Feature inventory"><div class="proof"><strong>${capabilities.length}</strong><span>mapped on current main</span></div><div class="proof"><strong>${capabilityCounts.available}</strong><span>available on current main</span></div><div class="proof"><strong>${capabilityCounts.adapter}</strong><span>optional adapters</span></div><div class="proof"><strong>${actionKinds.length}</strong><span>typed browser actions</span></div></section>
   <section class="section"><div class="shell"><div class="section-head"><h2>${actionKinds.length} typed Browser actions, derived from source.</h2><p>This list is generated from <code>src/contracts.ts</code>, including <code>challenge.resolve</code>. It is not a manually maintained marketing count.</p></div><div class="action-kind-list" data-action-inventory data-action-count="${actionKinds.length}">${actionKinds.map((kind) => `<code data-action-kind>${escapeHtml(kind)}</code>`).join("")}</div></div></section>
   <div class="shell feature-manual">${groups}</div>
   <section class="section"><div class="shell"><div class="section-head"><h2>Optional integrations stay optional.</h2><p>Cockroach Browser runs on its own. External approval, memory, acquisition, or product-composition adapters do not become part of the browser engine and are marked adapter in the complete registry.</p></div><div class="hero-actions"><a class="button button--primary" href="/docs/capabilities/">Inspect adapter status</a><a class="button" href="/docs/">Read the manuals</a></div></div></section>
@@ -676,7 +850,7 @@ function aiAgentsPage() {
   const questions = [
     ["Does Cockroach Browser include an LLM?", "It includes an optional OpenAI-compatible model gateway and finite-step browser agent. The operator supplies the model endpoint, credentials, task authority, and any external fleet services."],
     ["Which AI agents can use it?", "Any host that can call MCP, TypeScript, Python, Java, .NET, Ruby, Go, or the authenticated HTTP API can integrate it. The built-in gateway does not require one model provider."],
-    ["What does the LLM receive?", "The host can return bounded semantic snapshots, page references, action results, challenge state, evidence metadata, and receipt hashes instead of exposing an unrestricted browser object."],
+    ["What does the LLM receive?", "The host can return bounded semantic snapshots, page references, action results, challenge state, evidence metadata, receipt hashes, and optional cited history labeled as untrusted observation instead of exposing an unrestricted browser object."],
     ["Can the agent use forms and files?", "Yes. The shipped action surface includes form controls, keyboard and pointer input, drag, upload, controlled download, dialogs, tabs, profiles, state checkpoints, and extraction."],
     ["Is Maqam required?", "No. Maqam is a separate optional approval integration. Cockroach Browser, its MCP server, SDK, API, CLI, and evidence system run without it."],
     ["Does it solve CAPTCHAs?", "No. It detects access challenges, pauses, records the state, and waits for a human or an explicitly configured host-authorized resolver."]
@@ -932,7 +1106,7 @@ ${header("docs")}
       <p class="kicker">${capabilities.length} named surfaces. No hidden universal-access claim.</p>
       <p class="lede"><strong>${counts.available}</strong> runtime surfaces are available, <strong>${counts.adapter}</strong> require an external integration authority, and <strong>${counts.planned}</strong> remain planned.</p>
     </header>
-    <div class="callout" id="status-model"><strong>Read the status</strong><p>Available means shipped in ${escapeHtml(site.version)}. Adapter means this package ships the integration contract but another package or host authority is required. Planned means the direction is documented and is not part of the current release.</p></div>
+    <div class="callout" id="status-model"><strong>Read the source status</strong><p>This matrix is generated from current <code>main</code> for the next release. Available means implemented in this source tree; it does not by itself prove publication in ${escapeHtml(site.version)}. Adapter means the integration contract is present but another package or host authority is required. Planned means the direction is documented and is not implemented here.</p></div>
     <div class="cap-toolbar" id="capability-filters" aria-label="Capability filters">
       <button type="button" data-cap-filter="all" aria-pressed="true">All</button>
       <button type="button" data-cap-filter="available" aria-pressed="false">Available ${counts.available}</button>
@@ -1423,20 +1597,19 @@ ${header("dashboard")}
 function publicationPage() {
   return `${baseHead({
     title: "Technical paper",
-    description: "Implementation-backed technical white paper for Cockroach Browser 0.3.0.",
+    description: "Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, covering multi-engine execution, governance, compatibility, and frozen resource proof.",
     canonical: `${site.origin}/paper/`,
     type: "article",
     schemas: [{
       "@type": "ScholarlyArticle",
       "@id": `${site.origin}/paper/#article`,
-      headline: "Cockroach Browser: A Local-First Browser Runtime for AI Agents",
+      name: "Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents",
+      headline: "Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents",
       author: { "@type": "Person", name: "Ajnas N B" },
-      datePublished: "2026-08-08",
-      version: "1.1",
+      datePublished: "2026-09-03",
+      version: "1.2",
       license: "https://creativecommons.org/licenses/by/4.0/",
       url: `${site.origin}/paper/`,
-      identifier: "https://doi.org/10.5281/zenodo.21850760",
-      sameAs: "https://doi.org/10.5281/zenodo.21850760",
       about: { "@id": `${site.origin}/#software` }
     }]
   })}
@@ -1446,37 +1619,45 @@ ${header("paper")}
   ${docsSidebar("")}
   <article class="docs-main">
     <header class="page-hero">
-      <p class="eyebrow">Cockroach Browser / technical paper / version 1.1</p>
-      <h1>A local-first browser runtime for AI agents.</h1>
-      <p class="kicker">Powerful browser automation for AI agents - without inheriting your whole machine.</p>
-      <p class="lede">Ajnas N B &middot; August 2026 &middot; Cockroach Browser 0.3.0</p>
+      <p class="eyebrow">Current implementation-backed paper / version 1.2</p>
+      <h1>Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents</h1>
+      <p class="kicker">Full browser fidelity, explicit lightweight routing, finite authority, and evidence-bound execution.</p>
+      <p class="lede">Ajnas N B &middot; September 3, 2026 &middot; Cockroach Browser ${site.version}</p>
       <div class="hero-actions">
-        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">Download the PDF</a>
-        <a class="button" href="https://doi.org/10.5281/zenodo.21850760">Cite published v1.1</a>
+        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2.pdf">Download current v1.2 PDF</a>
+        <a class="button" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2.sha256">Verify v1.2 checksum</a>
+        <a class="button" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2-build.json">Inspect v1.2 build manifest</a>
         <a class="button" href="${site.repository}/blob/main/docs/whitepaper.md">Read the source</a>
       </div>
     </header>
     <section class="manual-section" id="abstract">
       <span class="section-number">Abstract</span>
-      <h2>Useful browser capability without ambient machine authority.</h2>
-      <p>AI agents can inspect dynamic applications, fill forms, download files, capture evidence, and complete operational workflows. Conventional automation often inherits more authority than the task requires: ambient browser profiles, persistent cookies, arbitrary origins, unrestricted JavaScript, local files, broad network reach, or an unauthenticated remote control port.</p>
-      <p>Cockroach Browser separates browser capability from ambient machine authority. A host creates an explicit session with a purpose, admitted origins, allowed actions, allowed effects, and finite budgets. The runtime then provides semantic page references, browser interactions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts inside that session.</p>
+      <h2>Multi-engine browser capability without ambient machine authority.</h2>
+      <p>Cockroach Browser gives AI agents governed Chromium, Firefox, and WebKit sessions for full browser fidelity, plus an explicitly preflighted experimental Obscura lane for compatible non-visual work. The host selects the lane from machine-readable capability data rather than accepting a silent fidelity trade.</p>
+      <p>Each bounded session declares its owner, purpose, origins, actions, effects, credentials, and finite budgets. Semantic page references, browser actions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts remain inside that contract. Complete pinned Playwright and Puppeteer Core re-exports remain available as a separate unrestricted operator surface.</p>
     </section>
     <section class="manual-section" id="release-surface">
       <span class="section-number">Implementation</span>
-      <h2>One package, several explicit control surfaces.</h2>
-      <p>Version 0.3.0 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, explicit browser providers, runtime-owned persistent profiles, authenticated jobs and workers, team-scoped roles, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
-      <p>The annotated <code>v0.3.0</code> source-derived capability registry contains 94 entries: 88 directly available surfaces and 6 host-backed adapters. This is an implementation inventory, not a performance or security score.</p>
+      <h2>${site.version} is measured from source, not a feature slogan.</h2>
+      <p>The release candidate ships an embedded TypeScript runtime, authenticated loopback daemon, typed client, CLI, observation-first MCP server, Docker deployment, dashboard, machine-readable engine preflight, explicit browser providers, persistent profiles, authenticated jobs and workers, team roles, and optional integration adapters.</p>
+      <p>The source-derived registry contains ${capabilities.length} capabilities: ${capabilityCounts.available} available surfaces, ${capabilityCounts.adapter} adapter-backed surfaces, and ${capabilityCounts.planned} planned surfaces. The bounded runtime exposes ${actionKinds.length} typed browser actions derived from <code>src/contracts.ts</code>. These are implementation inventories, not task-success, performance, scale, or security rankings.</p>
+    </section>
+    <section class="manual-section" id="resource-proof">
+      <span class="section-number">Frozen proof</span>
+      <h2>30 MiB passed. 25 MiB failed.</h2>
+      <p>The pinned Obscura 0.2.1 constrained non-visual fixture ran one warmup plus 20 measured launches per target. The 30 MiB target passed with a maximum complete owned browser process-tree RSS of 29,622,272 bytes, or 28.25 MiB. The separately executed 25 MiB target failed with a maximum of 29,679,616 bytes, or 28.30 MiB. Required connection, JavaScript, DOM, form, screenshot-preflight-denial, and teardown checks passed in every measured launch.</p>
+      <p>The artifacts retain 478 observations for the 30 MiB target and 480 for the 25 MiB target, for 958 observations total. The Node coordinator was measured separately. Neither result covers whole-app memory, arbitrary pages, rendered pages, persistent or attached sessions, or full browser engines.</p>
+      <p><a href="${site.repository}/blob/main/docs/benchmarks/obscura-non-visual-2026-09-03.md">Audit the benchmark method, distributions, identities, and artifact hashes</a>.</p>
     </section>
     <section class="manual-section" id="status">
       <span class="section-number">Status</span>
-      <h2>Implementation-backed and open for technical review.</h2>
-      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.3.0. The paper has not undergone independent peer review or independent security certification.</p>
-      <p>Published v1.1: <a href="https://doi.org/10.5281/zenodo.21850760">doi:10.5281/zenodo.21850760</a>. Persistent paper series: <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>. Version 1.0 remains preserved at <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
+      <h2>Version 1.2 is current. Version 1.1 remains the historical citable edition.</h2>
+      <p>Version 1.2 is the current implementation-backed paper for Cockroach Browser ${site.version}. It has no DOI yet and has not undergone independent peer review or independent security certification. Its PDF SHA-256 is <code>6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3</code>.</p>
+      <p>Historical published v1.1 remains available as a <a href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">preserved PDF</a> and at <a href="https://doi.org/10.5281/zenodo.21850760">doi:10.5281/zenodo.21850760</a>. That DOI identifies v1.1 only and must not be used as the identifier for v1.2. The historical paper series remains at <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
   </article>
-  ${pageToc([["Abstract", "abstract"], ["Release surface", "release-surface"], ["Publication status", "status"]])}
+  ${pageToc([["Abstract", "abstract"], ["Release surface", "release-surface"], ["Frozen proof", "resource-proof"], ["Publication status", "status"]])}
 </main>
 ${footer()}`;
 }
@@ -1656,8 +1837,8 @@ function searchIndex() {
         title: "Technical paper",
         url: `${site.origin}/paper/`,
         kind: "research",
-        summary: "Implementation-backed Cockroach Browser 0.3.0 technical white paper.",
-        keywords: ["white paper", "browser authority", "evidence", "governance"]
+        summary: `Current implementation-backed Cockroach Browser ${site.version} technical paper, version 1.2, with ${capabilities.length} capabilities, ${actionKinds.length} typed actions, multi-engine governance, and frozen Obscura resource proof.`,
+        keywords: ["white paper", "version 1.2", "multi-engine browser", "browser authority", "resource proof", "evidence", "governance"]
       }
     ]
   };
@@ -1677,9 +1858,9 @@ ${page.sections.map((section) => `## ${section.title}
 ${stripHtml(section.body)}
 ${section.code ? `\n\`\`\`\n${section.code}\n\`\`\`\n` : ""}`).join("\n")}
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser ${site.version}. Check [the capability matrix](${site.origin}/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current \`main\` for the next Cockroach Browser release. Package examples still identify published line ${site.version} where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in ${site.version}. Adapter means another authority or package is required. Planned means the surface is not implemented here.
 `;
 }
 
@@ -1694,9 +1875,9 @@ ${capabilities.map((entry) => `| \`${entry.id}\` | ${entry.group} | ${entry.titl
 
 ## Status model
 
-- **available**: implemented in Cockroach Browser ${site.version}
+- **available**: implemented on current \`main\` for the next release; this does not by itself prove publication in Cockroach Browser ${site.version}
 - **adapter**: integration contract is present, but another package or host authority is required
-- **planned**: documented direction, not part of the current release
+- **planned**: documented direction, not implemented in the current source tree
 `;
 }
 
@@ -1710,6 +1891,9 @@ The public documentation lives at ${site.origin}/docs/.
 ## Manuals
 
 ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}](./${slug}.md)`).join("\n")}
+- [Headless compatibility and engine lanes](./headless-compatibility.md)
+- [Browser resource governance](./resource-governance.md)
+- [Obscura non-visual measured proof](./benchmarks/obscura-non-visual-2026-09-03.md)
 - [Alternatives and product-layer comparison](${site.origin}/alternatives/)
 - [Complete Playwright and Puppeteer API inventory](${site.origin}/api-surface/)
 - [Technical white paper](./whitepaper.md)
@@ -1718,7 +1902,7 @@ ${navGroups.flatMap((group) => group.items).map(([title, slug]) => `- [${title}]
 
 - Cockroach Browser owns browser execution, tabs, semantic snapshots, browser evidence, audits, and authenticated worker transport.
 - Cockroach Crawler owns bounded public-web breadth, mapping, and extraction.
-- Qarinah stores compact cited read outcomes but cannot dispatch browser actions.
+- The optional Qarinah adapter emits versioned, metadata-only outcomes with evidence IDs and receipt hashes to a host-supplied sink; it cannot dispatch browser actions.
 - For browser operations routed through its adapter, Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
 - ProductLoop OS composes package contracts without silently combining their ledgers or authority.
 

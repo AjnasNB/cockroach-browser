@@ -1,6 +1,6 @@
 # Cockroach Browser
 
-> Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.
+> Open-source local-first browser automation for AI agents with Chromium, Firefox, WebKit, an explicitly preflighted experimental Obscura lane, complete pinned Playwright and Puppeteer exports, MCP, finite policy, and verifiable evidence.
 
 Canonical website: https://cockroachbrowser.com
 Repository: https://github.com/AjnasNB/cockroach-browser
@@ -15,7 +15,7 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 ## Product routes
 - [What is Cockroach Browser?](https://cockroachbrowser.com/what-is-cockroach-browser/)
 - [Features overview](https://cockroachbrowser.com/features/)
-- [Complete 127-capability registry](https://cockroachbrowser.com/docs/capabilities/)
+- [Complete 130-capability registry](https://cockroachbrowser.com/docs/capabilities/)
 - [Install Cockroach Browser](https://cockroachbrowser.com/install/)
 - [Cockroach Browser for AI agents and LLM applications](https://cockroachbrowser.com/ai-agents/)
 - [Browser automation use cases](https://cockroachbrowser.com/use-cases/)
@@ -24,14 +24,18 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 - [Alternatives and current gaps](https://cockroachbrowser.com/alternatives/)
 - [Complete documentation](https://cockroachbrowser.com/docs/)
 
-## Shipped surface in 0.4.1
-- 117 directly available runtime and deployment surfaces
-- 10 optional adapter-backed surfaces
-- 65 typed browser actions derived from src/contracts.ts
-- 65 bounded browser actions in the policy-evaluated runtime
-- OpenAI-compatible model gateway and finite-step browser agent
-- Chromium, Firefox, or WebKit execution in the bounded runtime
-- Real Chromium, Firefox, and WebKit in headed or headless mode
+## Current main / next-release source surface
+This inventory is generated from the current source tree. It does not claim that source-only additions have already been published in Cockroach Browser 0.5.0-rc.1.
+
+- 119 directly available runtime and deployment surfaces
+- 11 optional adapter-backed surfaces
+- 66 typed browser actions derived from src/contracts.ts
+- 66 bounded browser actions in the policy-evaluated runtime
+- OpenAI-compatible model gateway with independent request/response byte ceilings and finite-step browser agent with bounded context/tool output
+- Daemon admission defaults to 32 non-closed sessions globally and 8 per actor, with concurrency-safe pending reservations and stable HTTP 429 codes
+- Full-fidelity Chromium, Firefox, or WebKit execution in headed or headless mode
+- Experimental runtime-owned Obscura execution for compatible non-visual DOM/JavaScript actions under visual-action preflight; Lightpanda manifest and preflight only
+- Machine-readable engine manifests at /v1/engines plus browser_engines and browser_engine_preflight through MCP
 - Complete pinned Playwright and Puppeteer Core exports, Playwright Test, code generation, raw CDP, and raw WebDriver BiDi
 - Semantic snapshots and snapshot-scoped references
 - Tabs, forms, keyboard, pointer, drag, files, dialogs, profiles, state, and downloads
@@ -43,6 +47,10 @@ Cockroach Browser includes an optional OpenAI-compatible gateway and finite-step
 - No Cockroach-operated elastic browser fleet, residential proxy network, static-IP inventory, billing platform, or hosted live-view service
 - No covert stealth or bundled CAPTCHA bypass engine; provider challenge services remain explicit operator-selected adapters
 - No cross-product task-success benchmark or universal autonomous recovery claim
+- No whole-app, coordinator, rendered-page, full-browser, or arbitrary-page memory claim; the frozen RC1 Obscura 0.2.1 non-visual fixture passed 30 MiB at a 29,622,272-byte maximum, or 28.25 MiB, and failed 25 MiB at a 29,679,616-byte maximum, or 28.30 MiB
+- The frozen proof retains 478 observations for the 30 MiB target and 480 for the 25 MiB target, for 958 total observations
+- RC1 artifacts: obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json SHA-256 f90b31d6f5d5096300ac2722ed835db0483a76dc4d51ee85e86604a6634c0aa7; obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json SHA-256 581eb93577d6b52c71e02d7e0b71914f88acd0920a6e0e06925aae0a4575d2df
+- RC1 source tree SHA-256 fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279; runtime build SHA-256 6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025; benchmark harness SHA-256 08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86
 - Non-TypeScript SDKs are authenticated daemon clients, not reimplementations of every upstream browser object
 
 ## External-service boundary
@@ -58,7 +66,7 @@ The local three-engine fleet is included. Managed capacity, residential or stati
 - [Actions and semantic refs](https://cockroachbrowser.com/docs/actions/)
 - [Operator runtime](https://cockroachbrowser.com/docs/operator-runtime/)
 - [Capture and evidence](https://cockroachbrowser.com/docs/capture/)
-- [Network boundary](https://cockroachbrowser.com/docs/network/)
+- [Network controls](https://cockroachbrowser.com/docs/network/)
 - [Files and downloads](https://cockroachbrowser.com/docs/files/)
 - [Audits and comparisons](https://cockroachbrowser.com/docs/audits/)
 - [Jobs and retries](https://cockroachbrowser.com/docs/jobs/)

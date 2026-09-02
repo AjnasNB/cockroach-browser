@@ -121,7 +121,10 @@ export class JobQueue {
         } catch (error) {
           job.attempts += 1;
           job.lastError = error instanceof Error ? error.message : String(error);
-          const retryable = action.kind === "snapshot" || action.kind === "wait" || action.kind === "extract";
+          const retryable = action.kind === "snapshot"
+            || action.kind === "wait"
+            || action.kind === "extract"
+            || action.kind === "extract.structured";
           if (!retryable || job.attempts >= job.maxAttempts) {
             job.state = "failed";
             job.updatedAt = nowIso();

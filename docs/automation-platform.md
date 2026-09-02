@@ -72,7 +72,7 @@ await safari.close();
 
 ## Run the optional model gateway and finite-step agent
 
-The OpenAI-compatible gateway resolves its API key in the trusted host, enforces request deadlines and response byte ceilings, and parses structured tool calls. The agent observes semantic snapshots, dispatches typed actions through BrowserRuntime, retains receipts, and stops at a configured step limit. A host can omit this layer and use any external planner.
+The OpenAI-compatible gateway resolves its API key in the trusted host, applies its deadline to API-key-provider waiting and the HTTP exchange, enforces independent maxRequestBytes and maxResponseBytes ceilings, and parses structured tool calls. The agent validates every action payload against the published schema before runtime dispatch, refuses mixed action-and-finish output, observes a fresh bounded snapshot after every non-snapshot action, retains receipts, and accepts completion only on a later reviewed turn. maxContextChars bounds each serialized model turn, maxToolOutputChars bounds each tool result, and compaction removes only complete older assistant/tool rounds while retaining digest, receipt, evidence, and citation anchors. Optional cited history is serialized as an untrusted user-role observation behind the trusted system boundary, never as an instruction or authority. A host can omit this layer and use any external planner.
 
 ```
 import { BrowserAgent } from "cockroach-browser/agent";
@@ -81,9 +81,17 @@ import { OpenAICompatibleModelGateway } from "cockroach-browser/model-gateway";
 const gateway = new OpenAICompatibleModelGateway({
   endpoint: process.env.MODEL_ENDPOINT,
   model: process.env.MODEL_NAME,
-  apiKeyProvider: () => process.env.MODEL_API_KEY
+  apiKeyProvider: () => process.env.MODEL_API_KEY,
+  maxRequestBytes: 4 * 1024 * 1024,
+  maxResponseBytes: 8 * 1024 * 1024
 });
-const agent = new BrowserAgent({ runtime, gateway, maxSteps: 30 });
+const agent = new BrowserAgent({
+  runtime,
+  gateway,
+  maxSteps: 30,
+  maxContextChars: 128_000,
+  maxToolOutputChars: 32_000
+});
 const result = await agent.run({
   sessionId: session.id,
   task: "Inspect the release page and report the visible version"
@@ -125,6 +133,6 @@ TypeScript is the native embedded and daemon SDK. Dependency-light Python, Java,
 ```
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.

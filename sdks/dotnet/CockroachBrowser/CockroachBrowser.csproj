@@ -4,6 +4,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>CockroachBrowser</PackageId>
-    <Version>0.4.1</Version>
+    <Version>0.5.0-rc.1</Version>
   </PropertyGroup>
 </Project>

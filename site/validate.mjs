@@ -8,7 +8,8 @@ import {
   comparison,
   comparisonLayers,
   ecosystem,
-  pages
+  pages,
+  site
 } from "./content.mjs";
 
 const siteRoot = resolve(import.meta.dirname);
@@ -65,6 +66,20 @@ const sourceApiSurface = JSON.parse(await readFile(resolve(sourceRoot, "docs/com
 const publicApiSurface = JSON.parse(await readFile(resolve(siteRoot, "api/browser-api-surface.json"), "utf8"));
 if (JSON.stringify(publicApiSurface) !== JSON.stringify(sourceApiSurface)) {
   failures.push("public browser API JSON does not exactly match the generated source inventory");
+}
+for (const schemaFile of ["action.schema.json", "browser-memory.schema.json", "session.schema.json"]) {
+  const sourceSchema = JSON.parse(await readFile(resolve(sourceRoot, "schemas", schemaFile), "utf8"));
+  const publicSchema = JSON.parse(await readFile(resolve(siteRoot, "schemas", schemaFile), "utf8"));
+  if (JSON.stringify(publicSchema) !== JSON.stringify(sourceSchema)) {
+    failures.push(`public ${schemaFile} does not exactly match the packaged source schema`);
+  }
+  const expectedId = `https://cockroachbrowser.com/schemas/${schemaFile}`;
+  if (publicSchema.$id !== expectedId) {
+    failures.push(`public ${schemaFile} has non-canonical $id ${String(publicSchema.$id)}`);
+  }
+  if (publicSchema.$schema !== "https://json-schema.org/draft/2020-12/schema") {
+    failures.push(`public ${schemaFile} does not declare JSON Schema draft 2020-12`);
+  }
 }
 for (const pkg of sourceApiSurface.packages) {
   for (const fact of [pkg.package, pkg.version, pkg.reexport, String(pkg.summary.owners), String(pkg.summary.groupedOwnerMembers), String(pkg.summary.ownerMemberSignatures)]) {
@@ -187,6 +202,66 @@ if (homepageSource.includes(`\"@type\":\"FAQPage\"`) || homepageSource.includes(
 }
 for (const required of ["AI browser automation | Cockroach Browser", "Price: $0.", `<span>${actionKinds.length} typed actions</span>`]) {
   if (!homepageSource.includes(required)) failures.push(`homepage is missing ${required}`);
+}
+for (const required of [
+  "29,622,272",
+  "28.25 MiB",
+  "28,893,184",
+  "29,347,840",
+  "29,569,024",
+  "29,679,616",
+  "28.30 MiB",
+  "28,831,744",
+  "29,323,264",
+  "29,634,560",
+  "958 retained observations",
+  "obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json",
+  "obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json",
+  "f90b31d6f5d5096300ac2722ed835db0483a76dc4d51ee85e86604a6634c0aa7",
+  "581eb93577d6b52c71e02d7e0b71914f88acd0920a6e0e06925aae0a4575d2df",
+  "fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279",
+  "6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025",
+  "08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86"
+]) {
+  if (!homepageSource.includes(required)) failures.push(`homepage is missing frozen RC1 proof token ${required}`);
+}
+for (const stale of ["28.34 MiB", "29,716,480", "29,745,152"]) {
+  if (homepageSource.includes(stale)) failures.push(`homepage contains superseded proof token ${stale}`);
+}
+const paperSource = await readFile(resolve(siteRoot, "paper/index.html"), "utf8");
+for (const required of [
+  "Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents",
+  "Current implementation-backed paper / version 1.2",
+  `Cockroach Browser ${site.version}`,
+  `${registry.length} capabilities`,
+  `${actionKinds.length} typed browser actions`,
+  "29,622,272 bytes",
+  "29,679,616 bytes",
+  "958 observations total",
+  "Cockroach-Browser-Technical-White-Paper-v1.2.pdf",
+  "Cockroach-Browser-Technical-White-Paper-v1.2.sha256",
+  "Cockroach-Browser-Technical-White-Paper-v1.2-build.json",
+  "It has no DOI yet",
+  "That DOI identifies v1.1 only"
+]) {
+  if (!paperSource.includes(required)) failures.push(`paper page is missing current v1.2 fact ${required}`);
+}
+for (const stale of ["Cockroach Browser 0.3.0", "v0.3.0", "94 entries", "88 directly available"] ) {
+  if (paperSource.includes(stale)) failures.push(`paper page contains stale implementation fact ${stale}`);
+}
+const paperSchemaMatch = paperSource.match(/<script type="application\/ld\+json">([^<]+)<\/script>/);
+if (paperSchemaMatch) {
+  const paperGraph = JSON.parse(paperSchemaMatch[1])["@graph"];
+  const paperArticle = paperGraph?.find((entry) => entry["@type"] === "ScholarlyArticle");
+  if (paperArticle?.headline !== "Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents") {
+    failures.push("paper schema has the wrong v1.2 title");
+  }
+  if (paperArticle?.datePublished !== "2026-09-03" || paperArticle?.version !== "1.2") {
+    failures.push("paper schema has the wrong v1.2 date or version");
+  }
+  if (paperArticle?.identifier || paperArticle?.sameAs) {
+    failures.push("paper schema must not attach the historical v1.1 DOI to v1.2");
+  }
 }
 for (const [label, route] of primaryRoutes) {
   const source = await readFile(resolve(siteRoot, route), "utf8");
@@ -414,6 +489,9 @@ for (const required of [
   "llms.txt",
   "llms-full.txt",
   "api/browser-api-surface.json",
+  "schemas/action.schema.json",
+  "schemas/browser-memory.schema.json",
+  "schemas/session.schema.json",
   "_headers",
   "_redirects",
   "assets/logo.png"

@@ -1,11 +1,11 @@
 export const site = {
   name: "Cockroach Browser",
-  version: "0.4.1",
+  version: "0.5.0-rc.1",
   origin: "https://cockroachbrowser.com",
   repository: "https://github.com/AjnasNB/cockroach-browser",
   npm: "https://www.npmjs.com/package/cockroach-browser",
   description:
-    "Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence."
+    "Open-source local-first browser automation for AI agents with Chromium, Firefox, WebKit, an explicitly preflighted experimental Obscura lane, complete pinned Playwright and Puppeteer exports, MCP, finite policy, and verifiable evidence."
 };
 
 export const comparison = {
@@ -275,7 +275,7 @@ export const alternatives = [
     chooseWhen:
       "You want a separate lightweight browser engine for supported automation workloads and accept its beta Web-platform and rendering boundaries.",
     relationship:
-      "Cockroach Browser bundles Playwright Chromium, Firefox, and WebKit and can use an explicit operator-selected CDP endpoint. It does not bundle, fork, or claim execution proof for the Lightpanda engine.",
+      "Cockroach Browser bundles Playwright Chromium, Firefox, and WebKit. Current main recognizes a Lightpanda manifest and performs configuration and machine preflight, but managed Lightpanda launch fails closed until an engine- or OS-level boundary covers every HTTP, WebSocket, worker, and related egress path. It does not bundle or fork Lightpanda.",
     sourceLabel: "Lightpanda repository",
     source: "https://github.com/lightpanda-io/browser"
   },
@@ -665,7 +665,7 @@ export const navGroups = [
       ["Actions and semantic refs", "actions"],
       ["Operator runtime", "operator-runtime"],
       ["Capture and evidence", "capture"],
-      ["Network boundary", "network"],
+      ["Network controls", "network"],
       ["Files and downloads", "files"],
       ["Audits and comparisons", "audits"],
       ["Jobs and retries", "jobs"]
@@ -798,7 +798,7 @@ console.log(result.receipt.receiptHash);`,
   "mcpServers": {
     "cockroach-browser": {
       "command": "npx",
-      "args": ["-y", "cockroach-browser@0.4.1", "mcp"],
+      "args": ["-y", "cockroach-browser@0.5.0-rc.1", "mcp"],
       "env": {
         "COCKROACH_BROWSER_URL": "http://127.0.0.1:43110",
         "COCKROACH_BROWSER_TOKEN": "<load from your secret store>"
@@ -849,7 +849,8 @@ await webhooks.upsertEndpoint({
 
 const browser = new BrowserRuntime({
   root: ".cockroach-browser/runtime",
-  eventPublisher: webhooks
+  eventPublisher: webhooks,
+  eventPublisherTimeoutMs: 1_000
 });
 await browser.initialize();`,
   webhookDrain: `// Publishing is local-only. Draining owns DNS, key resolution, and HTTPS.
@@ -896,14 +897,14 @@ export function verifyIncomingWebhook(
   });
   return { accepted, deliveryId };
 }`,
-  docker: `docker build -t cockroach-browser:0.4.1 .
+  docker: `docker build -t cockroach-browser:0.5.0-rc.1 .
 docker run --rm \\
   --read-only \\
   --tmpfs /tmp:rw,noexec,nosuid,size=256m \\
   --shm-size 512m \\
   --tmpfs /data \\
   -p 127.0.0.1:43110:43111 \\
-  cockroach-browser:0.4.1`,
+  cockroach-browser:0.5.0-rc.1`,
   profile: `export COCKROACH_BROWSER_PROFILE_PASSPHRASE="read-from-your-secret-store"
 npx cockroach-browser profile import \\
   --name reviewed-support-session \\
@@ -967,9 +968,17 @@ import { OpenAICompatibleModelGateway } from "cockroach-browser/model-gateway";
 const gateway = new OpenAICompatibleModelGateway({
   endpoint: process.env.MODEL_ENDPOINT,
   model: process.env.MODEL_NAME,
-  apiKeyProvider: () => process.env.MODEL_API_KEY
+  apiKeyProvider: () => process.env.MODEL_API_KEY,
+  maxRequestBytes: 4 * 1024 * 1024,
+  maxResponseBytes: 8 * 1024 * 1024
 });
-const agent = new BrowserAgent({ runtime, gateway, maxSteps: 30 });
+const agent = new BrowserAgent({
+  runtime,
+  gateway,
+  maxSteps: 30,
+  maxContextChars: 128_000,
+  maxToolOutputChars: 32_000
+});
 const result = await agent.run({
   sessionId: session.id,
   task: "Inspect the release page and report the visible version"
@@ -1084,7 +1093,7 @@ cockroach-browser-test --project=webkit`,
       {
         title: "Run the optional model gateway and finite-step agent",
         body:
-          "<p>The OpenAI-compatible gateway resolves its API key in the trusted host, enforces request deadlines and response byte ceilings, and parses structured tool calls. The agent observes semantic snapshots, dispatches typed actions through <code>BrowserRuntime</code>, retains receipts, and stops at a configured step limit. A host can omit this layer and use any external planner.</p>",
+          "<p>The OpenAI-compatible gateway resolves its API key in the trusted host, applies its deadline to API-key-provider waiting and the HTTP exchange, enforces independent <code>maxRequestBytes</code> and <code>maxResponseBytes</code> ceilings, and parses structured tool calls. The agent validates every action payload against the published schema before runtime dispatch, refuses mixed action-and-finish output, observes a fresh bounded snapshot after every non-snapshot action, retains receipts, and accepts completion only on a later reviewed turn. <code>maxContextChars</code> bounds each serialized model turn, <code>maxToolOutputChars</code> bounds each tool result, and compaction removes only complete older assistant/tool rounds while retaining digest, receipt, evidence, and citation anchors. Optional cited history is serialized as an untrusted user-role observation behind the trusted system boundary, never as an instruction or authority. A host can omit this layer and use any external planner.</p>",
         code: snippets.planner,
         label: "agent.mjs"
       },
@@ -1162,14 +1171,46 @@ cockroach-browser service status`,
     title: "Sessions and profiles",
     kicker: "A browser session is borrowed authority, not a reusable credential bucket.",
     lede:
-      "Every session has an owner, purpose, mode, origin boundary, action boundary, effect boundary, and finite budget. Profiles are named, isolated, and imported only by an authorized operator.",
+      "Every bounded-runtime session has an owner, purpose, mode, HTTP(S) origin policy, action policy, effect policy, and finite application budget. Profiles are named, isolated, and imported only by an authorized operator.",
     sections: [
       {
         title: "Choose the browser connection",
         body:
-          "<p>Launch bundled Chromium, discover a reviewed system installation, supply a compatible executable, or attach to a user-selected CDP endpoint. <code>cockroach-browser browser discover</code> reports Chrome, Edge, Brave, and Chromium candidates across Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Discovery never imports an ambient browser profile. CDP attachment remains explicit: the host names the endpoint and accepts responsibility for that browser.</p><ul><li><strong>Bundled:</strong> package-managed Chromium.</li><li><strong>System:</strong> one reviewed installed browser channel.</li><li><strong>Custom:</strong> one explicit compatible executable and bounded arguments.</li><li><strong>CDP:</strong> attach to an explicitly selected debugging endpoint.</li><li><strong>Extensions:</strong> load reviewed unpacked directories in an isolated headed context.</li></ul>",
+          "<p>Launch bundled Chromium, discover a reviewed system installation, supply a compatible executable, attach to a user-selected CDP endpoint, or explicitly start a separately installed Obscura engine. <code>cockroach-browser browser discover</code> reports Chrome, Edge, Brave, and Chromium candidates across Windows, macOS, Linux, ARM64, and Raspberry Pi hosts. Discovery never imports an ambient browser profile. CDP attachment remains explicit: the host names the endpoint and accepts responsibility for that browser.</p><ul><li><strong>Bundled:</strong> package-managed Chromium.</li><li><strong>System:</strong> one reviewed installed browser channel.</li><li><strong>Custom:</strong> one explicit compatible executable and bounded arguments.</li><li><strong>CDP:</strong> attach to an explicitly selected debugging endpoint.</li><li><strong>Lightweight Obscura:</strong> start one explicit runtime-owned loopback process, with experimental opt-in and an optional reviewed SHA-256 pin.</li><li><strong>Lightpanda:</strong> inspect its manifest and machine preflight, but managed launch currently fails closed pending a complete engine- or OS-level egress boundary.</li><li><strong>Extensions:</strong> load reviewed unpacked directories in an isolated headed context.</li></ul>",
         code: `cockroach-browser browser discover`,
         label: "terminal"
+      },
+      {
+        title: "Negotiate the engine before launch",
+        body:
+          "<p><code>GET /v1/engines</code> and <code>BrowserClient.engines()</code> return machine-readable manifests for Chromium, Firefox, WebKit, Obscura, and Lightpanda. Add <code>?engine=obscura</code> or pass one engine ID to filter the result. MCP clients can use <code>browser_engines</code> and <code>browser_engine_preflight</code>. Preflight maps exact action kinds to required engine capabilities without launching a browser: supported work is admitted, experimental work requires explicit opt-in, and unsupported work always fails. The <code>runtime.owned_launch</code> entry is supported for the three full engines, experimental for Obscura, and unsupported for Lightpanda.</p><p>A successful preflight reports compatibility only. It creates no session, grants no origin or credential authority, and cannot prove how an arbitrary page will behave.</p>",
+        code: `console.log(await browser.engines());
+console.log(await browser.engines("obscura"));`,
+        label: "engine-negotiation.mjs"
+      },
+      {
+        title: "Use a lightweight lane only for compatible work",
+        body:
+          "<p>The managed Obscura provider is an experimental bounded-runtime lane, not a replacement for the full browser engines. Cockroach Browser never downloads its binary automatically and never accepts caller-supplied launch flags for this lane. With <code>rendering: \"none\"</code>, Cockroach Browser denies visual actions during capability preflight; this policy does not assert that the selected Obscura binary disabled or omitted its renderer. Compatible non-visual sessions can navigate, execute JavaScript under policy, inspect DOM state, activate HTML elements, fill text controls, and perform bounded structured extraction. Screenshots, PDFs, video, visual pointer behavior, extensions, and persistent profiles require a deliberate full-engine session. Lightpanda configuration, manifest inspection, and machine preflight exist on current main, but managed launch fails closed pending a complete engine- or OS-level egress boundary.</p><p>The frozen September 3, 2026 RC1 proof used pinned Obscura 0.2.1, one warmup, and 20 measured launches per target. The 30 MiB target passed across 478 retained observations: 28,893,184-byte minimum, 29,347,840-byte median, 29,569,024-byte p95, and 29,622,272-byte maximum complete owned-browser-tree RSS, or 28.25 MiB. The 25 MiB target failed across 480 retained observations: 28,831,744-byte minimum, 29,323,264-byte median, 29,634,560-byte p95, and 29,679,616-byte maximum, or 28.30 MiB. Every required capability check passed across both targets and all 958 observations are retained. The proof binds source tree <code>fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279</code>, runtime build <code>6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025</code>, and harness <code>08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86</code>. Coordinator RSS was measured separately. This is not a whole-app, arbitrary-page, rendered-page, or full-browser memory guarantee.</p>",
+        code: `const session = await browser.createSession({
+  purpose: "Extract one reviewed documentation page",
+  engine: "chromium",
+  mode: "headless",
+  browserProvider: {
+    kind: "lightweight",
+    implementation: "obscura",
+    executablePath: "C:/reviewed/obscura.exe",
+    expectedSha256: "sha256:<reviewed digest>",
+    rendering: "none",
+    resourceProfile: "constrained",
+    allowExperimentalCapabilities: true
+  },
+  policy: {
+    allowedOrigins: ["https://example.com"],
+    allowedActions: ["navigate", "snapshot", "extract.structured"]
+  }
+});`,
+        label: "lightweight-session.mjs"
       },
       {
         title: "Create an explicit persistent profile",
@@ -1202,12 +1243,12 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Budget every session",
         body:
-          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. A budget is a hard stop, not a billing estimate.</p>"
+          "<p>The default budget limits actions, session duration, tabs, download bytes, upload bytes, snapshot characters, retained history, network rules, static intercepted responses, and evidence bytes. Narrow these limits for each workflow. Action and byte ceilings are application-enforced; browser RSS and CPU are periodically sampled telemetry rather than a real-time kernel boundary.</p>"
       },
       {
         title: "Close deliberately",
         body:
-          "<p>Closing a session releases tabs, browser context, traces, and runtime state. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.</p>"
+          "<p>A successful close terminates the runtime-owned process before publishing terminal lifecycle telemetry, then releases tabs, browser context, traces, and runtime state. If owned-process termination cannot be verified, the session remains failed and retained with <code>TERMINATION_UNVERIFIED</code>, including any persistent-profile writer lock, so an explicit close can retry. Persist a profile only when the operator requested it. Qarinah records cited outcomes and Maqam records governance receipts, but neither receives raw profile material.</p>"
       }
     ]
   },
@@ -1260,7 +1301,7 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Inspect a target without inventing a selector",
         body:
-          "<p><code>query.inspect</code> returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.</p>"
+          "<p><code>query.inspect</code> returns bounded text, raw element inner HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked. Use <code>extract.structured</code> when sanitized HTML is required.</p>"
       },
       {
         title: "Run an ordered bounded batch",
@@ -1289,7 +1330,7 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Inspect browser and daemon state",
         body:
-          "<p><code>browser discover</code> reports installed compatible browsers. <code>doctor</code> verifies Node, Chromium, the data root, and local service readiness. The authenticated daemon publishes <code>/v1/health</code>, <code>/v1/openapi.json</code>, and Prometheus text at <code>/v1/metrics</code>.</p>"
+          "<p><code>browser discover</code> reports installed compatible browsers. <code>doctor</code> verifies Node, Chromium, the data root, and local service readiness. Any authenticated identity can read the relative-base <code>/v1/openapi.json</code> route index. Global <code>/v1/health</code>, Prometheus text at <code>/v1/metrics</code>, and <code>/v1/evidence/verify</code> require the daemon administrator token; actor tokens remain limited to actor-scoped records. The OpenAPI document indexes every implemented daemon method/path with a unique <code>operationId</code> and an explicit success response; it is route discovery, not an authorization grant.</p>"
       },
       {
         title: "Follow the activity stream",
@@ -1310,7 +1351,12 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Share control without sharing profiles",
         body:
-          "<p><code>TeamSessionStore</code> persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. Grant generations and revocations are durable, while raw cookies and browser profiles never enter the access record.</p>"
+          "<p><code>TeamSessionStore</code> persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. A mutation replaces the in-memory ownership map only after durable persistence succeeds, so a failed write leaves the prior access state intact. Raw cookies and browser profiles never enter the access record.</p><p>Configuring actor-scoped bearer tokens without <code>TeamSessionStore</code> is a startup error. The administrator token and every actor token must be unique or startup fails with <code>AUTH_TOKEN_COLLISION</code>. Actor-token session creation is also disabled until the host provides <code>actorSessionFactory</code>. The callback must construct authoritative session input from individually reviewed request fields rather than spreading caller JSON. The server replaces the actor with the authenticated identity and claims the session in the store before returning it; claim failure closes the new session.</p>"
+      },
+      {
+        title: "Bound concurrent session admission",
+        body:
+          "<p><code>BrowserServerOptions.maxSessions</code> defaults to 32 non-closed sessions for the daemon; <code>maxSessionsPerActor</code> defaults to 8 non-closed sessions assigned to one actor. Pending creates reserve their slots through a concurrency-safe serialized admission step, so parallel requests cannot oversubscribe either ceiling.</p><p>Ceiling rejections return HTTP 429 with stable codes: <code>SESSION_GLOBAL_LIMIT_EXCEEDED</code> or <code>SESSION_ACTOR_LIMIT_EXCEEDED</code>. Closed sessions do not count. <code>maxRequestBytes</code> defaults to 1,048,576 bytes and accepts only integers from 1,024 through 16,777,216 bytes.</p>"
       },
       {
         title: "Route across authenticated workers",
@@ -1367,15 +1413,15 @@ cockroach-browser persistent-profile archive --name support-review`,
   },
   {
     slug: "network",
-    title: "Network boundary",
-    kicker: "The browser may render a page. It does not inherit your whole network.",
+    title: "Network controls",
+    kicker: "Route browser HTTP(S) deliberately, and add deployment isolation for hostile content.",
     lede:
-      "Every navigation and subresource request is checked against the session's explicit origin policy. Public adapters block loopback and private-network targets by default.",
+      "Bounded contexts check intercepted HTTP(S) navigation and subresource requests against the session origin policy. Public adapters block loopback and private-network targets by default, but application routing is not a complete protocol sandbox.",
     sections: [
       {
         title: "Start from an allowlist",
         body:
-          "<p>List exact HTTPS origins whenever possible. Redirects and subresources are re-evaluated, so an admitted start URL cannot silently widen the session. Denied origins take precedence.</p>"
+          "<p>List exact HTTPS origins whenever possible. Redirects and intercepted HTTP(S) subresources are re-evaluated, so an admitted start URL cannot silently widen those routed requests. Denied origins take precedence. Runtime-owned full-engine bounded contexts also validate WebSocket handshakes and block service workers in balanced and lean profiles. Balanced preserves ordinary images, media, and fonts, while lean additionally blocks those three asset classes.</p><p>These controls do not contain WebRTC/STUN/TURN/UDP, WebTransport/QUIC, attached CDP, lightweight-engine WebSockets, or the unrestricted raw Playwright and Puppeteer operator lane. Use an OS, container, firewall, or equivalent egress boundary when hostile content requires complete protocol isolation.</p>"
       },
       {
         title: "Private networks require an owned deployment decision",
@@ -1510,7 +1556,7 @@ cockroach-browser persistent-profile archive --name support-review`,
     title: "MCP",
     kicker: "Give an MCP client observations and proposals, not browser ownership.",
     lede:
-      "The native stdio server exposes health, capabilities, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
+      "The native stdio server exposes health, capability and engine manifests, action preflight, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
     sections: [
       {
         title: "Configure the local server",
@@ -1522,7 +1568,12 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Observation-first tools",
         body:
-          "<p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, <code>browser_capture</code>, <code>browser_network</code>, and <code>browser_propose_action</code>. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>"
+          "<p>The MCP surface provides <code>browser_capabilities</code>, <code>browser_engines</code>, <code>browser_engine_preflight</code>, <code>browser_health</code>, <code>browser_sessions</code>, <code>browser_snapshot</code>, <code>browser_audit</code>, <code>browser_capture</code>, <code>browser_network</code>, and <code>browser_propose_action</code>. Capture and network tools return bounded read evidence. A proposal returns canonical action material for a governed dispatcher and does not execute it.</p>"
+      },
+      {
+        title: "Preflight an exact engine and action set",
+        body:
+          "<p><code>browser_engines</code> returns the same per-engine manifest as authenticated <code>GET /v1/engines</code> without launching a browser. <code>browser_engine_preflight</code> accepts an engine, one or more exact action kinds, and optional <code>allowExperimental</code>. It returns required capabilities, their supported, experimental, or unsupported states, acceptance decisions, and the unmet set. Experimental capabilities fail unless explicitly accepted; unsupported capabilities always fail. Neither tool creates a session or widens host policy.</p>"
       },
       {
         title: "Keep lifecycle authority outside the model",
@@ -1553,7 +1604,7 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "Keep publish and drain as separate authorities",
         body:
-          "<p><code>publish()</code> validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. <code>drain()</code> is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch.</p> <p>Run the drain from a deployment-owned scheduler or worker. An endpoint failure never changes the result of the browser action that produced the lifecycle event.</p>",
+          "<p><code>publish()</code> validates and sanitizes the event, applies endpoint event filters, enforces the payload and storage ceilings, and atomically appends local queue records. It does not resolve DNS, call the secret resolver, or use the network. <code>drain()</code> is the operator-controlled boundary that revalidates DNS, resolves the referenced key, signs the canonical body, and sends a finite serial batch.</p><p><code>BrowserRuntime.eventPublisherTimeoutMs</code> limits how long lifecycle delivery may delay browser work. It defaults to 1,000 ms and accepts integers from 1 through 120,000 ms. Run the drain from a deployment-owned scheduler or worker. A publisher rejection, timeout, or endpoint failure never replaces the result of the browser action that produced the lifecycle event.</p>",
         code: snippets.webhookDrain,
         label: "drain.ts"
       },
@@ -1640,12 +1691,12 @@ cockroach-browser persistent-profile archive --name support-review`,
     title: "Qarinah integration",
     kicker: "Turn browser outcomes into cited memory without turning memory into a dispatcher.",
     lede:
-      "Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.",
+      "The optional Qarinah adapters emit versioned metadata-only outcomes to a host sink and can retrieve a bounded cited history pack for the built-in agent without granting browser authority.",
     sections: [
       {
         title: "Record metadata, not browser secrets",
         body:
-          "<p>The adapter removes cookies, storage values, form values, secret references, and hidden reasoning. It records the canonical input digest, output digest, browser receipt hash, evidence IDs, source URL, and bounded descriptive metadata as cited context links. The host supplies the persistence callback supported by its installed Qarinah release.</p>"
+          "<p>The recorder emits <code>cockroach.browser-memory.v2</code> with event type, session ID, optional actor, a SHA-256 <code>purposeDigest</code> instead of raw purpose, timestamp, optional input and output digests, evidence IDs, optional receipt hash, and filtered metadata. The metadata allowlist is action, status, input/output digest, receipt hash/ID, evidence IDs, policy digest, mode, effect, risk, and completion time. Values are depth-, length-, and count-bounded; authorization, cookie, credential, password, passphrase, secret, token, storage, form-value, and API-key fields are removed recursively.</p><p>The envelope contains no <code>sourceUrl</code>, raw page content, browser-profile content, hidden reasoning, or raw session purpose. The host supplies the persistence callback supported by its installed Qarinah release. <code>BrowserRuntime.contextRecorderTimeoutMs</code> bounds the recorder wait, defaults to 1,000 ms, and accepts integers from 1 through 120,000 ms; rejection or timeout is reported operationally without replacing browser work.</p>"
       },
       {
         title: "Keep memory read-only with respect to the browser",
@@ -1658,9 +1709,20 @@ cockroach-browser persistent-profile archive --name support-review`,
           "<p>A read outcome needs citations and receipt metadata, not a synthetic mutation chain. For consequential mutations, a host may connect public evidence, browser observation, Qarinah memory, Maqam decision, approved tool execution, observed result, and permanent receipt when every stage exists. The integration does not invent missing stages or require one cross-system transaction.</p>"
       },
       {
-        title: "Cross-tool context",
+        title: "Retrieve bounded context for the browser agent",
         body:
-          "<p>The same cited memory pack can be consumed by coding agents and CLIs that support the Qarinah integration. Authority remains scoped by workspace and source provenance.</p>"
+          "<p><code>createQarinahAgentContextProvider</code> forwards the current session ID, agent task as query, an agent-selected character ceiling, a configured result limit from 1 to 128, and optional cancellation to a host-owned <code>retrieveBrowserContext</code> callback. The callback returns a summary plus citation IDs with optional receipt hashes and evidence IDs.</p><p>The browser agent validates citation counts and identifier sizes, preserves citation anchors when truncating, and serializes the bounded pack as an untrusted user-role observation behind a trusted system boundary. Qarinah content never becomes a system instruction or authority. Runtime origin, action, effect, approval, and resource policy still decides every browser operation.</p>",
+        code: `const contextProvider = createQarinahAgentContextProvider(
+  hostProvidedQarinahMemorySource,
+  { limit: 24 }
+);
+
+const agent = new BrowserAgent({
+  runtime,
+  gateway,
+  contextProvider
+});`,
+        label: "qarinah-context.mjs"
       }
     ]
   },
@@ -1785,12 +1847,12 @@ cockroach-browser persistent-profile archive --name support-review`,
       {
         title: "OpenAPI, metrics, and activity",
         body:
-          "<p>Authenticated operators can inspect <code>/v1/openapi.json</code>, scrape Prometheus text from <code>/v1/metrics</code>, poll <code>/v1/activity</code>, or subscribe to <code>/v1/activity/stream</code>. The activity surface is bounded and actor-filtered; it is not a raw browser telemetry dump.</p>"
+          "<p>Any authenticated identity can inspect the relative-base <code>/v1/openapi.json</code> route index. Global <code>/v1/health</code>, Prometheus text from <code>/v1/metrics</code>, and <code>/v1/evidence/verify</code> require the daemon administrator token. Actor tokens can poll <code>/v1/activity</code> or subscribe to <code>/v1/activity/stream</code> only for sessions they may view. OpenAPI indexes every implemented daemon method/path with unique operation IDs and response declarations, but grants no authority by itself. The activity surface is bounded and actor-filtered; it is not a raw browser telemetry dump.</p>"
       },
       {
         title: "Team and worker operation",
         body:
-          "<p>Embed <code>TeamSessionStore</code> to persist owner, viewer, and operator roles with revocation. Use <code>BrowserWorkerPool</code> to choose healthy authenticated workers by capacity, weight, and explicit tags. Keep profile directories local to their owning worker.</p>"
+          "<p>Actor-scoped bearer tokens require <code>TeamSessionStore</code>; daemon startup fails closed without it. The administrator token and every actor token must be unique or startup fails with <code>AUTH_TOKEN_COLLISION</code>. Actor-token session creation additionally requires a host-owned <code>actorSessionFactory</code> that derives authoritative session input from individually reviewed request fields and never spreads caller JSON. The server supplies the authenticated actor and claims the session before exposure, closing it if the ownership claim fails. Access mutations replace the in-memory map only after durable persistence succeeds.</p><p>Set daemon admission with <code>BrowserServerOptions.maxSessions</code> (default 32) and <code>maxSessionsPerActor</code> (default 8). The concurrency-safe reservation path counts all non-closed sessions plus pending creates; limit responses are HTTP 429 with <code>SESSION_GLOBAL_LIMIT_EXCEEDED</code> or <code>SESSION_ACTOR_LIMIT_EXCEEDED</code>. <code>maxRequestBytes</code> defaults to 1,048,576 bytes and accepts integers from 1,024 through 16,777,216 bytes.</p><p>Use <code>BrowserWorkerPool</code> to choose healthy authenticated workers by capacity, weight, and explicit tags. Keep profile directories local to their owning worker.</p>"
       },
       {
         title: "Release verification",
@@ -1802,8 +1864,8 @@ cockroach-browser persistent-profile archive --name support-review`,
 ];
 
 export const homepage = {
-  title: "Cross-browser automation and browser agents, from raw protocol to final evidence.",
+  title: "Full browsers when fidelity matters. A measured 28.25 MiB non-visual lane when it does not.",
   lede:
-    "Run Chromium, Firefox, and WebKit with complete Playwright and Puppeteer APIs, a built-in planner, semantic snapshots, files, profiles, network tools, mobile WebDriver, fleet adapters, six SDKs, MCP, and verifiable evidence.",
+    "Route AI automation to Chromium, Firefox, WebKit, or an explicitly preflighted experimental Obscura lane. Keep every bounded session behind declared origins, effects, approvals, resource budgets, and verifiable evidence.",
   proof: []
 };

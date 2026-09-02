@@ -14,6 +14,7 @@ import type {
 import type { Capability } from "./capabilities.js";
 import { CockroachBrowserError } from "./errors.js";
 import type { BrowserJob } from "./job-queue.js";
+import type { BrowserEngineId, EngineCapabilityManifest } from "./engine-capabilities.js";
 
 export interface BrowserClientOptions {
   baseUrl?: string;
@@ -62,6 +63,11 @@ export class BrowserClient {
 
   async capabilities(): Promise<Capability[]> {
     return (await this.request<{ capabilities: Capability[] }>("GET", "/v1/capabilities")).capabilities;
+  }
+
+  async engines(engine?: BrowserEngineId): Promise<EngineCapabilityManifest[]> {
+    const query = engine ? `?engine=${encodeURIComponent(engine)}` : "";
+    return (await this.request<{ engines: EngineCapabilityManifest[] }>("GET", `/v1/engines${query}`)).engines;
   }
 
   createSession(input: SessionCreateInput): Promise<SessionSummary> {

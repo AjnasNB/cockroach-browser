@@ -1,3 +1,5 @@
+import type { StructuredExtractionLimits } from "./structured-extraction.js";
+
 export const ACTION_KINDS = [
   "navigate",
   "back",
@@ -52,6 +54,7 @@ export const ACTION_KINDS = [
   "pdf",
   "snapshot",
   "extract",
+  "extract.structured",
   "cookies.read",
   "cookies.write",
   "storage.read",
@@ -158,7 +161,7 @@ export interface SessionCreateInput {
   mode?: BrowserMode;
   /** Installed Playwright engine used by the bounded runtime. Defaults to Chromium. */
   engine?: BrowserEngine;
-  /** Balanced preserves page assets; lean blocks images, media, fonts, and service workers. */
+  /** Balanced preserves page assets; lean additionally blocks images, media, and fonts. */
   performanceProfile?: BrowserPerformanceProfile;
   startUrl?: string;
   locale?: string;
@@ -179,22 +182,121 @@ export interface SessionCreateInput {
   actor?: string;
 }
 
-export type BrowserProviderKind = "bundled" | "system" | "custom" | "cdp";
+export type BrowserProviderKind = "bundled" | "system" | "custom" | "cdp" | "lightweight";
+export type LightweightBrowserImplementation = "obscura" | "lightpanda";
+export type BrowserProviderChannel =
+  | "chrome"
+  | "chrome-beta"
+  | "chrome-dev"
+  | "chrome-canary"
+  | "msedge"
+  | "msedge-beta"
+  | "msedge-dev"
+  | "msedge-canary";
 
-export interface BrowserProviderInput {
-  kind: BrowserProviderKind;
-  /** Required for custom providers; must resolve to a regular executable file. */
-  executablePath?: string;
-  /** Required for CDP providers. Remote endpoints still require policy.allowRemote. */
-  cdpEndpoint?: string;
-  /** Chromium channel hint used by system discovery, for example chrome or msedge. */
-  channel?: "chrome" | "chrome-beta" | "chrome-dev" | "chrome-canary" | "msedge" | "msedge-beta" | "msedge-dev" | "msedge-canary";
+interface LocalBrowserProviderOptions {
   /** Reviewed unpacked extension directories. Remote downloads and CRX installation are not performed. */
   extensions?: string[];
   /** Host-reviewed Chromium arguments. Dangerous remote-debug or public-bind flags are rejected. */
   arguments?: string[];
   /** Runtime-owned persistent user-data directory. Ambient host profiles are never discovered. */
   persistentProfile?: string;
+  cdpEndpoint?: never;
+  implementation?: never;
+  expectedSha256?: never;
+  startupTimeoutMs?: never;
+  rendering?: never;
+  resourceProfile?: never;
+  allowExperimentalCapabilities?: never;
+}
+
+export interface BundledBrowserProviderInput extends LocalBrowserProviderOptions {
+  kind: "bundled";
+  executablePath?: never;
+  channel?: never;
+}
+
+export interface SystemBrowserProviderInput extends LocalBrowserProviderOptions {
+  kind: "system";
+  /** Chromium channel hint used by system discovery, for example chrome or msedge. */
+  channel?: BrowserProviderChannel;
+  executablePath?: never;
+}
+
+export interface CustomBrowserProviderInput extends LocalBrowserProviderOptions {
+  kind: "custom";
+  /** Must resolve to a regular executable file. */
+  executablePath: string;
+  channel?: never;
+}
+
+export interface CdpBrowserProviderInput {
+  kind: "cdp";
+  /** Remote endpoints still require policy.allowRemote. */
+  cdpEndpoint: string;
+  executablePath?: never;
+  implementation?: never;
+  expectedSha256?: never;
+  startupTimeoutMs?: never;
+  rendering?: never;
+  resourceProfile?: never;
+  allowExperimentalCapabilities?: never;
+  channel?: never;
+  extensions?: never;
+  arguments?: never;
+  persistentProfile?: never;
+}
+
+interface LightweightBrowserProviderOptions {
+  kind: "lightweight";
+  /** The runtime starts and owns this independent executable. */
+  executablePath: string;
+  /** Optional reviewed SHA-256 pin for the explicitly installed lightweight executable. */
+  expectedSha256?: string;
+  /** Bounded time allowed for the owned loopback CDP listener to start. */
+  startupTimeoutMs?: number;
+  /** Explicit opt-in while lightweight capability coverage remains experimental. */
+  allowExperimentalCapabilities: true;
+  cdpEndpoint?: never;
+  channel?: never;
+  extensions?: never;
+  arguments?: never;
+  persistentProfile?: never;
+}
+
+export interface ObscuraBrowserProviderInput extends LightweightBrowserProviderOptions {
+  implementation: "obscura";
+  /** Exact rendering variant of the reviewed binary. Defaults to no rendering. */
+  rendering?: "none" | "native";
+  /** Fixed low-memory launch profile. Defaults to standard. */
+  resourceProfile?: "standard" | "constrained";
+}
+
+export interface LightpandaBrowserProviderInput extends LightweightBrowserProviderOptions {
+  implementation: "lightpanda";
+  rendering?: "none";
+  resourceProfile?: "standard";
+}
+
+export type BrowserProviderInput =
+  | BundledBrowserProviderInput
+  | SystemBrowserProviderInput
+  | CustomBrowserProviderInput
+  | CdpBrowserProviderInput
+  | ObscuraBrowserProviderInput
+  | LightpandaBrowserProviderInput;
+
+export interface BrowserProviderSummary {
+  kind: BrowserProviderKind;
+  ownership: "runtime-owned" | "external";
+  /** Independent engine identity. Omitted for ordinary Playwright engines and external CDP. */
+  implementation?: LightweightBrowserImplementation;
+  /** Exact rendering boundary of a runtime-owned lightweight binary. */
+  rendering?: "none" | "native";
+  /** Exact fixed resource profile used to launch a runtime-owned lightweight binary. */
+  resourceProfile?: "standard" | "constrained";
+  /** Lightweight CDP compatibility is experimental until the exact installed build passes conformance. */
+  maturity: "supported" | "experimental" | "external";
 }
 
 export interface BrowserEmulationInput {
@@ -235,6 +337,8 @@ export interface BrowserAction {
   expression?: string;
   emulation?: BrowserEmulationInput;
   query?: BrowserQueryInput;
+  /** Bounded sanitized extraction limits for the extract.structured action. */
+  extraction?: StructuredExtractionLimits;
   path?: string;
   paths?: string[];
   timeoutMs?: number;
@@ -512,6 +616,7 @@ export interface SessionSummary {
   profile?: string;
   mode: BrowserMode;
   engine: BrowserEngine;
+  provider: BrowserProviderSummary;
   performanceProfile: BrowserPerformanceProfile;
   purpose: string;
   actor?: string;
@@ -565,6 +670,8 @@ export const BROWSER_EVENT_TYPES = [
   "browser.session.created",
   "browser.session.closed",
   "browser.session.resource-limit-exceeded",
+  "browser.session.duration-limit-exceeded",
+  "browser.context.recording-failed",
   "browser.action.started",
   "browser.action.completed",
   "browser.progress",

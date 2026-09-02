@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "cockroach.white-paper-build.v1",
+  "paperVersion": "1.2",
+  "implementationVersion": "0.5.0-rc.1",
+  "publicationDate": "2026-09-03",
+  "gitBaseCommit": "deb6c25b4c0bc1927a631e3b062464b4f4cc2775",
+  "workingTreeDirty": true,
+  "inputs": [
+    {
+      "path": "docs/whitepaper.md",
+      "bytes": 65102,
+      "sha256": "2460ad9cf2185c964b45b5a7607e25c35fad4ff5277d86a6256b16f2e60b423b"
+    },
+    {
+      "path": "scripts/build-whitepaper-pdf.py",
+      "bytes": 18938,
+      "sha256": "db9eb6e2b26266e5a6da2f7fb382e726d8c43748f2f1fa9085278403b72a60ec"
+    },
+    {
+      "path": "site/assets/logo.png",
+      "bytes": 948069,
+      "sha256": "5fad338e75ac88d018fcbde96b736ba4c540d988b2316d1aeb0c16dbfced5e89"
+    },
+    {
+      "path": "C:/Windows/Fonts/arial.ttf",
+      "bytes": 1045720,
+      "sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a"
+    },
+    {
+      "path": "C:/Windows/Fonts/arialbd.ttf",
+      "bytes": 989780,
+      "sha256": "e8f4e3baf6cc35fed6fcce3a540e8b39e8f6cda1d22a28f2ec8f526fef7a43f5"
+    },
+    {
+      "path": "C:/Windows/Fonts/ariali.ttf",
+      "bytes": 721584,
+      "sha256": "86b32db9a06f9694e2a3760c42e5117bcdc5cc1255bb5186ca8ce0305e22f288"
+    },
+    {
+      "path": "C:/Windows/Fonts/consola.ttf",
+      "bytes": 453088,
+      "sha256": "cf00b507b3286870cc5064ebd0633c303f70b491a4af25eec2d32df413db0179"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "output/pdf/Cockroach-Browser-Technical-White-Paper-v1.2.pdf",
+      "bytes": 1406360,
+      "sha256": "6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3"
+    },
+    {
+      "path": "docs/Cockroach-Browser-Technical-White-Paper-v1.2.pdf",
+      "bytes": 1406360,
+      "sha256": "6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3"
+    },
+    {
+      "path": "site/paper/Cockroach-Browser-Technical-White-Paper-v1.2.pdf",
+      "bytes": 1406360,
+      "sha256": "6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3"
+    }
+  ],
+  "pdfSha256": "6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3"
+}

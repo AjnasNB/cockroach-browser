@@ -4,7 +4,14 @@ import * as z from "zod/v4";
 import { BrowserClient } from "./client.js";
 import { CAPABILITIES } from "./capabilities.js";
 import { canonicalJson, sha256 } from "./canonical.js";
-import type { BrowserAction } from "./contracts.js";
+import { ACTION_KINDS, type BrowserAction } from "./contracts.js";
+import {
+  BROWSER_ENGINE_IDS,
+  ENGINE_CAPABILITY_MANIFEST,
+  engineCapabilities,
+  preflightEngineActions
+} from "./engine-capabilities.js";
+import { STRUCTURED_EXTRACTION_LIMIT_SPECS } from "./structured-extraction.js";
 
 export interface BrowserMcpOptions {
   client?: BrowserClient;
@@ -22,7 +29,7 @@ export async function startMcpServer(options: BrowserMcpOptions = {}): Promise<v
   const client = options.client ?? (token
     ? new BrowserClient({ ...(baseUrl ? { baseUrl } : {}), token })
     : undefined);
-  const server = new McpServer({ name: "cockroach-browser", version: "0.4.1" });
+  const server = new McpServer({ name: "cockroach-browser", version: "0.5.0-rc.1" });
 
   server.registerTool(
     "browser_capabilities",
@@ -36,6 +43,40 @@ export async function startMcpServer(options: BrowserMcpOptions = {}): Promise<v
     async ({ status }) => result({
       capabilities: CAPABILITIES.filter((entry) => !status || entry.status === status)
     })
+  );
+
+  server.registerTool(
+    "browser_engines",
+    {
+      title: "Inspect browser engine capabilities",
+      description: "Returns exact supported, experimental, and unsupported outcomes for each full or lightweight engine without launching it.",
+      inputSchema: {
+        engine: z.enum(BROWSER_ENGINE_IDS).optional()
+      }
+    },
+    async ({ engine }) => result({
+      engines: engine
+        ? [engineCapabilities(engine)]
+        : BROWSER_ENGINE_IDS.map((id) => ENGINE_CAPABILITY_MANIFEST[id])
+    })
+  );
+
+  server.registerTool(
+    "browser_engine_preflight",
+    {
+      title: "Preflight browser actions against an engine",
+      description: "Checks whether an exact action set can run on an engine. Experimental outcomes fail closed unless explicitly accepted; unsupported outcomes always fail.",
+      inputSchema: {
+        engine: z.enum(BROWSER_ENGINE_IDS),
+        actions: z.array(z.enum(ACTION_KINDS)).min(1).max(ACTION_KINDS.length),
+        allowExperimental: z.boolean().optional()
+      }
+    },
+    async ({ engine, actions, allowExperimental }) => result(preflightEngineActions({
+      engine,
+      actions,
+      ...(allowExperimental !== undefined ? { allowExperimental } : {})
+    }))
   );
 
   server.registerTool(
@@ -163,7 +204,21 @@ const valueRefField = z.string().regex(/^ref:[A-Za-z0-9._:/-]{1,240}$/);
 const purposeFree = {
   tabId: tabField
 };
-const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
+const structuredExtractionLimitShape = Object.fromEntries(
+  Object.entries(STRUCTURED_EXTRACTION_LIMIT_SPECS).map(([name, spec]) => [
+    name,
+    z.number().int().min(0).max(spec.maximum).optional()
+  ])
+) as Record<keyof typeof STRUCTURED_EXTRACTION_LIMIT_SPECS, z.ZodOptional<z.ZodNumber>>;
+export const STRUCTURED_EXTRACTION_LIMITS_SCHEMA = z.object(structuredExtractionLimitShape).strict();
+const frameField = z.object({
+  index: z.number().int().min(0).max(255).optional(),
+  name: z.string().min(1).max(256).optional(),
+  url: z.string().url().max(2_048).optional()
+}).strict().refine((frame) => Object.values(frame).some((value) => value !== undefined), {
+  message: "A frame target requires index, name, or exact URL."
+});
+export const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("navigate"), ...purposeFree, url: z.string().url().max(4_096) }).strict(),
   z.object({ kind: z.literal("tab.open"), url: z.string().url().max(4_096) }).strict(),
   z.object({ kind: z.literal("tab.close"), tabId: refField }).strict(),
@@ -175,7 +230,7 @@ const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("doubleClick"), ...purposeFree, ref: refField }).strict(),
   z.object({ kind: z.literal("fill"), ...purposeFree, ref: refField, valueRef: valueRefField }).strict(),
   z.object({ kind: z.literal("type"), ...purposeFree, ref: refField, valueRef: valueRefField }).strict(),
-  z.object({ kind: z.literal("press"), ...purposeFree, ref: refField.optional(), key: z.string().min(1).max(64) }).strict(),
+  z.object({ kind: z.literal("press"), ...purposeFree, ref: refField, key: z.string().min(1).max(64) }).strict(),
   z.object({ kind: z.literal("hover"), ...purposeFree, ref: refField }).strict(),
   z.object({ kind: z.literal("focus"), ...purposeFree, ref: refField }).strict(),
   z.object({ kind: z.literal("check"), ...purposeFree, ref: refField }).strict(),
@@ -271,11 +326,44 @@ const MCP_ACTION_PROPOSAL = z.discriminatedUnion("kind", [
     xpath: z.string().min(1).max(1_024).optional()
   }).strict(),
   z.object({
+    kind: z.literal("extract.structured"),
+    ...purposeFree,
+    ref: refField.optional(),
+    selector: z.string().min(1).max(2_048).optional(),
+    xpath: z.string().min(1).max(2_048).optional(),
+    frame: frameField.optional(),
+    extraction: STRUCTURED_EXTRACTION_LIMITS_SCHEMA.optional()
+  }).strict(),
+  z.object({
     kind: z.literal("evaluate"),
     ...purposeFree,
     expression: z.string().min(1).max(65_536)
   }).strict()
-]);
+]).superRefine((action, context) => {
+  if (action.kind !== "extract.structured") return;
+  const targetCount = [action.ref, action.selector, action.xpath].filter(Boolean).length;
+  if (targetCount > 1) {
+    context.addIssue({
+      code: "custom",
+      message: "Structured extraction accepts at most one semantic ref, CSS selector, or XPath target.",
+      path: ["ref"]
+    });
+  }
+  if (action.frame && targetCount === 0) {
+    context.addIssue({
+      code: "custom",
+      message: "A structured-extraction frame requires an exact selector or XPath target.",
+      path: ["frame"]
+    });
+  }
+  if (action.ref && action.frame) {
+    context.addIssue({
+      code: "custom",
+      message: "A semantic reference cannot be combined with a separate frame target.",
+      path: ["frame"]
+    });
+  }
+});
 
 function requireClient(client: BrowserClient | undefined): BrowserClient {
   if (!client) {

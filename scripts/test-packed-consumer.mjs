@@ -38,7 +38,9 @@ import { BrowserAgent } from "cockroach-browser/agent";
 import { OpenAICompatibleModelGateway } from "cockroach-browser/model-gateway";
 import { BrowserFleet, LocalBrowserFleetProvider } from "cockroach-browser/fleet";
 import { createRawCdpSession } from "cockroach-browser/cdp";
+import actionSchema from "cockroach-browser/schemas/action.schema.json" with { type: "json" };
 import memorySchema from "cockroach-browser/schemas/browser-memory.schema.json" with { type: "json" };
+import sessionSchema from "cockroach-browser/schemas/session.schema.json" with { type: "json" };
 import server from "cockroach-browser/server.json" with { type: "json" };
 if (CAPABILITIES.length < 73) throw new Error("operator capabilities missing");
 if (typeof BrowserClient !== "function") throw new Error("client missing");
@@ -54,7 +56,9 @@ if (typeof playwrightTest !== "function" || typeof playwrightExpect !== "functio
 for (const exported of [BidiSession, WebDriverClient, BrowserAgent, OpenAICompatibleModelGateway, BrowserFleet, LocalBrowserFleetProvider, createRawCdpSession]) {
   if (typeof exported !== "function") throw new Error("expanded platform export missing");
 }
-if (memorySchema.properties?.schemaVersion?.const !== "cockroach.browser-memory.v1") throw new Error("memory schema mismatch");
+if (actionSchema.$id !== "https://cockroachbrowser.com/schemas/action.schema.json" || !actionSchema.$defs?.actionKind) throw new Error("action schema mismatch");
+if (memorySchema.properties?.schemaVersion?.const !== "cockroach.browser-memory.v2") throw new Error("memory schema mismatch");
+if (sessionSchema.$id !== "https://cockroachbrowser.com/schemas/session.schema.json" || !sessionSchema.properties?.browserProvider) throw new Error("session schema mismatch");
 if (server.name !== "io.github.AjnasNB/cockroach-browser") throw new Error("MCP identity mismatch");
 process.stdout.write(JSON.stringify({ ok: true, capabilities: CAPABILITIES.length }) + "\\n");
 `

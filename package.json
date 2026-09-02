@@ -1,6 +1,6 @@
 {
   "name": "cockroach-browser",
-  "version": "0.4.1",
+  "version": "0.5.0-rc.1",
   "description": "Open-source local-first Chromium, Firefox, WebKit, Playwright, and Puppeteer automation for AI agents with semantic page snapshots, model-directed execution, MCP, SDKs, and verifiable evidence.",
   "license": "AGPL-3.0-or-later",
   "author": "Ajnas NB",
@@ -82,7 +82,9 @@
       "types": "./dist/fleet.d.ts",
       "default": "./dist/fleet.js"
     },
+    "./schemas/action.schema.json": "./schemas/action.schema.json",
     "./schemas/browser-memory.schema.json": "./schemas/browser-memory.schema.json",
+    "./schemas/session.schema.json": "./schemas/session.schema.json",
     "./server.json": "./server.json"
   },
   "files": [
@@ -108,12 +110,14 @@
     "test:source": "npm test",
     "test:resource": "npm run build:test && node --test --test-reporter=spec .test-dist/test/resource-budget-e2e.test.js",
     "benchmark:resources": "npm run build && node scripts/benchmark-resources.mjs",
+    "benchmark:lightweight": "npm run build && node scripts/benchmark-lightweight.mjs",
+    "verify:lightweight-proof": "node scripts/verify-lightweight-proof.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:package": "node scripts/check-package.mjs",
     "check:site": "node scripts/check-site.mjs",
     "api-surface:build": "node scripts/build-api-surface.mjs",
     "api-surface:check": "node scripts/build-api-surface.mjs --check",
-    "check": "npm run typecheck && npm run build && npm test && npm run api-surface:check && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
+    "check": "npm run typecheck && npm run build && npm test && npm run api-surface:check && npm run verify:lightweight-proof && npm run check:package && npm run check:site && npm audit --omit=dev && npm pack --dry-run --ignore-scripts",
     "prepack": "npm run clean && npm run build && npm run check:package",
     "prepublishOnly": "npm run check"
   },
@@ -154,6 +158,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.5",
     "@playwright/test": "^1.62.1",
+    "ajv": "^8.20.0",
+    "parse5": "^8.0.1",
     "pixelmatch": "^7.1.0",
     "playwright-core": "^1.62.1",
     "pngjs": "^7.0.0",

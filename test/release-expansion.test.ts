@@ -39,8 +39,8 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
     assert.equal(createHash("sha256").update(bytes).digest("hex"), match[1]);
   }
   const inventory = JSON.parse(await readFile(join(output, `cockroach-browser-${releaseVersion}-capabilities.json`), "utf8"));
-  assert.deepEqual(inventory.counts, { total: 127, available: 117, adapter: 10, planned: 0 });
-  assert.equal(inventory.actionCount, 65);
+  assert.deepEqual(inventory.counts, { total: 130, available: 119, adapter: 11, planned: 0 });
+  assert.equal(inventory.actionCount, 66);
 });
 
 test("release workflow selects stable or prerelease channels and verifies every platform lane", async () => {
@@ -65,16 +65,18 @@ test("release workflow selects stable or prerelease channels and verifies every 
   }
 });
 
-test("language SDK package versions match the stable release", async () => {
+test("language SDK package versions match the release in native registry syntax", async () => {
   const expected = releaseVersion;
+  const expectedPython = expected.replace(/-rc\.(\d+)$/, "rc$1");
+  const expectedRuby = expected.replace(/-/g, ".");
   const python = await readFile(resolve(root, "sdks/python/pyproject.toml"), "utf8");
   const java = await readFile(resolve(root, "sdks/java/pom.xml"), "utf8");
   const dotnet = await readFile(resolve(root, "sdks/dotnet/CockroachBrowser/CockroachBrowser.csproj"), "utf8");
   const ruby = await readFile(resolve(root, "sdks/ruby/cockroach-browser.gemspec"), "utf8");
-  assert.match(python, new RegExp(`version = "${expected.replaceAll(".", "\\.")}"`));
+  assert.match(python, new RegExp(`version = "${expectedPython.replaceAll(".", "\\.")}"`));
   assert.match(java, new RegExp(`<version>${expected.replaceAll(".", "\\.")}</version>`));
   assert.match(dotnet, new RegExp(`<Version>${expected.replaceAll(".", "\\.")}</Version>`));
-  assert.match(ruby, new RegExp(`spec\\.version = "${expected.replaceAll(".", "\\.")}"`));
+  assert.match(ruby, new RegExp(`spec\\.version = "${expectedRuby.replaceAll(".", "\\.")}"`));
 });
 
 test("release packaging removes and rejects generated SDK build outputs", async () => {

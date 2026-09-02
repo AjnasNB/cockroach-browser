@@ -13,7 +13,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Actions and semantic refs](./actions.md)
 - [Operator runtime](./operator-runtime.md)
 - [Capture and evidence](./capture.md)
-- [Network boundary](./network.md)
+- [Network controls](./network.md)
 - [Files and downloads](./files.md)
 - [Audits and comparisons](./audits.md)
 - [Jobs and retries](./jobs.md)
@@ -26,6 +26,9 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 - [Security](./security.md)
 - [Deployment](./deployment.md)
 - [Capability matrix](./capabilities.md)
+- [Headless compatibility and engine lanes](./headless-compatibility.md)
+- [Browser resource governance](./resource-governance.md)
+- [Obscura non-visual measured proof](./benchmarks/obscura-non-visual-2026-09-03.md)
 - [Alternatives and product-layer comparison](https://cockroachbrowser.com/alternatives/)
 - [Complete Playwright and Puppeteer API inventory](https://cockroachbrowser.com/api-surface/)
 - [Technical white paper](./whitepaper.md)
@@ -34,7 +37,7 @@ The public documentation lives at https://cockroachbrowser.com/docs/.
 
 - Cockroach Browser owns browser execution, tabs, semantic snapshots, browser evidence, audits, and authenticated worker transport.
 - Cockroach Crawler owns bounded public-web breadth, mapping, and extraction.
-- Qarinah stores compact cited read outcomes but cannot dispatch browser actions.
+- The optional Qarinah adapter emits versioned, metadata-only outcomes with evidence IDs and receipt hashes to a host-supplied sink; it cannot dispatch browser actions.
 - For browser operations routed through its adapter, Maqam owns policy, exact approval, replay protection, dispatch, and governance receipts.
 - ProductLoop OS composes package contracts without silently combining their ledgers or authority.
 

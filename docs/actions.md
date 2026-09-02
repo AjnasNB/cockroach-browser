@@ -33,7 +33,9 @@ console.log(result.receipt.receiptHash);
 
 ## Supported interactions
 
-Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
+Navigation, reload, back, forward, tab control, click, double-click, fill, type, press, select, check, uncheck, hover, focus, bounded scroll, low-level in-viewport mouse input, bounded keyboard input, drag, wait, dialog handling, session-history inspection, upload, download, extract, screenshot, PDF, tracing, and policy-gated JavaScript are available in the runtime.
+
+Each action is classified by effect and risk before dispatch. High-risk actions belong behind Maqam approval.
 
 ## Target exact XPath and same-origin frames
 
@@ -63,7 +65,7 @@ Expression evaluation is disabled unless the session policy allows JavaScript an
 
 ## Inspect a target without inventing a selector
 
-query.inspect returns bounded text, raw element inner HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked. Use a structured extraction surface when sanitized HTML or Markdown is required; raw inner HTML is not a sanitizer.
+query.inspect returns bounded text, raw element inner HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked. Use extract.structured when sanitized HTML is required.
 
 ## Run an ordered bounded batch
 
@@ -81,6 +83,6 @@ cockroach-browser batch \
 emulation.set can apply bounded viewport, media, offline, geolocation, permissions, and non-secret headers after allowEmulation and exact approval. emulation.clear returns to the session baseline. These actions do not provide fingerprint evasion or access-control bypass.
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.
