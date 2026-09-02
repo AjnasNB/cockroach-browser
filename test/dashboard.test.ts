@@ -52,7 +52,7 @@ test("dashboard distinguishes unavailable telemetry from zero usage and escapes 
   assert.equal((html.match(/Resource sample unavailable/g) ?? []).length, 2);
   assert.match(html, /Not measured/);
   assert.doesNotMatch(html, /0 B/);
-  assert.doesNotMatch(html, /<script>/);
+  assert.doesNotMatch(html, /<script>/i);
   assert.match(html, /&lt;script&gt;/);
 });
 
