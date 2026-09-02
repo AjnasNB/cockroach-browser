@@ -7,6 +7,7 @@ RUN npm ci --ignore-scripts
 
 COPY tsconfig.json tsconfig.build.json server.json ./
 COPY src ./src
+COPY schemas ./schemas
 RUN npm run build
 
 FROM node:24-bookworm-slim AS runtime
