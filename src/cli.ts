@@ -48,6 +48,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   }
   if (command === "session" && subcommand === "list") return print(await client.sessions());
   if (command === "session" && subcommand === "get") return print(await client.session(requiredFlag(rest, "--id")));
+  if (command === "session" && subcommand === "resources") return print(await client.resourceUsage(requiredFlag(rest, "--id")));
   if (command === "session" && subcommand === "graph") return print(await client.navigationGraph(requiredFlag(rest, "--id")));
   if (command === "session" && subcommand === "close") {
     await client.closeSession(requiredFlag(rest, "--id"));
@@ -451,6 +452,7 @@ Usage:
   cockroach-browser capabilities [--status available]
   cockroach-browser session create --config session.json --token-file TOKEN_FILE
   cockroach-browser session list --token-file TOKEN_FILE
+  cockroach-browser session resources --id ID --token-file TOKEN_FILE
   cockroach-browser session graph --id ID --token-file TOKEN_FILE
   cockroach-browser browser discover
   cockroach-browser activity [--session ID] [--after ISO_TIME] [--limit 200]

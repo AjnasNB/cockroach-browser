@@ -6,6 +6,7 @@ import type {
   BrowserLifecycleEvent,
   NavigationGraph,
   BrowserNetworkRecord,
+  BrowserResourceUsage,
   PageSnapshot,
   SessionCreateInput,
   SessionSummary
@@ -73,6 +74,10 @@ export class BrowserClient {
 
   session(id: string): Promise<SessionSummary> {
     return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}`);
+  }
+
+  resourceUsage(id: string): Promise<BrowserResourceUsage> {
+    return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}/resources`);
   }
 
   navigationGraph(id: string): Promise<NavigationGraph> {
