@@ -502,10 +502,7 @@ export class BrowserRuntime {
       if (session.resourceTracker) {
         session.resources = await session.resourceTracker.sample(true);
         this.#throwIfResourceLimitExceeded(session);
-        session.resourceMonitor = setInterval(() => {
-          void this.#monitorSessionResources(session);
-        }, this.resourceSampleIntervalMs);
-        session.resourceMonitor.unref();
+        this.#armResourceMonitor(session);
       }
       session.state = "ready";
       session.updatedAt = nowIso();
@@ -637,8 +634,8 @@ export class BrowserRuntime {
 
   async closeSession(id: string, options: { saveProfile?: boolean; passphrase?: string } = {}): Promise<void> {
     const session = this.#requireSession(id);
-    if (session.resourceMonitor) clearInterval(session.resourceMonitor);
-    session.resources = await this.#sampleSessionResources(session, true);
+    // Validate caller-controlled close options before changing the live
+    // session. A rejected profile save must not silently disable enforcement.
     if (options.saveProfile && session.input.profile) {
       const passphrase = options.passphrase;
       if (!passphrase) {
@@ -649,69 +646,78 @@ export class BrowserRuntime {
       }
       await this.profiles.saveContext(session.input.profile, session.context, passphrase);
     }
+
+    session.resources = await this.#sampleSessionResources(session, true);
     session.closing = true;
-    if (session.traceActive) {
-      await session.context.tracing.stop().catch(() => undefined);
-    }
-    if (session.attached) {
-      if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
-      if (session.pageHandler) session.context.off("page", session.pageHandler);
-    } else if (session.input.recordHar) {
-      await session.context.close().catch((error) => {
-        if (!session.resourceLimitReported) throw error;
-      });
-      const harPath = join(this.root, "session-artifacts", id, "network.har");
-      try {
-        await this.#assertEvidenceFileBudget(session, harPath);
-        const har = await readFile(harPath);
-        await this.#addBufferEvidence(session, {
-          kind: "har",
-          contentType: "application/json",
-          data: har,
-          extension: ".har",
-          metadata: { final: true }
-        });
-      } catch {
-        // A context may not produce a HAR if no navigation occurred.
+    this.#disarmResourceMonitor(session);
+    try {
+      if (session.traceActive) {
+        await session.context.tracing.stop().catch(() => undefined);
       }
-    } else {
-      await session.context.close().catch((error) => {
-        if (!session.resourceLimitReported) throw error;
-      });
-    }
-    if (session.input.recordVideo && !session.attached) {
-      const videoRoot = join(this.root, "session-artifacts", id, "video");
-      const videos = await readdir(videoRoot, { withFileTypes: true }).catch(() => []);
-      for (const video of videos) {
-        if (!video.isFile()) continue;
-        const path = join(videoRoot, video.name);
-        await this.#assertEvidenceFileBudget(session, path);
-        await this.#addBufferEvidence(session, {
-          kind: "video",
-          contentType: video.name.endsWith(".webm") ? "video/webm" : "application/octet-stream",
-          data: await readFile(path),
-          extension: extname(video.name) || ".webm",
-          metadata: { final: true }
+      if (session.attached) {
+        if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
+        if (session.pageHandler) session.context.off("page", session.pageHandler);
+      } else if (session.input.recordHar) {
+        await session.context.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
+        });
+        const harPath = join(this.root, "session-artifacts", id, "network.har");
+        try {
+          await this.#assertEvidenceFileBudget(session, harPath);
+          const har = await readFile(harPath);
+          await this.#addBufferEvidence(session, {
+            kind: "har",
+            contentType: "application/json",
+            data: har,
+            extension: ".har",
+            metadata: { final: true }
+          });
+        } catch {
+          // A context may not produce a HAR if no navigation occurred.
+        }
+      } else {
+        await session.context.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
         });
       }
-    }
-    if (!session.attached && session.browser) {
-      await session.browser.close().catch((error) => {
-        if (!session.resourceLimitReported) throw error;
+      if (session.input.recordVideo && !session.attached) {
+        const videoRoot = join(this.root, "session-artifacts", id, "video");
+        const videos = await readdir(videoRoot, { withFileTypes: true }).catch(() => []);
+        for (const video of videos) {
+          if (!video.isFile()) continue;
+          const path = join(videoRoot, video.name);
+          await this.#assertEvidenceFileBudget(session, path);
+          await this.#addBufferEvidence(session, {
+            kind: "video",
+            contentType: video.name.endsWith(".webm") ? "video/webm" : "application/octet-stream",
+            data: await readFile(path),
+            extension: extname(video.name) || ".webm",
+            metadata: { final: true }
+          });
+        }
+      }
+      if (!session.attached && session.browser) {
+        await session.browser.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
+        });
+      }
+      if (session.browserServer) await session.browserServer.close().catch(() => undefined);
+      if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
+      session.state = "closed";
+      session.updatedAt = nowIso();
+      await this.#recordContext(session, "browser.session.closed", {});
+      await this.#publishEvent(session, "browser.session.closed", {
+        actionsUsed: session.actionsUsed,
+        evidenceBytes: session.evidenceBytes,
+        peakRssBytes: session.resources.peakRssBytes ?? null,
+        peakCpuTimeMs: session.resources.peakCpuTimeMs ?? null
       });
+      this.#sessions.delete(id);
+    } catch (error) {
+      session.closing = false;
+      this.#armResourceMonitor(session);
+      throw error;
     }
-    if (session.browserServer) await session.browserServer.close().catch(() => undefined);
-    if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
-    session.state = "closed";
-    session.updatedAt = nowIso();
-    await this.#recordContext(session, "browser.session.closed", {});
-    await this.#publishEvent(session, "browser.session.closed", {
-      actionsUsed: session.actionsUsed,
-      evidenceBytes: session.evidenceBytes,
-      peakRssBytes: session.resources.peakRssBytes ?? null,
-      peakCpuTimeMs: session.resources.peakCpuTimeMs ?? null
-    });
-    this.#sessions.delete(id);
   }
 
   async act(sessionId: string, action: BrowserAction): Promise<{ output: unknown; receipt: ActionReceipt }> {
@@ -2572,6 +2578,26 @@ export class BrowserRuntime {
     );
   }
 
+  #armResourceMonitor(session: ManagedSession): void {
+    if (
+      !session.resourceTracker
+      || session.resourceMonitor
+      || session.closing
+      || session.state === "closed"
+      || session.resourceLimitReported
+    ) return;
+    session.resourceMonitor = setInterval(() => {
+      void this.#monitorSessionResources(session);
+    }, this.resourceSampleIntervalMs);
+    session.resourceMonitor.unref();
+  }
+
+  #disarmResourceMonitor(session: ManagedSession): void {
+    if (!session.resourceMonitor) return;
+    clearInterval(session.resourceMonitor);
+    delete session.resourceMonitor;
+  }
+
   async #monitorSessionResources(session: ManagedSession): Promise<void> {
     if (session.closing || session.state === "closed" || session.resourceLimitReported) return;
     const resources = await this.#sampleSessionResources(session, true);
@@ -2583,7 +2609,7 @@ export class BrowserRuntime {
     session.resourceLimitReported = true;
     session.state = "failed";
     session.updatedAt = nowIso();
-    if (session.resourceMonitor) clearInterval(session.resourceMonitor);
+    this.#disarmResourceMonitor(session);
     await this.#publishEvent(session, "browser.session.resource-limit-exceeded", {
       rssBytes: session.resources.rssBytes ?? null,
       cpuTimeMs: session.resources.cpuTimeMs ?? null,
