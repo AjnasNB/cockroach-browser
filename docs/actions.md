@@ -63,7 +63,7 @@ Expression evaluation is disabled unless the session policy allows JavaScript an
 
 ## Inspect a target without inventing a selector
 
-query.inspect returns bounded text, cleaned HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked.
+query.inspect returns bounded text, raw element inner HTML, attributes, geometry, form state, visibility, enabled state, and match counts for one semantic ref, CSS selector, or XPath. It is read-only, policy-evaluated, and receipt-linked. Use a structured extraction surface when sanitized HTML or Markdown is required; raw inner HTML is not a sanitizer.
 
 ## Run an ordered bounded batch
 
