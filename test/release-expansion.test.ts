@@ -39,7 +39,7 @@ test("release assets are deterministic, complete, and checksum-bound", async (t)
     assert.equal(createHash("sha256").update(bytes).digest("hex"), match[1]);
   }
   const inventory = JSON.parse(await readFile(join(output, `cockroach-browser-${releaseVersion}-capabilities.json`), "utf8"));
-  assert.deepEqual(inventory.counts, { total: 124, available: 114, adapter: 10, planned: 0 });
+  assert.deepEqual(inventory.counts, { total: 127, available: 117, adapter: 10, planned: 0 });
   assert.equal(inventory.actionCount, 65);
 });
 

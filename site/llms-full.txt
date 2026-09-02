@@ -613,10 +613,11 @@ Embed TeamSessionStore to persist owner, viewer, and operator roles with revocat
 ### Release verification
 Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed npm consumer; audit runtime dependencies; validate the website; inspect the tarball; and match the npm artifact to the reviewed Git commit before publishing.
 
-## Complete 124-capability matrix
+## Complete 127-capability matrix
 
 - Authorized browser sessions [available]: Create sessions only from explicit user or host configuration. Surface: runtime.createSession.
 - Headless Chromium, Firefox, and WebKit [available]: Run any installed Playwright engine unattended with the same policy boundary. Surface: engine and mode=headless.
+- Lean headless asset profile [available]: Optionally block images, media, fonts, and service workers while preserving DOM, scripts, styles, forms, semantic snapshots, and governed actions. Surface: performanceProfile=lean.
 - Headed Chromium, Firefox, and WebKit [available]: Show an installed Playwright engine for review, login, and human handoff. Surface: engine and mode=headed.
 - Attach over CDP [available]: Connect to a user-selected Chrome debugging endpoint. Surface: cdpEndpoint.
 - Custom browser executable [available]: Launch an explicitly supplied executable for the selected Chromium, Firefox, or WebKit engine. Surface: engine and executablePath.
@@ -691,6 +692,7 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Generated upstream API inventory [available]: Generate and verify every public class and interface member exposed by the pinned Playwright and Puppeteer declarations. Surface: docs/compatibility/browser-api-surface.json.
 - Accessibility audit [available]: Inspect semantic names, labels, heading order, and obvious failures. Surface: audit accessibility.
 - Page performance observations [available]: Collect navigation timing, paint entries, transfer sizes, and resource summaries. Surface: audit performance.
+- Repeatable cross-engine resource benchmark [available]: Measure browser-tree RSS, CPU time, process count, coordinator memory, network transfer, evidence storage, and phase latency across balanced and lean profiles. Surface: npm run benchmark:resources.
 - Broken asset audit [available]: Report failed scripts, styles, images, and requests. Surface: audit assets.
 - Console error audit [available]: Summarize browser errors and warnings. Surface: audit console.
 - Page security observations [available]: Report mixed content and insecure form targets visible to the page runtime. Surface: audit security.
@@ -702,7 +704,8 @@ Build on Node 22, 24, and 26; run runtime and browser tests; verify the packed n
 - Origin allowlists [available]: Fail closed when navigation leaves explicitly allowed origins. Surface: allowedOrigins.
 - Private-network blocking [available]: Reject private and loopback destinations in the public browser adapter. Surface: policy.
 - Effect-level policy [available]: Separate read, write, execute, upload, download, and credential authority. Surface: allowedEffects.
-- Finite budgets [available]: Clamp actions, tabs, time, upload, download, snapshot, and evidence size. Surface: budget.
+- Finite budgets [available]: Clamp actions, tabs, time, browser-process RSS and CPU, upload, download, snapshot, and evidence size. Surface: budget.
+- Owned browser process-tree governor [available]: Sample aggregate RSS, cumulative CPU time, and process count for runtime-owned browsers; terminate periodically detected limit breaches and disclose unsupported external ownership. Surface: session resources, CLI, dashboard, and Prometheus.
 - Policy-bounded network routes [available]: Abort or statically fulfill exact-origin requests under per-rule and session byte ceilings. Surface: network.route.*.
 - Exact action approvals [adapter]: Bind high-risk approval to the canonical action input. Surface: MaqamApprovalProvider.
 - Secret references [adapter]: Resolve proxy and integration secrets through the host, never manifests. Surface: SecretResolver.
