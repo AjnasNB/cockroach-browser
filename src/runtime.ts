@@ -248,6 +248,7 @@ export class BrowserRuntime {
     const input = structuredClone(rawInput);
     const engine = input.engine ?? "chromium";
     input.engine = engine;
+    input.performanceProfile = input.performanceProfile ?? "balanced";
     const browserType = browserTypeFor(engine);
     const policy = normalizePolicy(input.policy);
     input.policy = policy;
@@ -352,11 +353,23 @@ export class BrowserRuntime {
         const extensionArgs = provider.extensions.length
           ? [`--disable-extensions-except=${provider.extensions.join(",")}`, `--load-extension=${provider.extensions.join(",")}`]
           : [];
+        const performanceArgs = input.performanceProfile === "lean" && engine === "chromium"
+          ? [
+              "--disable-background-networking",
+              "--disable-component-update",
+              "--disable-default-apps",
+              "--disable-sync",
+              "--metrics-recording-only",
+              "--no-first-run"
+            ]
+          : [];
         const launchOptions: NonNullable<Parameters<BrowserType["launch"]>[0]> = {
           headless: (input.mode ?? "headless") === "headless",
           ...(provider.executablePath ? { executablePath: provider.executablePath } : {}),
           ...(proxy ? { proxy } : {}),
-          ...(provider.arguments.length || extensionArgs.length ? { args: [...provider.arguments, ...extensionArgs] } : {})
+          ...(provider.arguments.length || extensionArgs.length || performanceArgs.length
+            ? { args: [...provider.arguments, ...extensionArgs, ...performanceArgs] }
+            : {})
         };
         let storageState: Record<string, unknown> | undefined;
         if (input.profile) {
@@ -376,6 +389,7 @@ export class BrowserRuntime {
         await mkdir(sessionArtifactRoot, { recursive: true });
         const contextOptions: BrowserContextOptions = {
           acceptDownloads: Boolean(policy.allowDownloads),
+          serviceWorkers: input.performanceProfile === "lean" ? "block" : "allow",
           locale: input.locale ?? "en-US",
           ...(input.timezoneId ? { timezoneId: input.timezoneId } : {}),
           ...(input.colorScheme ? { colorScheme: input.colorScheme } : {}),
@@ -523,6 +537,7 @@ export class BrowserRuntime {
       ...(session.input.profile ? { profile: session.input.profile } : {}),
       mode: session.input.mode ?? "headless",
       engine: session.input.engine ?? "chromium",
+      performanceProfile: session.input.performanceProfile ?? "balanced",
       purpose: session.input.purpose,
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       createdAt: session.createdAt,
@@ -2368,6 +2383,13 @@ export class BrowserRuntime {
             contentType: rule.summary.response.contentType ?? "text/plain; charset=utf-8",
             body: rule.body
           });
+          return;
+        }
+        if (
+          session.input.performanceProfile === "lean"
+          && ["image", "media", "font"].includes(request.resourceType())
+        ) {
+          await route.abort("blockedbyclient");
           return;
         }
         await route.continue();

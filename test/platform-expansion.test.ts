@@ -78,6 +78,53 @@ test(
 );
 
 test(
+  "lean runtime blocks heavy page assets across Chromium, Firefox, and WebKit",
+  { skip: process.env.COCKROACH_BROWSER_MULTI_ENGINE_E2E !== "1", timeout: 120_000 },
+  async (t) => {
+    let imageRequests = 0;
+    const fixture = createServer((request, response) => {
+      if (request.url === "/large.png") {
+        imageRequests += 1;
+        response.writeHead(200, { "content-type": "image/png" });
+        response.end(Buffer.alloc(64 * 1024));
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end("<!doctype html><html lang=en><title>Lean fixture</title><body>ready<img src=/large.png></body></html>");
+    });
+    await new Promise<void>((resolve) => fixture.listen(0, "127.0.0.1", resolve));
+    t.after(() => new Promise<void>((resolve, reject) => fixture.close((error) => error ? reject(error) : resolve())));
+    const address = fixture.address();
+    assert(address && typeof address === "object");
+    const origin = `http://127.0.0.1:${address.port}`;
+    for (const engine of RAW_BROWSER_ENGINES) {
+      const root = await mkdtemp(join(tmpdir(), `cockroach-browser-lean-${engine}-`));
+      const runtime = new BrowserRuntime({ root });
+      try {
+        const session = await runtime.createSession({
+          engine,
+          performanceProfile: "lean",
+          startUrl: origin,
+          purpose: `Verify lean ${engine}`,
+          policy: {
+            allowedOrigins: [origin],
+            allowPrivateNetwork: true,
+            allowedActions: ["snapshot"]
+          }
+        });
+        assert.equal(session.performanceProfile, "lean");
+        const snapshot = await runtime.snapshot(session.id);
+        assert.match(snapshot.text, /ready/);
+      } finally {
+        await runtime.close();
+        await rm(root, { recursive: true, force: true });
+      }
+    }
+    assert.equal(imageRequests, 0);
+  }
+);
+
+test(
   "bounded runtime launches headed Chromium, Firefox, and WebKit",
   { skip: process.env.COCKROACH_BROWSER_HEADED_E2E !== "1", timeout: 120_000 },
   async (t) => {

@@ -37,6 +37,12 @@
         "webkit"
       ]
     },
+    "performanceProfile": {
+      "enum": [
+        "balanced",
+        "lean"
+      ]
+    },
     "startUrl": {
       "type": "string",
       "format": "uri",

@@ -71,6 +71,7 @@ export type RiskLevel = "low" | "medium" | "high" | "critical";
 export type Effect = "read" | "write" | "execute" | "upload" | "download" | "credential";
 export type BrowserMode = "headless" | "headed";
 export type BrowserEngine = "chromium" | "firefox" | "webkit";
+export type BrowserPerformanceProfile = "balanced" | "lean";
 export type SessionState = "starting" | "ready" | "challenge" | "closed" | "failed";
 
 export interface ResourceBudget {
@@ -157,6 +158,8 @@ export interface SessionCreateInput {
   mode?: BrowserMode;
   /** Installed Playwright engine used by the bounded runtime. Defaults to Chromium. */
   engine?: BrowserEngine;
+  /** Balanced preserves page assets; lean blocks images, media, fonts, and service workers. */
+  performanceProfile?: BrowserPerformanceProfile;
   startUrl?: string;
   locale?: string;
   timezoneId?: string;
@@ -509,6 +512,7 @@ export interface SessionSummary {
   profile?: string;
   mode: BrowserMode;
   engine: BrowserEngine;
+  performanceProfile: BrowserPerformanceProfile;
   purpose: string;
   actor?: string;
   createdAt: string;
