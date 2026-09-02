@@ -9,6 +9,7 @@
   --muted: #9da9a6;
   --quiet: #687470;
   --accent: #35f3cf;
+  --danger: #ff8878;
   --accent-ink: #001b17;
   --sans: "Arial Nova", "Aptos", "Segoe UI", Helvetica, Arial, sans-serif;
   --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
@@ -57,6 +58,16 @@ h1 { margin: 0; font-family: var(--display); font-size: clamp(3rem, 7vw, 6.5rem)
 .session-list { margin: 0; padding: 0; list-style: none; }
 .session-list li { display: grid; padding: 0.8rem 0; border-top: 1px solid var(--line); grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; color: var(--muted); font-size: 0.78rem; }
 .session-list code { color: var(--accent); font-family: var(--mono); }
+.session-list .session-entry { display: block; }
+.session-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; }
+.session-resources { display: grid; margin-top: 0.8rem; padding: 0.8rem; border: 1px solid var(--line); grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
+.session-resources div { min-width: 0; }
+.session-resources dt { color: var(--quiet); font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.session-resources dd { margin: 0.3rem 0 0; color: var(--ink); font-family: var(--mono); font-size: 0.68rem; overflow-wrap: anywhere; }
+.session-resources > small { grid-column: 1 / -1; color: var(--quiet); }
+.session-resources[data-state="within"] { border-left: 2px solid var(--accent); }
+.session-resources[data-state="exceeded"] { border-color: var(--danger); color: var(--danger); }
+.session-resources[data-state="unavailable"] { display: grid; color: var(--muted); grid-template-columns: auto auto 1fr; }
 .error-box { padding: 1rem; border: 1px solid var(--line2); color: var(--ink); font-family: var(--mono); font-size: 0.75rem; line-height: 1.55; }
 
 @media (max-width: 1050px) {
@@ -76,6 +87,8 @@ h1 { margin: 0; font-family: var(--display); font-size: clamp(3rem, 7vw, 6.5rem)
   .connect { display: grid; grid-template-columns: 1fr; }
   .title-row { align-items: flex-start; flex-direction: column; }
   .panel, .panel-wide { grid-column: span 12; }
+  .session-heading, .session-resources, .session-resources[data-state="unavailable"] { grid-template-columns: 1fr; }
+  .session-resources > small { grid-column: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

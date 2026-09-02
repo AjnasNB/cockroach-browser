@@ -6,6 +6,7 @@ import type {
   BrowserLifecycleEvent,
   NavigationGraph,
   BrowserNetworkRecord,
+  BrowserResourceUsage,
   PageSnapshot,
   SessionCreateInput,
   SessionSummary
@@ -50,7 +51,7 @@ export class BrowserClient {
   readonly fetcher: typeof globalThis.fetch;
 
   constructor(options: BrowserClientOptions) {
-    this.baseUrl = (options.baseUrl ?? "http://127.0.0.1:43110").replace(/\/+$/, "");
+    this.baseUrl = withoutTrailingSlashes(options.baseUrl ?? "http://127.0.0.1:43110");
     this.token = options.token;
     this.fetcher = options.fetch ?? globalThis.fetch;
   }
@@ -73,6 +74,10 @@ export class BrowserClient {
 
   session(id: string): Promise<SessionSummary> {
     return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}`);
+  }
+
+  resourceUsage(id: string): Promise<BrowserResourceUsage> {
+    return this.request("GET", `/v1/sessions/${encodeURIComponent(id)}/resources`);
   }
 
   navigationGraph(id: string): Promise<NavigationGraph> {
@@ -210,4 +215,10 @@ export class BrowserClient {
     }
     return value as T;
   }
+}
+
+function withoutTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  return value.slice(0, end);
 }

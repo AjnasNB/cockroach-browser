@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { BrowserRuntime, type BrowserRuntimeOptions } from "./runtime.js";
 import { CAPABILITIES } from "./capabilities.js";
 import { CockroachBrowserError } from "./errors.js";
-import type { BrowserAction, BrowserActionBatchInput, SessionCreateInput } from "./contracts.js";
+import type { BrowserAction, BrowserActionBatchInput, SessionCreateInput, SessionSummary } from "./contracts.js";
 import type { TeamSessionRole } from "./team-sessions.js";
 import { TeamSessionStore } from "./team-sessions.js";
 import { JobQueue, type BrowserJob } from "./job-queue.js";
@@ -156,6 +156,7 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
           "# HELP cockroach_browser_action_failures_total Failed or denied browser actions retained by the activity ledger.",
           "# TYPE cockroach_browser_action_failures_total counter",
           `cockroach_browser_action_failures_total ${completed.filter((entry) => entry.metadata?.status !== "succeeded").length}`,
+          ...resourceMetricLines(sessions),
           ""
         ].join("\n"), "text/plain; version=0.0.4; charset=utf-8");
       }
@@ -261,6 +262,10 @@ export async function startBrowserServer(options: BrowserServerOptions = {}): Pr
         if (request.method === "GET" && segments.length === 3) {
           await requireSessionAccess(options.teamSessions, identity, sessionId, "viewer");
           return sendJson(response, 200, await runtime.session(sessionId));
+        }
+        if (request.method === "GET" && segments[3] === "resources" && segments.length === 4) {
+          await requireSessionAccess(options.teamSessions, identity, sessionId, "viewer");
+          return sendJson(response, 200, await runtime.resourceUsage(sessionId));
         }
         if (request.method === "DELETE" && segments.length === 3) {
           await requireSessionAccess(options.teamSessions, identity, sessionId, "owner");
@@ -601,6 +606,27 @@ function sendText(response: ServerResponse, status: number, value: string, conte
   response.end(body);
 }
 
+function resourceMetricLines(sessions: readonly SessionSummary[]): string[] {
+  const available = sessions.filter((session) => session.resources?.available);
+  const sum = (read: (session: SessionSummary) => number): number =>
+    available.reduce((total, session) => total + read(session), 0);
+  const metrics: Array<[name: string, help: string, value: number]> = [
+    ["cockroach_browser_resource_rss_bytes", "Current aggregate RSS for sampled runtime-owned browser process trees.", sum((session) => session.resources.rssBytes ?? 0)],
+    ["cockroach_browser_resource_cpu_time_seconds", "Cumulative CPU time for sampled runtime-owned browser process trees.", sum((session) => session.resources.cpuTimeMs ?? 0) / 1_000],
+    ["cockroach_browser_resource_processes", "Processes in sampled runtime-owned browser process trees.", sum((session) => session.resources.processCount ?? 0)],
+    ["cockroach_browser_resource_rss_limit_bytes", "Aggregate configured RSS limit for sampled browser sessions.", sum((session) => session.resources.maxProcessRssBytes)],
+    ["cockroach_browser_resource_cpu_time_limit_seconds", "Aggregate configured CPU-time limit for sampled browser sessions.", sum((session) => session.resources.maxProcessCpuTimeMs) / 1_000],
+    ["cockroach_browser_resource_sampled_sessions", "Browser sessions with an available process-tree sample.", available.length],
+    ["cockroach_browser_resource_unavailable_sessions", "Browser sessions whose complete process-tree usage is unavailable.", sessions.length - available.length],
+    ["cockroach_browser_resource_limit_exceeded_sessions", "Browser sessions whose sampled process tree exceeded a configured limit.", sessions.filter((session) => session.resources?.limitState === "exceeded").length]
+  ];
+  return metrics.flatMap(([name, help, value]) => [
+    `# HELP ${name} ${help}`,
+    `# TYPE ${name} gauge`,
+    `${name} ${value}`
+  ]);
+}
+
 async function drainJobs(queue: JobQueue): Promise<void> {
   // A single queue runner preserves action order. JobQueue refuses overlapping
   // runners, so repeated submissions can safely nudge this loop.
@@ -622,6 +648,7 @@ function openApiDocument(): Record<string, unknown> {
       "/v1/health": { get: { summary: "Runtime health" } },
       "/v1/capabilities": { get: { summary: "Machine-readable capabilities" } },
       "/v1/sessions": { get: { summary: "List admitted sessions" }, post: { summary: "Create an admitted session" } },
+      "/v1/sessions/{id}/resources": { get: { summary: "Read a fresh owned-browser process resource sample" } },
       "/v1/sessions/{id}/actions": { post: { summary: "Run one exact policy-evaluated action" } },
       "/v1/sessions/{id}/actions/batch": { post: { summary: "Run a bounded ordered action batch" } },
       "/v1/activity": { get: { summary: "Read the bounded activity ledger" } },

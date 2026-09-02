@@ -23,7 +23,10 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts \
-    && node node_modules/playwright-core/cli.js install --with-deps chromium firefox webkit
+    && node node_modules/playwright-core/cli.js install --with-deps chromium firefox webkit \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends procps \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/dist ./dist
 COPY server.json README.md SECURITY.md CHANGELOG.md LICENSE THIRD_PARTY_NOTICES.md ./

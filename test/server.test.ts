@@ -7,6 +7,7 @@ import type { BrowserRuntime } from "../src/runtime.js";
 import { BrowserClient } from "../src/client.js";
 import { startBrowserServer } from "../src/server.js";
 import { TeamSessionStore } from "../src/team-sessions.js";
+import type { SessionSummary } from "../src/contracts.js";
 
 test("binds to loopback by default and rejects unauthenticated requests", async (t) => {
   const root = await temporaryDirectory(t);
@@ -79,6 +80,55 @@ test("serves the packaged dashboard without weakening API authentication", async
 
   const stillProtected = await fetch(`${server.url}/v1/health`);
   assert.equal(stillProtected.status, 401);
+});
+
+test("exports aggregate resource gauges without session-identifying labels", async (t) => {
+  const sessions = [
+    resourceSession("private-session-a", "within", true, 100, 2_500, 2),
+    resourceSession("private-session-b", "exceeded", true, 300, 1_500, 3),
+    resourceSession("private-session-c", "unavailable", false)
+  ];
+  const runtime = {
+    ...fakeRuntime(await temporaryDirectory(t)),
+    sessions: async () => sessions,
+    activities: () => []
+  } as unknown as BrowserRuntime;
+  const token = "m".repeat(32);
+  const server = await startBrowserServer({ runtime, port: 0, token });
+  t.after(() => server.close());
+
+  const response = await fetch(`${server.url}/v1/metrics`, {
+    headers: { authorization: `Bearer ${token}` }
+  });
+  const body = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("content-type") ?? "", /^text\/plain; version=0\.0\.4/);
+  assert.match(body, /cockroach_browser_resource_rss_bytes 400(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_cpu_time_seconds 4(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_processes 5(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_rss_limit_bytes 2000(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_cpu_time_limit_seconds 20(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_sampled_sessions 2(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_unavailable_sessions 1(?:\r?\n|$)/);
+  assert.match(body, /cockroach_browser_resource_limit_exceeded_sessions 1(?:\r?\n|$)/);
+  assert.doesNotMatch(body, /private-session|secret purpose/);
+  for (const name of body.matchAll(/^# TYPE (cockroach_browser_resource_\S+) (\S+)$/gm)) {
+    assert.equal(name[2], "gauge", name[1]);
+  }
+});
+
+test("exposes a fresh per-session resource sample through the client", async (t) => {
+  const expected = resourceSession("session-a", "within", true, 500, 2_000, 4).resources;
+  const runtime = {
+    ...fakeRuntime(await temporaryDirectory(t)),
+    resourceUsage: async () => expected
+  } as unknown as BrowserRuntime;
+  const token = "u".repeat(32);
+  const server = await startBrowserServer({ runtime, port: 0, token });
+  t.after(() => server.close());
+
+  const client = new BrowserClient({ baseUrl: server.url, token });
+  assert.deepEqual(await client.resourceUsage("session-a"), expected);
 });
 
 test("requires a strong bearer token", async (t) => {
@@ -245,6 +295,54 @@ function fakeRuntime(root: string, onClose: () => void = () => undefined): Brows
     },
     close: async () => onClose()
   } as unknown as BrowserRuntime;
+}
+
+function resourceSession(
+  id: string,
+  limitState: "within" | "exceeded" | "unavailable",
+  available: boolean,
+  rssBytes = 0,
+  cpuTimeMs = 0,
+  processCount = 0
+): SessionSummary {
+  return {
+    id,
+    state: "ready",
+    mode: "headless",
+    engine: "chromium",
+    performanceProfile: "balanced",
+    purpose: "secret purpose",
+    createdAt: "2026-09-02T00:00:00.000Z",
+    updatedAt: "2026-09-02T00:00:00.000Z",
+    actionsUsed: 0,
+    budget: {
+      maxActions: 1,
+      maxDurationMs: 1,
+      maxTabs: 1,
+      maxProcessRssBytes: 1_000,
+      maxProcessCpuTimeMs: 10_000,
+      maxDownloadBytes: 1,
+      maxUploadBytes: 1,
+      maxSnapshotChars: 1,
+      maxEvidenceBytes: 1,
+      maxHistoryEntries: 1,
+      maxNetworkEntries: 1,
+      maxClipboardBytes: 1,
+      maxSavedStates: 1,
+      maxNetworkRules: 1,
+      maxRouteFulfillBytes: 1,
+      maxInterceptedBytes: 1
+    },
+    resources: {
+      ownership: available ? "runtime-owned" : "external",
+      available,
+      limitState,
+      maxProcessRssBytes: 1_000,
+      maxProcessCpuTimeMs: 10_000,
+      ...(available ? { rssBytes, cpuTimeMs, processCount } : { reason: "customer owned" })
+    },
+    tabs: []
+  };
 }
 
 async function temporaryDirectory(t: test.TestContext): Promise<string> {

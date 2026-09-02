@@ -14,7 +14,7 @@
   <a href="https://cockroachbrowser.com/docs/">Documentation</a> -
   <a href="https://cockroachbrowser.com/features/">Features</a> -
   <a href="https://cockroachbrowser.com/ai-agents/">AI agents</a> -
-  <a href="https://cockroachbrowser.com/docs/capabilities/">124-capability registry</a> -
+  <a href="https://cockroachbrowser.com/docs/capabilities/">127-capability registry</a> -
   <a href="https://cockroachbrowser.com/api-surface/">Complete Playwright and Puppeteer API inventory</a> -
   <a href="https://cockroachbrowser.com/alternatives/">Alternatives by product layer</a> -
   <a href="https://cockroachbrowser.com/paper/">Technical white paper</a>
@@ -46,7 +46,7 @@ Current release line: **0.4.1**
 - License: AGPL-3.0-or-later
 - Runtime: maintained Node.js 22, 24, or 26
 - Registry: `cockroach-browser`
-- Capability registry: 124 entries, with 114 available and 10 adapter-backed
+- Capability registry: 127 entries, with 117 available and 10 adapter-backed
 - MCP identity: `io.github.AjnasNB/cockroach-browser`
 - Paper: [Cockroach Browser: A Local-First Browser Runtime for AI Agents](https://cockroachbrowser.com/paper/)
 - Published paper v1.1 DOI: [10.5281/zenodo.21850760](https://doi.org/10.5281/zenodo.21850760)
@@ -354,20 +354,20 @@ Profile import and export require `COCKROACH_BROWSER_PROFILE_PASSPHRASE`. Passph
 
 Daemon clients can use `--token`, `--token-file`, `COCKROACH_BROWSER_TOKEN`, or `COCKROACH_BROWSER_TOKEN_FILE`. They can override the URL with `--url` or `COCKROACH_BROWSER_URL`.
 
-## 124 source-registered capabilities
+## 127 source-registered capabilities
 
 The registry is generated from `src/capabilities.ts`, not from a marketing checklist.
 
 | Group | Available | Adapter | Planned | Total |
 | --- | ---: | ---: | ---: | ---: |
-| Sessions | 23 | 0 | 0 | 23 |
+| Sessions | 24 | 0 | 0 | 24 |
 | Interaction | 32 | 0 | 0 | 32 |
 | Evidence | 18 | 0 | 0 | 18 |
-| Audit | 7 | 0 | 0 | 7 |
-| Security | 8 | 3 | 0 | 11 |
+| Audit | 8 | 0 | 0 | 8 |
+| Security | 9 | 3 | 0 | 12 |
 | Deployment | 22 | 3 | 0 | 25 |
 | Integration | 4 | 4 | 0 | 8 |
-| **Total** | **114** | **10** | **0** | **124** |
+| **Total** | **117** | **10** | **0** | **127** |
 
 ### Sessions
 

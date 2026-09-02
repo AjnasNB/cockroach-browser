@@ -29,6 +29,8 @@ test("normalizes origins and applies finite resource ceilings", () => {
   assert.deepEqual(normalized.allowedOrigins, ["https://example.com"]);
   assert.equal(normalized.budget.maxActions, 10_000);
   assert.equal(normalized.budget.maxTabs, 1);
+  assert.equal(normalized.budget.maxProcessRssBytes, 1024 * 1024 * 1024);
+  assert.equal(normalized.budget.maxProcessCpuTimeMs, 60 * 60_000);
   assert.equal(normalized.budget.maxNetworkEntries, 2_000);
   assert.equal(normalized.budget.maxClipboardBytes, 64 * 1024);
   assert.equal(normalized.budget.maxSavedStates, 64);
@@ -38,6 +40,11 @@ test("normalizes origins and applies finite resource ceilings", () => {
   );
   assert.throws(
     () => clampBudget({ maxDurationMs: 0 }),
+    (error: unknown) => hasCode(error, "INVALID_BUDGET")
+  );
+  assert.equal(clampBudget({ maxProcessRssBytes: 99 * 1024 ** 3 }).maxProcessRssBytes, 8 * 1024 ** 3);
+  assert.throws(
+    () => clampBudget({ maxProcessCpuTimeMs: Number.NaN }),
     (error: unknown) => hasCode(error, "INVALID_BUDGET")
   );
 });

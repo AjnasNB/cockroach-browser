@@ -15,6 +15,7 @@ import {
   site,
   snippets
 } from "./content.mjs";
+import { htmlToPlainText } from "./plain-text.mjs";
 
 const root = resolve(import.meta.dirname);
 const sourceRoot = resolve(root, "..");
@@ -1537,15 +1538,7 @@ function escapeAttr(value) {
 }
 
 function stripHtml(value) {
-  return String(value)
-    .replace(/<li>/g, "- ")
-    .replace(/<\/li>/g, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", '"')
-    .trim();
+  return htmlToPlainText(value);
 }
 
 function sitemap() {

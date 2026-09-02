@@ -77,6 +77,26 @@ jobs:
       - run: npm run build
       - run: node scripts/test-packed-consumer.mjs
 
+  resource-portability:
+    name: Resource telemetry / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build:test
+      - run: node --test --test-reporter=spec .test-dist/test/resource-usage.test.js .test-dist/test/resource-budget-e2e.test.js
+
   language-sdks:
     name: Python, Java, .NET, Ruby, and Go SDKs
     runs-on: ubuntu-latest
@@ -162,6 +182,24 @@ jobs:
               if (await page.title() !== name) throw new Error(`${name} container smoke failed`);
               await context.close();
               await browser.close();
+            }
+          '
+      - name: Verify bounded runtime resource telemetry
+        run: |
+          docker exec cockroach-browser-ci node --input-type=module -e '
+            import { BrowserRuntime } from "./dist/runtime.js";
+            const runtime = new BrowserRuntime({ root: "/tmp/resource-smoke" });
+            try {
+              const session = await runtime.createSession({
+                engine: "chromium",
+                purpose: "Verify container process-tree telemetry",
+                policy: { allowedOrigins: ["https://example.com"] }
+              });
+              if (!session.resources.available || !session.resources.rssBytes || !session.resources.processCount) {
+                throw new Error(`container resource telemetry unavailable: ${JSON.stringify(session.resources)}`);
+              }
+            } finally {
+              await runtime.close();
             }
           '
       - name: Clean container resources

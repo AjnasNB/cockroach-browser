@@ -62,6 +62,10 @@ test(
         });
         assert.equal(session.engine, engine);
         assert.equal(session.tabs.length, 1);
+        assert.equal(session.resources.available, true);
+        assert.equal(session.resources.ownership, "runtime-owned");
+        assert.equal((session.resources.processCount ?? 0) > 0, true);
+        assert.equal((session.resources.rssBytes ?? 0) > 0, true);
         const snapshot = await runtime.snapshot(session.id);
         assert.equal(snapshot.title, "Three engine fixture");
         assert.match(snapshot.text, /ready/);
@@ -70,6 +74,76 @@ test(
         await rm(root, { recursive: true, force: true });
       }
     }
+  }
+);
+
+test(
+  "lean runtime blocks heavy page assets across Chromium, Firefox, and WebKit",
+  { skip: process.env.COCKROACH_BROWSER_MULTI_ENGINE_E2E !== "1", timeout: 120_000 },
+  async (t) => {
+    const heavyRequests = { image: 0, media: 0, font: 0 };
+    const fixture = createServer((request, response) => {
+      if (request.url === "/large.png") {
+        heavyRequests.image += 1;
+        response.writeHead(200, { "content-type": "image/png" });
+        response.end(Buffer.alloc(64 * 1024));
+        return;
+      }
+      if (request.url === "/large.mp4") {
+        heavyRequests.media += 1;
+        response.writeHead(200, { "content-type": "video/mp4" });
+        response.end(Buffer.alloc(64 * 1024));
+        return;
+      }
+      if (request.url === "/large.woff2") {
+        heavyRequests.font += 1;
+        response.writeHead(200, { "content-type": "font/woff2" });
+        response.end(Buffer.alloc(64 * 1024));
+        return;
+      }
+      if (request.url === "/lean.css") {
+        response.writeHead(200, { "content-type": "text/css" });
+        response.end("@font-face{font-family:lean;src:url('/large.woff2')}body{font-family:lean,sans-serif}");
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end("<!doctype html><html lang=en><head><title>Lean fixture</title><link rel=stylesheet href=/lean.css></head><body>ready<img src=/large.png><video preload=metadata src=/large.mp4></video></body></html>");
+    });
+    await new Promise<void>((resolve) => fixture.listen(0, "127.0.0.1", resolve));
+    t.after(() => new Promise<void>((resolve, reject) => fixture.close((error) => error ? reject(error) : resolve())));
+    const address = fixture.address();
+    assert(address && typeof address === "object");
+    const origin = `http://127.0.0.1:${address.port}`;
+    for (const engine of RAW_BROWSER_ENGINES) {
+      const root = await mkdtemp(join(tmpdir(), `cockroach-browser-lean-${engine}-`));
+      const runtime = new BrowserRuntime({ root });
+      try {
+        const session = await runtime.createSession({
+          engine,
+          performanceProfile: "lean",
+          startUrl: origin,
+          purpose: `Verify lean ${engine}`,
+          policy: {
+            allowedOrigins: [origin],
+            allowPrivateNetwork: true,
+            allowedActions: ["snapshot"]
+          }
+        });
+        assert.equal(session.performanceProfile, "lean");
+        const snapshot = await runtime.snapshot(session.id);
+        assert.match(snapshot.text, /ready/);
+        const audit = await runtime.audit(session.id, ["performance", "assets"]);
+        const performance = audit.report.performance as { transferBytes: number };
+        assert.equal(performance.transferBytes < 64 * 1024, true);
+        assert.match(JSON.stringify(audit.report.assets), /large\.mp4/);
+      } finally {
+        await runtime.close();
+        await rm(root, { recursive: true, force: true });
+      }
+    }
+    assert.equal(heavyRequests.image, 0);
+    assert.equal(heavyRequests.font, 0);
+    assert.equal(heavyRequests.media <= RAW_BROWSER_ENGINES.length, true);
   }
 );
 

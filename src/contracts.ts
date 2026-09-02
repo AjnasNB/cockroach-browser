@@ -71,12 +71,17 @@ export type RiskLevel = "low" | "medium" | "high" | "critical";
 export type Effect = "read" | "write" | "execute" | "upload" | "download" | "credential";
 export type BrowserMode = "headless" | "headed";
 export type BrowserEngine = "chromium" | "firefox" | "webkit";
+export type BrowserPerformanceProfile = "balanced" | "lean";
 export type SessionState = "starting" | "ready" | "challenge" | "closed" | "failed";
 
 export interface ResourceBudget {
   maxActions: number;
   maxDurationMs: number;
   maxTabs: number;
+  /** Aggregate resident memory allowed for a runtime-owned browser process tree. */
+  maxProcessRssBytes: number;
+  /** Aggregate CPU time allowed for a runtime-owned browser process tree. */
+  maxProcessCpuTimeMs: number;
   maxDownloadBytes: number;
   maxUploadBytes: number;
   maxSnapshotChars: number;
@@ -94,6 +99,8 @@ export const DEFAULT_BUDGET: Readonly<ResourceBudget> = Object.freeze({
   maxActions: 250,
   maxDurationMs: 30 * 60_000,
   maxTabs: 8,
+  maxProcessRssBytes: 1024 * 1024 * 1024,
+  maxProcessCpuTimeMs: 60 * 60_000,
   maxDownloadBytes: 64 * 1024 * 1024,
   maxUploadBytes: 64 * 1024 * 1024,
   maxSnapshotChars: 120_000,
@@ -151,6 +158,8 @@ export interface SessionCreateInput {
   mode?: BrowserMode;
   /** Installed Playwright engine used by the bounded runtime. Defaults to Chromium. */
   engine?: BrowserEngine;
+  /** Balanced preserves page assets; lean blocks images, media, fonts, and service workers. */
+  performanceProfile?: BrowserPerformanceProfile;
   startUrl?: string;
   locale?: string;
   timezoneId?: string;
@@ -480,18 +489,37 @@ export interface TabSummary {
   active: boolean;
 }
 
+export type ResourceLimitState = "within" | "exceeded" | "unavailable";
+
+export interface BrowserResourceUsage {
+  ownership: "runtime-owned" | "external";
+  available: boolean;
+  sampledAt?: string;
+  processCount?: number;
+  rssBytes?: number;
+  peakRssBytes?: number;
+  cpuTimeMs?: number;
+  peakCpuTimeMs?: number;
+  limitState: ResourceLimitState;
+  maxProcessRssBytes: number;
+  maxProcessCpuTimeMs: number;
+  reason?: string;
+}
+
 export interface SessionSummary {
   id: string;
   state: SessionState;
   profile?: string;
   mode: BrowserMode;
   engine: BrowserEngine;
+  performanceProfile: BrowserPerformanceProfile;
   purpose: string;
   actor?: string;
   createdAt: string;
   updatedAt: string;
   actionsUsed: number;
   budget: ResourceBudget;
+  resources: BrowserResourceUsage;
   tabs: TabSummary[];
   challenge?: ChallengeReport;
 }
@@ -536,6 +564,7 @@ export interface ContextRecorder {
 export const BROWSER_EVENT_TYPES = [
   "browser.session.created",
   "browser.session.closed",
+  "browser.session.resource-limit-exceeded",
   "browser.action.started",
   "browser.action.completed",
   "browser.progress",

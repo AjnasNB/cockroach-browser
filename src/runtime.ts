@@ -9,6 +9,7 @@ import type {
   Browser,
   BrowserContext,
   BrowserContextOptions,
+  BrowserServer,
   BrowserType,
   ConsoleMessage,
   Dialog,
@@ -32,6 +33,7 @@ import type {
   BrowserActivityQuery,
   BrowserLifecycleEvent,
   BrowserNetworkRecord,
+  BrowserResourceUsage,
   ChallengeReport,
   ContextRecorder,
   EvidenceRecord,
@@ -72,6 +74,12 @@ import {
 } from "./policy.js";
 import { ProfileVault } from "./profile-vault.js";
 import { PersistentBrowserProfileStore } from "./persistent-profiles.js";
+import {
+  BrowserResourceTracker,
+  createSharedProcessTreeSampler,
+  unavailableResourceUsage,
+  type ProcessTreeSampler
+} from "./resource-usage.js";
 import { captureSnapshot, locatorFor } from "./snapshot.js";
 
 export interface SecretResolver {
@@ -90,6 +98,10 @@ export interface BrowserRuntimeOptions {
   uploadRoots?: string[];
   now?: () => Date;
   activity?: ActivityLedgerOptions;
+  /** Sampling cadence for runtime-owned browser process trees. */
+  resourceSampleIntervalMs?: number;
+  /** Test or platform override for process-tree sampling. */
+  processTreeSampler?: ProcessTreeSampler;
 }
 
 interface InternalTabLock extends TabLockSummary {
@@ -107,6 +119,7 @@ interface ManagedSession {
   input: SessionCreateInput;
   id: string;
   browser?: Browser;
+  browserServer?: BrowserServer;
   context: BrowserContext;
   attached: boolean;
   state: SessionSummary["state"];
@@ -132,6 +145,11 @@ interface ManagedSession {
   routeHandler?: (route: Route) => Promise<void>;
   pageHandler?: (page: Page) => void;
   persistentProfile?: string;
+  resources: BrowserResourceUsage;
+  resourceTracker?: BrowserResourceTracker;
+  resourceMonitor?: NodeJS.Timeout;
+  resourceLimitReported: boolean;
+  closing: boolean;
 }
 
 const CHALLENGE_SAFE_ACTIONS = new Set([
@@ -166,6 +184,8 @@ export class BrowserRuntime {
   readonly dnsResolver?: DnsResolver;
   readonly uploadRoots: readonly string[];
   readonly activity: ActivityLedger;
+  readonly resourceSampleIntervalMs: number;
+  readonly processTreeSampler: ProcessTreeSampler;
   #sessions = new Map<string, ManagedSession>();
   #activePersistentProfiles = new Map<string, string>();
   #initialized = false;
@@ -198,6 +218,21 @@ export class BrowserRuntime {
       (options.uploadRoots ?? [join(this.root, "uploads")]).map((entry) => resolve(entry))
     );
     this.activity = new ActivityLedger(options.activity);
+    if (
+      options.resourceSampleIntervalMs !== undefined
+      && (!Number.isSafeInteger(options.resourceSampleIntervalMs)
+        || options.resourceSampleIntervalMs < 250
+        || options.resourceSampleIntervalMs > 60_000)
+    ) {
+      throw new CockroachBrowserError(
+        "RESOURCE_SAMPLE_INTERVAL_INVALID",
+        "Resource sample intervals must be between 250 and 60000 milliseconds."
+      );
+    }
+    // Windows process-tree enumeration is materially more expensive than ps.
+    // Keep the monitor sparse there; action boundaries reuse a fresh cached sample.
+    this.resourceSampleIntervalMs = options.resourceSampleIntervalMs ?? (process.platform === "win32" ? 10_000 : 5_000);
+    this.processTreeSampler = options.processTreeSampler ?? createSharedProcessTreeSampler();
   }
 
   async initialize(): Promise<void> {
@@ -214,7 +249,21 @@ export class BrowserRuntime {
     await this.initialize();
     const input = structuredClone(rawInput);
     const engine = input.engine ?? "chromium";
+    if (engine !== "chromium" && engine !== "firefox" && engine !== "webkit") {
+      throw new CockroachBrowserError(
+        "BROWSER_ENGINE_INVALID",
+        "Browser engine must be chromium, firefox, or webkit."
+      );
+    }
     input.engine = engine;
+    const performanceProfile = input.performanceProfile ?? "balanced";
+    if (performanceProfile !== "balanced" && performanceProfile !== "lean") {
+      throw new CockroachBrowserError(
+        "PERFORMANCE_PROFILE_INVALID",
+        "Browser performance profile must be balanced or lean."
+      );
+    }
+    input.performanceProfile = performanceProfile;
     const browserType = browserTypeFor(engine);
     const policy = normalizePolicy(input.policy);
     input.policy = policy;
@@ -275,6 +324,7 @@ export class BrowserRuntime {
     if (provider.persistentProfile) this.#activePersistentProfiles.set(provider.persistentProfile, id);
     const createdAt = nowIso();
     let browser: Browser | undefined;
+    let browserServer: BrowserServer | undefined;
     let context: BrowserContext | undefined;
     let attached = false;
     let managedSession: ManagedSession | undefined;
@@ -318,11 +368,23 @@ export class BrowserRuntime {
         const extensionArgs = provider.extensions.length
           ? [`--disable-extensions-except=${provider.extensions.join(",")}`, `--load-extension=${provider.extensions.join(",")}`]
           : [];
+        const performanceArgs = input.performanceProfile === "lean" && engine === "chromium"
+          ? [
+              "--disable-background-networking",
+              "--disable-component-update",
+              "--disable-default-apps",
+              "--disable-sync",
+              "--metrics-recording-only",
+              "--no-first-run"
+            ]
+          : [];
         const launchOptions: NonNullable<Parameters<BrowserType["launch"]>[0]> = {
           headless: (input.mode ?? "headless") === "headless",
           ...(provider.executablePath ? { executablePath: provider.executablePath } : {}),
           ...(proxy ? { proxy } : {}),
-          ...(provider.arguments.length || extensionArgs.length ? { args: [...provider.arguments, ...extensionArgs] } : {})
+          ...(provider.arguments.length || extensionArgs.length || performanceArgs.length
+            ? { args: [...provider.arguments, ...extensionArgs, ...performanceArgs] }
+            : {})
         };
         let storageState: Record<string, unknown> | undefined;
         if (input.profile) {
@@ -342,6 +404,7 @@ export class BrowserRuntime {
         await mkdir(sessionArtifactRoot, { recursive: true });
         const contextOptions: BrowserContextOptions = {
           acceptDownloads: Boolean(policy.allowDownloads),
+          serviceWorkers: input.performanceProfile === "lean" ? "block" : "allow",
           locale: input.locale ?? "en-US",
           ...(input.timezoneId ? { timezoneId: input.timezoneId } : {}),
           ...(input.colorScheme ? { colorScheme: input.colorScheme } : {}),
@@ -370,7 +433,8 @@ export class BrowserRuntime {
           });
           browser = context.browser() ?? undefined;
         } else {
-          browser = await browserType.launch(launchOptions);
+          browserServer = await browserType.launchServer(launchOptions);
+          browser = await browserType.connect(browserServer.wsEndpoint());
           context = await browser.newContext(contextOptions);
         }
         // Headers may contain bearer credentials. The browser context has its
@@ -378,10 +442,29 @@ export class BrowserRuntime {
         delete input.extraHTTPHeaders;
       }
 
+      const browserPid = browserServer?.process()?.pid;
+      const resourceTracker = browserPid
+        ? new BrowserResourceTracker({
+            rootPid: browserPid,
+            budget: policy.budget,
+            sampleIntervalMs: this.resourceSampleIntervalMs,
+            sampler: this.processTreeSampler
+          })
+        : undefined;
+      const resources = resourceTracker
+        ? resourceTracker.current()
+        : unavailableResourceUsage(
+            policy.budget,
+            attached
+              ? "The runtime is attached to a customer-owned CDP browser and cannot account for or terminate its complete process tree."
+              : "This runtime-owned persistent browser does not expose a portable process handle through Playwright.",
+            attached ? "external" : "runtime-owned"
+          );
       const session: ManagedSession = {
         input,
         id,
         ...(browser ? { browser } : {}),
+        ...(browserServer ? { browserServer } : {}),
         context,
         attached,
         state: "starting",
@@ -403,6 +486,10 @@ export class BrowserRuntime {
         dnsPins,
         consumedApprovals: new Set(),
         tabLocks: new Map(),
+        resources,
+        ...(resourceTracker ? { resourceTracker } : {}),
+        resourceLimitReported: false,
+        closing: false,
         ...(provider.persistentProfile ? { persistentProfile: provider.persistentProfile } : {})
       };
       managedSession = session;
@@ -412,6 +499,11 @@ export class BrowserRuntime {
       this.#registerPage(session, page);
       if (startUrl) await page.goto(startUrl.toString(), { waitUntil: "domcontentloaded" });
       await this.#recordHistory(session, page, "session.start");
+      if (session.resourceTracker) {
+        session.resources = await session.resourceTracker.sample(true);
+        this.#throwIfResourceLimitExceeded(session);
+        this.#armResourceMonitor(session);
+      }
       session.state = "ready";
       session.updatedAt = nowIso();
       await this.#recordContext(session, "browser.session.created", {
@@ -434,6 +526,7 @@ export class BrowserRuntime {
       }
       if (context && !attached) await context.close().catch(() => undefined);
       if (browser && !attached) await browser.close().catch(() => undefined);
+      if (browserServer) await browserServer.close().catch(() => undefined);
       this.#sessions.delete(id);
       if (provider.persistentProfile) this.#activePersistentProfiles.delete(provider.persistentProfile);
       throw error;
@@ -442,6 +535,7 @@ export class BrowserRuntime {
 
   async session(id: string): Promise<SessionSummary> {
     const session = this.#requireSession(id);
+    session.resources = await this.#sampleSessionResources(session);
     const tabs = await Promise.all(
       [...session.tabs.entries()].map(async ([tabId, page]) => ({
         id: tabId,
@@ -456,12 +550,14 @@ export class BrowserRuntime {
       ...(session.input.profile ? { profile: session.input.profile } : {}),
       mode: session.input.mode ?? "headless",
       engine: session.input.engine ?? "chromium",
+      performanceProfile: session.input.performanceProfile ?? "balanced",
       purpose: session.input.purpose,
       ...(session.input.actor ? { actor: session.input.actor } : {}),
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
       actionsUsed: session.actionsUsed,
       budget: { ...session.budget },
+      resources: structuredClone(session.resources),
       tabs,
       ...(session.challenge ? { challenge: structuredClone(session.challenge) } : {})
     };
@@ -469,6 +565,14 @@ export class BrowserRuntime {
 
   async sessions(): Promise<SessionSummary[]> {
     return Promise.all([...this.#sessions.keys()].map((id) => this.session(id)));
+  }
+
+  async resourceUsage(id: string): Promise<BrowserResourceUsage> {
+    const session = this.#requireSession(id);
+    if (!session.resourceLimitReported) {
+      session.resources = await this.#sampleSessionResources(session, true);
+    }
+    return structuredClone(session.resources);
   }
 
   activities(query: BrowserActivityQuery = {}): BrowserLifecycleEvent[] {
@@ -530,6 +634,8 @@ export class BrowserRuntime {
 
   async closeSession(id: string, options: { saveProfile?: boolean; passphrase?: string } = {}): Promise<void> {
     const session = this.#requireSession(id);
+    // Validate caller-controlled close options before changing the live
+    // session. A rejected profile save must not silently disable enforcement.
     if (options.saveProfile && session.input.profile) {
       const passphrase = options.passphrase;
       if (!passphrase) {
@@ -540,57 +646,78 @@ export class BrowserRuntime {
       }
       await this.profiles.saveContext(session.input.profile, session.context, passphrase);
     }
-    if (session.traceActive) {
-      await session.context.tracing.stop().catch(() => undefined);
-    }
-    if (session.attached) {
-      if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
-      if (session.pageHandler) session.context.off("page", session.pageHandler);
-    } else if (session.input.recordHar) {
-      await session.context.close();
-      const harPath = join(this.root, "session-artifacts", id, "network.har");
-      try {
-        await this.#assertEvidenceFileBudget(session, harPath);
-        const har = await readFile(harPath);
-        await this.#addBufferEvidence(session, {
-          kind: "har",
-          contentType: "application/json",
-          data: har,
-          extension: ".har",
-          metadata: { final: true }
-        });
-      } catch {
-        // A context may not produce a HAR if no navigation occurred.
+
+    session.resources = await this.#sampleSessionResources(session, true);
+    session.closing = true;
+    this.#disarmResourceMonitor(session);
+    try {
+      if (session.traceActive) {
+        await session.context.tracing.stop().catch(() => undefined);
       }
-    } else {
-      await session.context.close();
-    }
-    if (session.input.recordVideo && !session.attached) {
-      const videoRoot = join(this.root, "session-artifacts", id, "video");
-      const videos = await readdir(videoRoot, { withFileTypes: true }).catch(() => []);
-      for (const video of videos) {
-        if (!video.isFile()) continue;
-        const path = join(videoRoot, video.name);
-        await this.#assertEvidenceFileBudget(session, path);
-        await this.#addBufferEvidence(session, {
-          kind: "video",
-          contentType: video.name.endsWith(".webm") ? "video/webm" : "application/octet-stream",
-          data: await readFile(path),
-          extension: extname(video.name) || ".webm",
-          metadata: { final: true }
+      if (session.attached) {
+        if (session.routeHandler) await session.context.unroute("**/*", session.routeHandler).catch(() => undefined);
+        if (session.pageHandler) session.context.off("page", session.pageHandler);
+      } else if (session.input.recordHar) {
+        await session.context.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
+        });
+        const harPath = join(this.root, "session-artifacts", id, "network.har");
+        try {
+          await this.#assertEvidenceFileBudget(session, harPath);
+          const har = await readFile(harPath);
+          await this.#addBufferEvidence(session, {
+            kind: "har",
+            contentType: "application/json",
+            data: har,
+            extension: ".har",
+            metadata: { final: true }
+          });
+        } catch {
+          // A context may not produce a HAR if no navigation occurred.
+        }
+      } else {
+        await session.context.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
         });
       }
+      if (session.input.recordVideo && !session.attached) {
+        const videoRoot = join(this.root, "session-artifacts", id, "video");
+        const videos = await readdir(videoRoot, { withFileTypes: true }).catch(() => []);
+        for (const video of videos) {
+          if (!video.isFile()) continue;
+          const path = join(videoRoot, video.name);
+          await this.#assertEvidenceFileBudget(session, path);
+          await this.#addBufferEvidence(session, {
+            kind: "video",
+            contentType: video.name.endsWith(".webm") ? "video/webm" : "application/octet-stream",
+            data: await readFile(path),
+            extension: extname(video.name) || ".webm",
+            metadata: { final: true }
+          });
+        }
+      }
+      if (!session.attached && session.browser) {
+        await session.browser.close().catch((error) => {
+          if (!session.resourceLimitReported) throw error;
+        });
+      }
+      if (session.browserServer) await session.browserServer.close().catch(() => undefined);
+      if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
+      session.state = "closed";
+      session.updatedAt = nowIso();
+      await this.#recordContext(session, "browser.session.closed", {});
+      await this.#publishEvent(session, "browser.session.closed", {
+        actionsUsed: session.actionsUsed,
+        evidenceBytes: session.evidenceBytes,
+        peakRssBytes: session.resources.peakRssBytes ?? null,
+        peakCpuTimeMs: session.resources.peakCpuTimeMs ?? null
+      });
+      this.#sessions.delete(id);
+    } catch (error) {
+      session.closing = false;
+      this.#armResourceMonitor(session);
+      throw error;
     }
-    if (!session.attached && session.browser) await session.browser.close();
-    if (session.persistentProfile) this.#activePersistentProfiles.delete(session.persistentProfile);
-    session.state = "closed";
-    session.updatedAt = nowIso();
-    await this.#recordContext(session, "browser.session.closed", {});
-    await this.#publishEvent(session, "browser.session.closed", {
-      actionsUsed: session.actionsUsed,
-      evidenceBytes: session.evidenceBytes
-    });
-    this.#sessions.delete(id);
   }
 
   async act(sessionId: string, action: BrowserAction): Promise<{ output: unknown; receipt: ActionReceipt }> {
@@ -679,7 +806,7 @@ export class BrowserRuntime {
     });
 
     try {
-      this.#assertSessionBudget(session);
+      await this.#assertSessionBudget(session);
       session.actionsUsed += 1;
       session.updatedAt = nowIso();
       if (!action.purpose?.trim() || action.purpose.trim().length > 500) {
@@ -2289,6 +2416,21 @@ export class BrowserRuntime {
           });
           return;
         }
+        if (session.input.performanceProfile === "lean") {
+          const resourceType = request.resourceType();
+          // Playwright WebKit currently reports video range requests as
+          // `other`; Sec-Fetch-Dest preserves the browser's actual intent.
+          const fetchDestination = resourceType === "other"
+            ? (await request.allHeaders())["sec-fetch-dest"]?.toLowerCase()
+            : undefined;
+          if (
+            ["image", "media", "font"].includes(resourceType)
+            || ["image", "audio", "video", "font"].includes(fetchDestination ?? "")
+          ) {
+            await route.abort("blockedbyclient");
+            return;
+          }
+        }
         await route.continue();
       } catch {
         await route.abort("blockedbyclient").catch(() => undefined);
@@ -2405,13 +2547,76 @@ export class BrowserRuntime {
     return page;
   }
 
-  #assertSessionBudget(session: ManagedSession): void {
+  async #assertSessionBudget(session: ManagedSession): Promise<void> {
     if (session.actionsUsed >= session.budget.maxActions) {
       throw new CockroachBrowserError("ACTION_BUDGET_EXCEEDED", "The session action limit has been reached.");
     }
     if (Date.now() - Date.parse(session.createdAt) > session.budget.maxDurationMs) {
       throw new CockroachBrowserError("DURATION_BUDGET_EXCEEDED", "The session duration limit has been reached.");
     }
+    session.resources = await this.#sampleSessionResources(session);
+    this.#throwIfResourceLimitExceeded(session);
+  }
+
+  async #sampleSessionResources(session: ManagedSession, force = false): Promise<BrowserResourceUsage> {
+    if (session.resourceLimitReported) return structuredClone(session.resources);
+    if (!session.resourceTracker) return structuredClone(session.resources);
+    return session.resourceTracker.sample(force);
+  }
+
+  #throwIfResourceLimitExceeded(session: ManagedSession): void {
+    if (session.resources.limitState !== "exceeded") return;
+    if ((session.resources.rssBytes ?? 0) > session.budget.maxProcessRssBytes) {
+      throw new CockroachBrowserError(
+        "PROCESS_RSS_BUDGET_EXCEEDED",
+        `The browser process tree uses ${session.resources.rssBytes} bytes, above its ${session.budget.maxProcessRssBytes}-byte limit.`
+      );
+    }
+    throw new CockroachBrowserError(
+      "PROCESS_CPU_BUDGET_EXCEEDED",
+      `The browser process tree has used ${session.resources.cpuTimeMs} ms of CPU time, above its ${session.budget.maxProcessCpuTimeMs}-ms limit.`
+    );
+  }
+
+  #armResourceMonitor(session: ManagedSession): void {
+    if (
+      !session.resourceTracker
+      || session.resourceMonitor
+      || session.closing
+      || session.state === "closed"
+      || session.resourceLimitReported
+    ) return;
+    session.resourceMonitor = setInterval(() => {
+      void this.#monitorSessionResources(session);
+    }, this.resourceSampleIntervalMs);
+    session.resourceMonitor.unref();
+  }
+
+  #disarmResourceMonitor(session: ManagedSession): void {
+    if (!session.resourceMonitor) return;
+    clearInterval(session.resourceMonitor);
+    delete session.resourceMonitor;
+  }
+
+  async #monitorSessionResources(session: ManagedSession): Promise<void> {
+    if (session.closing || session.state === "closed" || session.resourceLimitReported) return;
+    const resources = await this.#sampleSessionResources(session, true);
+    // Several interval callbacks can await the same slow operating-system
+    // sample. Only the first resumed callback may commit a terminal breach.
+    if (session.closing || session.resourceLimitReported) return;
+    session.resources = resources;
+    if (session.resources.limitState !== "exceeded") return;
+    session.resourceLimitReported = true;
+    session.state = "failed";
+    session.updatedAt = nowIso();
+    this.#disarmResourceMonitor(session);
+    await this.#publishEvent(session, "browser.session.resource-limit-exceeded", {
+      rssBytes: session.resources.rssBytes ?? null,
+      cpuTimeMs: session.resources.cpuTimeMs ?? null,
+      maxProcessRssBytes: session.budget.maxProcessRssBytes,
+      maxProcessCpuTimeMs: session.budget.maxProcessCpuTimeMs
+    });
+    await session.browserServer?.close().catch(() => undefined);
   }
 
   async #assertPageAdmitted(session: ManagedSession, page: Page): Promise<void> {

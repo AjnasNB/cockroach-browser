@@ -6,6 +6,7 @@ This file is generated from `src/capabilities.ts`.
 | --- | --- | --- | --- | --- |
 | `sessions.authorized` | sessions | Authorized browser sessions | **available** | `runtime.createSession` |
 | `sessions.headless` | sessions | Headless Chromium, Firefox, and WebKit | **available** | `engine and mode=headless` |
+| `sessions.lean` | sessions | Lean headless asset profile | **available** | `performanceProfile=lean` |
 | `sessions.headed` | sessions | Headed Chromium, Firefox, and WebKit | **available** | `engine and mode=headed` |
 | `sessions.cdp` | sessions | Attach over CDP | **available** | `cdpEndpoint` |
 | `sessions.executable` | sessions | Custom browser executable | **available** | `engine and executablePath` |
@@ -80,6 +81,7 @@ This file is generated from `src/capabilities.ts`.
 | `audit.api_surface` | audit | Generated upstream API inventory | **available** | `docs/compatibility/browser-api-surface.json` |
 | `audit.accessibility` | audit | Accessibility audit | **available** | `audit accessibility` |
 | `audit.performance` | audit | Page performance observations | **available** | `audit performance` |
+| `audit.resources` | audit | Repeatable cross-engine resource benchmark | **available** | `npm run benchmark:resources` |
 | `audit.assets` | audit | Broken asset audit | **available** | `audit assets` |
 | `audit.console` | audit | Console error audit | **available** | `audit console` |
 | `audit.security` | audit | Page security observations | **available** | `audit security` |
@@ -92,6 +94,7 @@ This file is generated from `src/capabilities.ts`.
 | `security.private_network` | security | Private-network blocking | **available** | `policy` |
 | `security.effects` | security | Effect-level policy | **available** | `allowedEffects` |
 | `security.budgets` | security | Finite budgets | **available** | `budget` |
+| `security.process_resources` | security | Owned browser process-tree governor | **available** | `session resources, CLI, dashboard, and Prometheus` |
 | `security.network_routes` | security | Policy-bounded network routes | **available** | `network.route.*` |
 | `security.approvals` | security | Exact action approvals | **adapter** | `MaqamApprovalProvider` |
 | `security.secrets` | security | Secret references | **adapter** | `SecretResolver` |

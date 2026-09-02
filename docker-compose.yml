@@ -22,8 +22,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: "2.0"
+          memory: ${COCKROACH_BROWSER_CONTAINER_MEMORY_LIMIT:-2g}
+          cpus: "${COCKROACH_BROWSER_CONTAINER_CPU_LIMIT:-2.0}"
+          pids: ${COCKROACH_BROWSER_CONTAINER_PID_LIMIT:-256}
 
 volumes:
   browser-data:

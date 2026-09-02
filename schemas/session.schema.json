@@ -37,6 +37,12 @@
         "webkit"
       ]
     },
+    "performanceProfile": {
+      "enum": [
+        "balanced",
+        "lean"
+      ]
+    },
     "startUrl": {
       "type": "string",
       "format": "uri",
@@ -196,13 +202,25 @@
               "minimum": 1,
               "maximum": 64
             },
+            "maxProcessRssBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 8589934592
+            },
+            "maxProcessCpuTimeMs": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 604800000
+            },
             "maxDownloadBytes": {
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "maximum": 2147483648
             },
             "maxUploadBytes": {
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "maximum": 2147483648
             },
             "maxSnapshotChars": {
               "type": "integer",
@@ -211,9 +229,25 @@
             },
             "maxEvidenceBytes": {
               "type": "integer",
-              "minimum": 1
+              "minimum": 1,
+              "maximum": 10737418240
             },
             "maxHistoryEntries": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000
+            },
+            "maxNetworkEntries": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50000
+            },
+            "maxClipboardBytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1048576
+            },
+            "maxSavedStates": {
               "type": "integer",
               "minimum": 1,
               "maximum": 1000

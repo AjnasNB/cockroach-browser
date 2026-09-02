@@ -106,6 +106,8 @@
     "clean": "node scripts/clean.mjs",
     "test": "npm run build:test && node --test --test-reporter=spec .test-dist/test/*.test.js",
     "test:source": "npm test",
+    "test:resource": "npm run build:test && node --test --test-reporter=spec .test-dist/test/resource-budget-e2e.test.js",
+    "benchmark:resources": "npm run build && node scripts/benchmark-resources.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:package": "node scripts/check-package.mjs",
     "check:site": "node scripts/check-site.mjs",
