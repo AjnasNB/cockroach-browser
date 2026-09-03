@@ -12,11 +12,15 @@ Assume page content is untrusted, agent input may be wrong, downloaded files may
 
 ## Challenges move to an authorized operator path
 
-The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization. The challenge.resolve action is classified as a critical execute effect and requires exact approval by default. Its page-less callback receives only bounded challenge metadata, never cookies, storage, credentials, a Playwright page, or raw browser control. The runtime independently checks the page after the handoff and keeps the session paused when the challenge remains.
+The runtime detects login, consent, CAPTCHA, and access challenges, pauses the automated action path, records evidence, and waits for a human or an explicitly configured resolver operating with the target owner's authorization.
+
+The challenge.resolve action is classified as a critical execute effect and requires exact approval by default. Its page-less callback receives only bounded challenge metadata, never cookies, storage, credentials, a Playwright page, or raw browser control. The runtime independently checks the page after the handoff and keeps the session paused when the challenge remains.
 
 ## Governed high-authority controls
 
-Cockroach Browser does not silently expose CAPTCHA or access-control bypass, covert stealth or cloaking, ambient browser cookies or profiles, or public unauthenticated server binding.Use operator-authorized challenge handoff, deterministic compatibility emulation, explicit runtime-owned profiles or encrypted state import, reviewed browser providers, and authenticated loopback or TLS transport. Maqam-ready exact approval keeps consequential operations bound to their reviewed input.
+Cockroach Browser does not silently expose CAPTCHA or access-control bypass, covert stealth or cloaking, ambient browser cookies or profiles, or public unauthenticated server binding.
+
+Use operator-authorized challenge handoff, deterministic compatibility emulation, explicit runtime-owned profiles or encrypted state import, reviewed browser providers, and authenticated loopback or TLS transport. Maqam-ready exact approval keeps consequential operations bound to their reviewed input.
 
 ## Exact approval for consequential actions
 
@@ -34,6 +38,6 @@ Use the Maqam adapter for writes, execute effects, uploads, downloads, credentia
 - Review third-party page terms and obtain authorization for the workflow.
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.

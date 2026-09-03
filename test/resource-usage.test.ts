@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   BrowserResourceTracker,
   aggregateProcessTree,
+  collectProcessTreePids,
   createSharedProcessTreeSampler,
   parsePosixProcessRecords,
   sampleProcessTree,
@@ -22,6 +23,15 @@ test("aggregates only the owned process tree", () => {
   assert.equal(sample.processCount, 3);
   assert.equal(sample.rssBytes, 600);
   assert.equal(sample.cpuTimeMs, 18);
+});
+
+test("enumerates only the owned process tree", () => {
+  assert.deepEqual(collectProcessTreePids(10, [
+    { pid: 10, parentPid: 1, rssBytes: 100, cpuTimeMs: 5 },
+    { pid: 11, parentPid: 10, rssBytes: 200, cpuTimeMs: 6 },
+    { pid: 12, parentPid: 11, rssBytes: 300, cpuTimeMs: 7 },
+    { pid: 20, parentPid: 1, rssBytes: 10_000, cpuTimeMs: 500 }
+  ]), [10, 11, 12]);
 });
 
 test("parses BSD fractional and Linux whole-second process CPU times", () => {

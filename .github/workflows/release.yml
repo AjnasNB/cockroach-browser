@@ -44,6 +44,15 @@ jobs:
         run: |
           node -e "const p=require('./package.json'); const tag=process.env.GITHUB_REF_NAME; if(tag !== 'v'+p.version) throw new Error('tag '+tag+' does not match package '+p.version)"
           git tag --points-at HEAD | grep -Fx "${GITHUB_REF_NAME}"
+          if [ "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" != "tag" ]; then
+            echo "::error::Release tags must be annotated tags"
+            exit 1
+          fi
+          default_branch="${{ github.event.repository.default_branch }}"
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/$default_branch"; then
+            echo "::error::Release commit $GITHUB_SHA is not reachable from protected $default_branch"
+            exit 1
+          fi
       - run: npm ci --ignore-scripts
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: xvfb-run -a npm run check
@@ -191,4 +200,18 @@ jobs:
               throw new Error(`GitHub release state mismatch: ${JSON.stringify(release)}`);
             }
           ' "$release_json" "${{ steps.channel.outputs.prerelease }}"
-          gh release upload "$GITHUB_REF_NAME" "$RELEASE_ASSET_DIR"/* --clobber
+          existing_assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')"
+          for asset in "$RELEASE_ASSET_DIR"/*; do
+            asset_name="$(basename "$asset")"
+            if grep -Fxq "$asset_name" <<<"$existing_assets"; then
+              download_dir="$(mktemp -d)"
+              gh release download "$GITHUB_REF_NAME" --pattern "$asset_name" --dir "$download_dir"
+              if ! cmp --silent "$asset" "$download_dir/$asset_name"; then
+                echo "::error::Existing release asset $asset_name has a different immutable identity"
+                exit 1
+              fi
+              echo "Verified existing immutable release asset $asset_name."
+            else
+              gh release upload "$GITHUB_REF_NAME" "$asset"
+            fi
+          done

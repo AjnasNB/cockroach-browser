@@ -435,7 +435,7 @@ test("verifies the canonical plan hash and fails closed on idempotency reuse", a
   assert.equal(dispatches.length, 1);
 });
 
-test("Qarinah receives cited outcome metadata without nested secrets or form values", async () => {
+test("Qarinah receives cited outcome metadata without raw purposes, nested secrets, or form values", async () => {
   const captured: unknown[] = [];
   const recorder = createQarinahContextRecorder({
     async appendBrowserOutcome(event) {
@@ -453,6 +453,7 @@ test("Qarinah receives cited outcome metadata without nested secrets or form val
     evidenceIds: ["ev-a"],
     metadata: {
       unreviewedRoute: "/settings",
+      profile: "private-profile-name",
       token: "top-level-secret",
       mode: {
         authorization: "Bearer nested-secret",
@@ -463,13 +464,15 @@ test("Qarinah receives cited outcome metadata without nested secrets or form val
   });
 
   const serialized = JSON.stringify(captured);
-  assert.doesNotMatch(serialized, /top-level-secret|nested-secret|nested-api-key|must-not-leak/);
+  assert.doesNotMatch(serialized, /Update an approved setting|top-level-secret|nested-secret|nested-api-key|must-not-leak|private-profile-name/);
   assert.doesNotMatch(serialized, /unreviewedRoute|\/settings/);
   assert.match(serialized, /application\/json/);
   assert.match(serialized, /"inputDigest":"input-a"/);
   assert.match(serialized, /"outputDigest":"output-a"/);
   assert.match(serialized, /"receiptHash":"receipt-a"/);
   assert.match(serialized, /"evidenceIds":\["ev-a"\]/);
+  assert.match(serialized, /"schemaVersion":"cockroach\.browser-memory\.v2"/);
+  assert.match(serialized, /"purposeDigest":"sha256:[a-f0-9]{64}"/);
 });
 
 test("receipt projection is descriptive and never grants dispatch authority", () => {

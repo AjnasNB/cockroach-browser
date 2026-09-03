@@ -6,7 +6,7 @@
       "title": "Cockroach Browser",
       "url": "https://cockroachbrowser.com/",
       "kind": "product",
-      "summary": "Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.",
+      "summary": "Open-source local-first browser automation for AI agents with Chromium, Firefox, WebKit, an explicitly preflighted experimental Obscura lane, complete pinned Playwright and Puppeteer exports, MCP, finite policy, and verifiable evidence.",
       "keywords": [
         "browser automation",
         "AI agents",
@@ -45,11 +45,11 @@
       "title": "Cockroach Browser features",
       "url": "https://cockroachbrowser.com/features/",
       "kind": "features",
-      "summary": "127 mapped capabilities covering Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer exports, page interaction, files, evidence, audits, AI agents, SDKs, and deployment.",
+      "summary": "130 mapped capabilities covering Chromium, Firefox, WebKit, complete pinned Playwright and Puppeteer exports, page interaction, files, evidence, audits, AI agents, SDKs, and deployment.",
       "keywords": [
         "browser automation features",
         "AI agent browser",
-        "65 browser actions",
+        "66 browser actions",
         "Authorized browser sessions",
         "Headless Chromium, Firefox, and WebKit",
         "Lean headless asset profile",
@@ -58,6 +58,8 @@
         "Custom browser executable",
         "Cross-platform browser discovery",
         "Explicit browser providers",
+        "Runtime-owned lightweight CDP engine",
+        "Machine-readable engine negotiation",
         "Complete raw Playwright API",
         "Complete raw Puppeteer Core API",
         "Raw Chrome DevTools Protocol sessions",
@@ -72,7 +74,7 @@
         "Policy-gated clipboard",
         "User-supplied proxy",
         "Locale and timezone",
-        "Device and network emulation",
+        "Bounded page emulation",
         "Complete upstream emulation controls",
         "Tabs and popups",
         "Exclusive tab locks",
@@ -120,7 +122,8 @@
         "Network inspection",
         "Network export",
         "Hash-chained receipts",
-        "Text and HTML extraction",
+        "Text and raw HTML extraction",
+        "Sanitized structured extraction",
         "JavaScript and CSS coverage",
         "Heap snapshots and runtime object queries",
         "Screencasting, metrics, and profiling",
@@ -141,7 +144,7 @@
         "Effect-level policy",
         "Finite budgets",
         "Owned browser process-tree governor",
-        "Policy-bounded network routes",
+        "Policy-bounded HTTP routes",
         "Exact action approvals",
         "Secret references",
         "Command-line interface",
@@ -581,7 +584,7 @@
       "title": "Cockroach Browser and Lightpanda",
       "url": "https://cockroachbrowser.com/alternatives/#lightpanda",
       "kind": "alternative",
-      "summary": "A Zig headless browser designed for automation and AI workloads, with CDP compatibility, low resource use, and no graphical rendering. Cockroach Browser bundles Playwright Chromium, Firefox, and WebKit and can use an explicit operator-selected CDP endpoint. It does not bundle, fork, or claim execution proof for the Lightpanda engine.",
+      "summary": "A Zig headless browser designed for automation and AI workloads, with CDP compatibility, low resource use, and no graphical rendering. Cockroach Browser bundles Playwright Chromium, Firefox, and WebKit. Current main recognizes a Lightpanda manifest and performs configuration and machine preflight, but managed Lightpanda launch fails closed until an engine- or OS-level boundary covers every HTTP, WebSocket, worker, and related egress path. It does not bundle or fork Lightpanda.",
       "keywords": [
         "Lightpanda",
         "Alternative browser engine",
@@ -753,9 +756,11 @@
       "title": "Sessions and profiles",
       "url": "https://cockroachbrowser.com/docs/sessions/",
       "kind": "documentation",
-      "summary": "Every session has an owner, purpose, mode, origin boundary, action boundary, effect boundary, and finite budget. Profiles are named, isolated, and imported only by an authorized operator.",
+      "summary": "Every bounded-runtime session has an owner, purpose, mode, HTTP(S) origin policy, action policy, effect policy, and finite application budget. Profiles are named, isolated, and imported only by an authorized operator.",
       "keywords": [
         "Choose the browser connection",
+        "Negotiate the engine before launch",
+        "Use a lightweight lane only for compatible work",
         "Create an explicit persistent profile",
         "Keep profiles explicit and encrypted",
         "Checkpoint only the current authorized session",
@@ -792,6 +797,7 @@
         "Follow the activity stream",
         "See how a session moved",
         "Share control without sharing profiles",
+        "Bound concurrent session admission",
         "Route across authenticated workers",
         "Clear retained runtime state deliberately"
       ]
@@ -811,10 +817,10 @@
       ]
     },
     {
-      "title": "Network boundary",
+      "title": "Network controls",
       "url": "https://cockroachbrowser.com/docs/network/",
       "kind": "documentation",
-      "summary": "Every navigation and subresource request is checked against the session's explicit origin policy. Public adapters block loopback and private-network targets by default.",
+      "summary": "Bounded contexts check intercepted HTTP(S) navigation and subresource requests against the session origin policy. Public adapters block loopback and private-network targets by default, but application routing is not a complete protocol sandbox.",
       "keywords": [
         "Start from an allowlist",
         "Private networks require an owned deployment decision",
@@ -865,10 +871,11 @@
       "title": "MCP",
       "url": "https://cockroachbrowser.com/docs/mcp/",
       "kind": "documentation",
-      "summary": "The native stdio server exposes health, capabilities, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
+      "summary": "The native stdio server exposes health, capability and engine manifests, action preflight, sessions, snapshots, paired capture, bounded network observations, audits, and canonical action proposals. It does not expose raw profile management or direct mutation authority.",
       "keywords": [
         "Configure the local server",
         "Observation-first tools",
+        "Preflight an exact engine and action set",
         "Keep lifecycle authority outside the model",
         "Route consequential work through Maqam"
       ]
@@ -908,12 +915,12 @@
       "title": "Qarinah integration",
       "url": "https://cockroachbrowser.com/docs/qarinah/",
       "kind": "documentation",
-      "summary": "Qarinah can record sanitized browser outcomes, source URLs, receipt hashes, and evidence IDs so later agents retrieve compact, cited project context.",
+      "summary": "The optional Qarinah adapters emit versioned metadata-only outcomes to a host sink and can retrieve a bounded cited history pack for the built-in agent without granting browser authority.",
       "keywords": [
         "Record metadata, not browser secrets",
         "Keep memory read-only with respect to the browser",
         "Link a causal receipt chain when it exists",
-        "Cross-tool context"
+        "Retrieve bounded context for the browser agent"
       ]
     },
     {
@@ -971,7 +978,7 @@
       "title": "Capability matrix",
       "url": "https://cockroachbrowser.com/docs/capabilities/",
       "kind": "documentation",
-      "summary": "127 source-derived capabilities with available, adapter, and planned status.",
+      "summary": "130 source-derived capabilities with available, adapter, and planned status.",
       "keywords": [
         "Authorized browser sessions",
         "Headless Chromium, Firefox, and WebKit",
@@ -981,6 +988,8 @@
         "Custom browser executable",
         "Cross-platform browser discovery",
         "Explicit browser providers",
+        "Runtime-owned lightweight CDP engine",
+        "Machine-readable engine negotiation",
         "Complete raw Playwright API",
         "Complete raw Puppeteer Core API",
         "Raw Chrome DevTools Protocol sessions",
@@ -995,7 +1004,7 @@
         "Policy-gated clipboard",
         "User-supplied proxy",
         "Locale and timezone",
-        "Device and network emulation",
+        "Bounded page emulation",
         "Complete upstream emulation controls",
         "Tabs and popups",
         "Exclusive tab locks",
@@ -1043,7 +1052,8 @@
         "Network inspection",
         "Network export",
         "Hash-chained receipts",
-        "Text and HTML extraction",
+        "Text and raw HTML extraction",
+        "Sanitized structured extraction",
         "JavaScript and CSS coverage",
         "Heap snapshots and runtime object queries",
         "Screencasting, metrics, and profiling",
@@ -1064,7 +1074,7 @@
         "Effect-level policy",
         "Finite budgets",
         "Owned browser process-tree governor",
-        "Policy-bounded network routes",
+        "Policy-bounded HTTP routes",
         "Exact action approvals",
         "Secret references",
         "Command-line interface",
@@ -1106,10 +1116,13 @@
       "title": "Technical paper",
       "url": "https://cockroachbrowser.com/paper/",
       "kind": "research",
-      "summary": "Implementation-backed Cockroach Browser 0.3.0 technical white paper.",
+      "summary": "Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, with 130 capabilities, 66 typed actions, multi-engine governance, and frozen Obscura resource proof.",
       "keywords": [
         "white paper",
+        "version 1.2",
+        "multi-engine browser",
         "browser authority",
+        "resource proof",
         "evidence",
         "governance"
       ]

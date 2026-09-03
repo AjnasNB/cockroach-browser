@@ -45,6 +45,7 @@ try {
     ["/use-cases/", "use-cases"],
     ["/browser-vs-crawler/", "browser-vs-crawler"],
     ["/api-surface/", "api-surface"],
+    ["/paper/", "paper"],
     ["/alternatives/", "alternatives"],
     ["/docs/capabilities/", "capabilities"],
     ["/docs/getting-started/", "getting-started"]
@@ -70,6 +71,7 @@ try {
     ["/ai-agents/", "ai-agents-mobile"],
     ["/browser-vs-crawler/", "browser-vs-crawler-mobile"],
     ["/api-surface/", "api-surface-mobile"],
+    ["/paper/", "paper-mobile"],
     ["/alternatives/", "alternatives-mobile"],
     ["/docs/getting-started/", "getting-started-mobile"]
   ]) {

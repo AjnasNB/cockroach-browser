@@ -1,0 +1,3921 @@
+{
+  "schemaVersion": "cockroach.lightweight-browser-benchmark.v2",
+  "generatedAt": "2026-09-02T20:39:06.900Z",
+  "implementation": "obscura",
+  "resourceProfile": "constrained",
+  "renderingPolicy": "visual-actions-denied",
+  "executable": {
+    "name": "obscura.exe",
+    "bytes": 58097152,
+    "sha256": "5b609fb46bc00da79e450fb0fbd34bd442e565b1394f4af95433e0b341078221",
+    "version": "obscura 0.2.1"
+  },
+  "sourceIdentity": {
+    "gitCommit": "deb6c25b4c0bc1927a631e3b062464b4f4cc2775",
+    "workingTreeDirty": true,
+    "sourceScope": "Runtime, schemas, benchmark/package/build configuration, and tests; generated documentation and benchmark artifacts are excluded.",
+    "identityNormalization": "Relative paths use forward slashes and text line endings are normalized to LF before hashing.",
+    "sourceFileCount": 100,
+    "sourceTreeSha256": "fb0c4597e39f319dd9b6f3bab02777c395e9d8d84906981bf939a39b470e7279",
+    "runtimeBuildFileCount": 200,
+    "runtimeBuildSha256": "6738efa4000ba482db83c9dc95ba2f21caed31de96f30dcd342e5dc722d86025",
+    "benchmarkScriptSha256": "08a5294f2d446765f712b93c9bfaaca010b1d043ded638d1f4f57b5038c97e86"
+  },
+  "machine": {
+    "platform": "win32",
+    "architecture": "x64",
+    "release": "10.0.26200",
+    "logicalCpuCount": 16,
+    "cpuModel": "AMD Ryzen 7 4800H with Radeon Graphics         ",
+    "totalMemoryBytes": 16557887488,
+    "freeMemoryBytesAtReport": 3987808256,
+    "node": "v24.15.0"
+  },
+  "methodology": {
+    "warmup": 1,
+    "iterations": 20,
+    "settleMs": 500,
+    "startupTimeoutMs": 15000,
+    "actionTimeoutMs": 10000,
+    "teardownTimeoutMs": 5000,
+    "resourceSamples": 10,
+    "resourceSampleIntervalMs": 25,
+    "targetMiB": 25,
+    "targetDefinition": "Every measured owned-browser process-tree RSS sample is at or below the target and every required CDP/JavaScript/DOM/form/screenshot-preflight/teardown check passes.",
+    "memoryDefinition": "Aggregate RSS for the complete owned browser process tree; the Node coordinator is disclosed separately and is not hidden in browser RSS.",
+    "renderingControl": "Cockroach Browser declares a no-visual-action policy and rejects capture at preflight. This does not assert that the selected engine binary exposes or received a renderer-disable launch switch.",
+    "workload": "One runtime-owned loopback CDP server, one non-visual data-URL document, JavaScript evaluation, DOM query, input, and click.",
+    "requiredChecks": [
+      "connect",
+      "javascript",
+      "dom",
+      "forms",
+      "screenshot",
+      "teardown"
+    ],
+    "optionalChecks": [],
+    "energy": {
+      "available": false,
+      "reason": "No calibrated platform energy counter is available; CPU time is not watts."
+    }
+  },
+  "verdict": {
+    "passed": false,
+    "everyRunWithinTarget": false,
+    "requiredConformancePassed": true,
+    "targetBytes": 26214400,
+    "maxObservedBrowserTreeRssBytes": 29679616
+  },
+  "summary": {
+    "peakBrowserTreeRssBytes": {
+      "median": 29323264,
+      "p95": 29634560,
+      "min": 28831744,
+      "max": 29679616
+    },
+    "browserCpuTimeMs": {
+      "median": 94,
+      "p95": 156,
+      "min": 31,
+      "max": 156
+    },
+    "processCount": {
+      "median": 1,
+      "p95": 1,
+      "min": 1,
+      "max": 1
+    },
+    "launchMs": {
+      "median": 787.0129000000015,
+      "p95": 809.0815000000002,
+      "min": 752.3525000000373,
+      "max": 828.5519000000004
+    },
+    "connectMs": {
+      "median": 9.100799999985611,
+      "p95": 11.477599999998347,
+      "min": 6.7515000000130385,
+      "max": 11.787299999996321
+    },
+    "workloadMs": {
+      "median": 77.9427999999898,
+      "p95": 88.92900000000009,
+      "min": 72.45730000000913,
+      "max": 93.07159999999567
+    },
+    "shutdownMs": {
+      "median": 685.1016999999993,
+      "p95": 698.9339000000036,
+      "min": 669.2262000000046,
+      "max": 728.0233000000007
+    },
+    "coordinatorPeakRssBytes": {
+      "median": 113401856,
+      "p95": 128679936,
+      "min": 102383616,
+      "max": 128679936
+    }
+  },
+  "samples": [
+    {
+      "timings": {
+        "launchMs": 828.5519000000004,
+        "connectMs": 9.685999999999694,
+        "workloadMs": 88.92900000000009,
+        "shutdownMs": 687.1514999999999
+      },
+      "browserTree": {
+        "peakRssBytes": 29380608,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:34:35.891Z",
+            "rssBytes": 16130048,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:36.463Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:37.022Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:37.544Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:38.064Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:38.583Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:39.102Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:39.624Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:40.151Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:40.666Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:41.187Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:41.701Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:42.219Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:42.732Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:43.288Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:43.809Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:44.338Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:44.867Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:45.392Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:45.914Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:46.426Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:46.949Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:47.464Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:47.987Z",
+            "rssBytes": 29380608,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 114233344,
+        "cpuTimeMs": 765
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 794.870799999997,
+        "connectMs": 8.71979999999894,
+        "workloadMs": 84.07210000000123,
+        "shutdownMs": 689.582699999999
+      },
+      "browserTree": {
+        "peakRssBytes": 29323264,
+        "cpuTimeMs": 47,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:34:49.375Z",
+            "rssBytes": 16150528,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:49.933Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:50.488Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:51.024Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:51.550Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:52.073Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:52.592Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:53.127Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:53.661Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:54.181Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:54.704Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:55.222Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:55.741Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:56.260Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:56.778Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:57.301Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:57.828Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:58.356Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:58.884Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:59.431Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:34:59.960Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:00.488Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:01.044Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:01.564Z",
+            "rssBytes": 29323264,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 112324608,
+        "cpuTimeMs": 578
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 809.0815000000002,
+        "connectMs": 10.18119999999908,
+        "workloadMs": 81.0222999999969,
+        "shutdownMs": 695.5594000000056
+      },
+      "browserTree": {
+        "peakRssBytes": 29052928,
+        "cpuTimeMs": 94,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:35:02.950Z",
+            "rssBytes": 16203776,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:03.523Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:04.078Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:04.633Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:05.197Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:05.766Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:06.326Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:06.893Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:07.456Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:08.038Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:08.625Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:09.152Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:09.682Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:10.202Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:10.723Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:11.248Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:11.776Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:12.295Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:12.822Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:13.337Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:13.866Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:14.414Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:14.944Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:15.468Z",
+            "rssBytes": 29052928,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 106496000,
+        "cpuTimeMs": 703
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 800.8223000000071,
+        "connectMs": 11.787299999996321,
+        "workloadMs": 78.87339999999676,
+        "shutdownMs": 685.1016999999993
+      },
+      "browserTree": {
+        "peakRssBytes": 29020160,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:35:16.858Z",
+            "rssBytes": 16195584,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:17.418Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:17.973Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:18.492Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:19.015Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:19.544Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:20.063Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:20.585Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:21.109Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:21.636Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:22.168Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:22.685Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:23.206Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:23.728Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:24.248Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:24.772Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:25.297Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:25.823Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:26.344Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:26.882Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:27.411Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:27.937Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:28.454Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:28.977Z",
+            "rssBytes": 29020160,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 102383616,
+        "cpuTimeMs": 594
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 800.002999999997,
+        "connectMs": 9.858800000001793,
+        "workloadMs": 74.75309999998717,
+        "shutdownMs": 728.0233000000007
+      },
+      "browserTree": {
+        "peakRssBytes": 29335552,
+        "cpuTimeMs": 141,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:35:30.344Z",
+            "rssBytes": 16187392,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:30.902Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:31.460Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:31.985Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:32.507Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:33.034Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:33.554Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:34.075Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:34.597Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:35.138Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:35.698Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:36.225Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:36.757Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:37.276Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:37.815Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:38.370Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:38.907Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:39.438Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:39.983Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:40.508Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:41.049Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:41.576Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:42.107Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:42.625Z",
+            "rssBytes": 29335552,
+            "cpuTimeMs": 141,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 102449152,
+        "cpuTimeMs": 641
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 807.7658000000083,
+        "connectMs": 9.999499999990803,
+        "workloadMs": 74.8521999999939,
+        "shutdownMs": 686.9419000000053
+      },
+      "browserTree": {
+        "peakRssBytes": 29634560,
+        "cpuTimeMs": 156,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:35:44.046Z",
+            "rssBytes": 16175104,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:44.616Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:45.186Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:45.708Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:46.236Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:46.762Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:47.284Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:47.810Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:48.324Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:48.849Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:49.372Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:49.893Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:50.411Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:50.933Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:51.455Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:51.975Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:52.496Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:53.019Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:53.546Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:54.068Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:54.596Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:55.119Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:55.642Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:56.156Z",
+            "rssBytes": 29634560,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 109404160,
+        "cpuTimeMs": 546
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 806.6667000000016,
+        "connectMs": 11.054300000003423,
+        "workloadMs": 73.71199999999953,
+        "shutdownMs": 698.9339000000036
+      },
+      "browserTree": {
+        "peakRssBytes": 28917760,
+        "cpuTimeMs": 31,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:35:57.536Z",
+            "rssBytes": 16162816,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:58.100Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:58.651Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:59.168Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:35:59.689Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:00.212Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:00.785Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:01.308Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:01.830Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:02.350Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:02.877Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:03.408Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:03.945Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:04.471Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:05.007Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:05.538Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:06.076Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:06.611Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:07.148Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:07.692Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:08.222Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:08.739Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:09.256Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:09.781Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 106123264,
+        "cpuTimeMs": 657
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 808.5942000000068,
+        "connectMs": 10.643600000010338,
+        "workloadMs": 79.13899999999558,
+        "shutdownMs": 689.6215999999986
+      },
+      "browserTree": {
+        "peakRssBytes": 29679616,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:36:11.178Z",
+            "rssBytes": 16351232,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:11.740Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:12.305Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:12.829Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:13.348Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:13.873Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:14.392Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:14.916Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:15.438Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:15.966Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:16.485Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:17.043Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:17.574Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:18.101Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:18.626Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:19.181Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:19.739Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:20.274Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:20.796Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:21.319Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:21.879Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:22.422Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:22.942Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:23.464Z",
+            "rssBytes": 29679616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 106692608,
+        "cpuTimeMs": 640
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 782.8353999999963,
+        "connectMs": 11.477599999998347,
+        "workloadMs": 76.70500000000175,
+        "shutdownMs": 693.0057000000088
+      },
+      "browserTree": {
+        "peakRssBytes": 29507584,
+        "cpuTimeMs": 109,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:36:24.831Z",
+            "rssBytes": 16191488,
+            "cpuTimeMs": 47,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:25.393Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:25.946Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:26.465Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:26.986Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:27.511Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:28.032Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:28.555Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:29.079Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:29.596Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:30.120Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:30.641Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:31.166Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:31.684Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:32.210Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:32.730Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:33.275Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:33.860Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:34.386Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:34.910Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:35.441Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:35.974Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:36.498Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:37.018Z",
+            "rssBytes": 29507584,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 110948352,
+        "cpuTimeMs": 578
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 786.0217999999877,
+        "connectMs": 9.100799999985611,
+        "workloadMs": 77.5228000000061,
+        "shutdownMs": 672.8160999999964
+      },
+      "browserTree": {
+        "peakRssBytes": 28942336,
+        "cpuTimeMs": 94,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:36:38.397Z",
+            "rssBytes": 16154624,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:38.954Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:39.496Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:40.014Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:40.535Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:41.061Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:41.607Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:42.146Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:42.677Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:43.239Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:43.788Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:44.328Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:44.908Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:45.462Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:46.027Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:46.564Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:47.105Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:47.647Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:48.196Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:48.723Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:49.250Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:49.769Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:50.283Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:50.802Z",
+            "rssBytes": 28942336,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 116285440,
+        "cpuTimeMs": 516
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 774.1764000000258,
+        "connectMs": 7.776699999987613,
+        "workloadMs": 78.79800000000978,
+        "shutdownMs": 681.9098999999987
+      },
+      "browserTree": {
+        "peakRssBytes": 29384704,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:36:52.144Z",
+            "rssBytes": 16154624,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:52.713Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:53.268Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:53.785Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:54.304Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:54.830Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:55.349Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:55.869Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:56.385Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:56.902Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:57.422Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:57.944Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:58.499Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:59.029Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:36:59.549Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:00.078Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:00.606Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:01.153Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:01.669Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:02.186Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:02.711Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:03.227Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:03.747Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:04.267Z",
+            "rssBytes": 29384704,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 113401856,
+        "cpuTimeMs": 563
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 769.2356999999902,
+        "connectMs": 8.238200000021607,
+        "workloadMs": 82.50559999997495,
+        "shutdownMs": 679.5457999999926
+      },
+      "browserTree": {
+        "peakRssBytes": 29614080,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:37:05.627Z",
+            "rssBytes": 16273408,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:06.199Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:06.754Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:07.275Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:07.801Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:08.329Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:08.854Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:09.395Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:09.942Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:10.467Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:11.001Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:11.534Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:12.060Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:12.595Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:13.128Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:13.663Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:14.194Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:14.781Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:15.343Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:15.868Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:16.397Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:16.921Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:17.442Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:17.970Z",
+            "rssBytes": 29614080,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 125640704,
+        "cpuTimeMs": 484
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 787.0129000000015,
+        "connectMs": 9.087599999998929,
+        "workloadMs": 77.9427999999898,
+        "shutdownMs": 697.1994999999879
+      },
+      "browserTree": {
+        "peakRssBytes": 29548544,
+        "cpuTimeMs": 156,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:37:19.320Z",
+            "rssBytes": 16228352,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:19.893Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:20.444Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:20.964Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:21.488Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:22.011Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:22.533Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:23.057Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:23.567Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:24.088Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:24.602Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:25.122Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:25.636Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:26.157Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:26.674Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:27.202Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:27.721Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:28.240Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:28.766Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:29.284Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:29.810Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:30.331Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:30.844Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:31.364Z",
+            "rssBytes": 29548544,
+            "cpuTimeMs": 156,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 123944960,
+        "cpuTimeMs": 719
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 787.8471999999892,
+        "connectMs": 10.07620000001043,
+        "workloadMs": 76.6423000000068,
+        "shutdownMs": 685.5359999999928
+      },
+      "browserTree": {
+        "peakRssBytes": 29417472,
+        "cpuTimeMs": 109,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:37:32.739Z",
+            "rssBytes": 16236544,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:33.294Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:33.853Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:34.380Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:34.904Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:35.434Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:35.960Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:36.474Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:36.996Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:37.518Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:38.047Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:38.568Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:39.090Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:39.610Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:40.138Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:40.661Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:41.179Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:41.712Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:42.240Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:42.765Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:43.324Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:43.843Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:44.356Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:44.868Z",
+            "rssBytes": 29417472,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 108761088,
+        "cpuTimeMs": 484
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 777.1791000000085,
+        "connectMs": 8.440999999991618,
+        "workloadMs": 78.12110000001849,
+        "shutdownMs": 671.7950000000128
+      },
+      "browserTree": {
+        "peakRssBytes": 28950528,
+        "cpuTimeMs": 94,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:37:46.222Z",
+            "rssBytes": 16277504,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:46.795Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:47.351Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:47.868Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:48.379Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:48.905Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:49.426Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:49.968Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:50.530Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:51.065Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:51.593Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:52.106Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:52.657Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:53.183Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:53.717Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:54.245Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:54.758Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:55.272Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:55.786Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:56.299Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:56.819Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:57.335Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:57.845Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:37:58.361Z",
+            "rssBytes": 28950528,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 126849024,
+        "cpuTimeMs": 626
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 779.6937999999791,
+        "connectMs": 9.24790000001667,
+        "workloadMs": 77.78229999999166,
+        "shutdownMs": 669.2262000000046
+      },
+      "browserTree": {
+        "peakRssBytes": 29446144,
+        "cpuTimeMs": 94,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:37:59.685Z",
+            "rssBytes": 16171008,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:00.250Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:00.830Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:01.349Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:01.873Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:02.383Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:02.902Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:03.410Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:03.924Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:04.427Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:04.944Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:05.457Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:05.978Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:06.493Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:07.010Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:07.524Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:08.037Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:08.564Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:09.084Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:09.603Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:10.134Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:10.643Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:11.157Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:11.676Z",
+            "rssBytes": 29446144,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 126849024,
+        "cpuTimeMs": 609
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 788.579299999983,
+        "connectMs": 7.575200000021141,
+        "workloadMs": 72.67779999997583,
+        "shutdownMs": 674.4684000000125
+      },
+      "browserTree": {
+        "peakRssBytes": 28917760,
+        "cpuTimeMs": 109,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:38:13.001Z",
+            "rssBytes": 16318464,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:13.560Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:14.122Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:14.645Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:15.190Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:15.725Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:16.256Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:16.767Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:17.303Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:17.829Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:18.371Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:18.900Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:19.418Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:19.951Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:20.478Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:21.005Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:21.521Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:22.046Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:22.600Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:23.152Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:23.670Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:24.183Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:24.709Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:25.242Z",
+            "rssBytes": 28917760,
+            "cpuTimeMs": 109,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 127926272,
+        "cpuTimeMs": 437
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 755.5834000000032,
+        "connectMs": 6.7515000000130385,
+        "workloadMs": 79.20370000001276,
+        "shutdownMs": 679.0819999999949
+      },
+      "browserTree": {
+        "peakRssBytes": 29302784,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:38:26.590Z",
+            "rssBytes": 16195584,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:27.159Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:27.703Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:28.221Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:28.735Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:29.298Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:29.820Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:30.338Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:30.854Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:31.409Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:31.945Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:32.463Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:33.015Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:33.541Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:34.063Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:34.581Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:35.100Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:35.616Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:36.132Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:36.651Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:37.177Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:37.694Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:38.211Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:38.729Z",
+            "rssBytes": 29302784,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 127279104,
+        "cpuTimeMs": 391
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 777.7975999999908,
+        "connectMs": 8.076600000000326,
+        "workloadMs": 93.07159999999567,
+        "shutdownMs": 675.7256000000052
+      },
+      "browserTree": {
+        "peakRssBytes": 29167616,
+        "cpuTimeMs": 78,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:38:40.085Z",
+            "rssBytes": 16089088,
+            "cpuTimeMs": 16,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:40.651Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:41.205Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:41.721Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:42.245Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:42.762Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:43.302Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:43.815Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:44.335Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:44.857Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:45.370Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:45.898Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:46.418Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:46.934Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:47.448Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:47.973Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:48.490Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:49.008Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:49.527Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:50.051Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:50.564Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:51.085Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:51.601Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:52.119Z",
+            "rssBytes": 29167616,
+            "cpuTimeMs": 78,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 128679936,
+        "cpuTimeMs": 515
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    },
+    {
+      "timings": {
+        "launchMs": 752.3525000000373,
+        "connectMs": 8.821799999976065,
+        "workloadMs": 72.45730000000913,
+        "shutdownMs": 682.5961999999708
+      },
+      "browserTree": {
+        "peakRssBytes": 28831744,
+        "cpuTimeMs": 94,
+        "processCount": 1,
+        "sampleCount": 24,
+        "observations": [
+          {
+            "sampledAt": "2026-09-02T20:38:53.437Z",
+            "rssBytes": 16211968,
+            "cpuTimeMs": 31,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:53.997Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:54.547Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:55.068Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:55.585Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:56.129Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:56.680Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:57.211Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:57.762Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:58.300Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:58.841Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:59.361Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:38:59.890Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:00.433Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:00.999Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:01.527Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:02.042Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:02.567Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:03.086Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:03.600Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:04.124Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:04.644Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:05.167Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          },
+          {
+            "sampledAt": "2026-09-02T20:39:05.694Z",
+            "rssBytes": 28831744,
+            "cpuTimeMs": 94,
+            "processCount": 1
+          }
+        ]
+      },
+      "coordinator": {
+        "peakRssBytes": 128679936,
+        "cpuTimeMs": 438
+      },
+      "conformance": {
+        "connect": {
+          "passed": true
+        },
+        "javascript": {
+          "passed": true
+        },
+        "dom": {
+          "passed": true
+        },
+        "forms": {
+          "passed": true,
+          "actionability": "dom-non-visual"
+        },
+        "screenshot": {
+          "passed": true,
+          "supported": false,
+          "state": "unsupported",
+          "enforcement": "preflight"
+        },
+        "teardown": {
+          "passed": true,
+          "rootProcessExited": true,
+          "transportDisposed": true
+        }
+      }
+    }
+  ]
+}

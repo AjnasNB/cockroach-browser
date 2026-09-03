@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Technical paper | Cockroach Browser</title>
-  <meta name="description" content="Implementation-backed technical white paper for Cockroach Browser 0.3.0.">
+  <meta name="description" content="Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, covering multi-engine execution, governance, compatibility, and frozen resource proof.">
   <meta name="author" content="Ajnas N B">
   <meta name="robots" content="index,follow">
   <meta name="theme-color" content="#050a0d">
@@ -19,7 +19,7 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Cockroach Browser">
   <meta property="og:title" content="Technical paper | Cockroach Browser">
-  <meta property="og:description" content="Implementation-backed technical white paper for Cockroach Browser 0.3.0.">
+  <meta property="og:description" content="Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, covering multi-engine execution, governance, compatibility, and frozen resource proof.">
   <meta property="og:url" content="https://cockroachbrowser.com/paper/">
   <meta property="og:image" content="https://cockroachbrowser.com/assets/logo.png">
   <meta property="og:image:type" content="image/png">
@@ -29,10 +29,10 @@
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Technical paper | Cockroach Browser">
-  <meta name="twitter:description" content="Implementation-backed technical white paper for Cockroach Browser 0.3.0.">
+  <meta name="twitter:description" content="Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, covering multi-engine execution, governance, compatibility, and frozen resource proof.">
   <meta name="twitter:image" content="https://cockroachbrowser.com/assets/logo.png">
   <meta name="twitter:image:alt" content="Cockroach Browser AI browser automation logo">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/paper/#webpage","name":"Technical paper | Cockroach Browser","headline":"Technical paper | Cockroach Browser","description":"Implementation-backed technical white paper for Cockroach Browser 0.3.0.","url":"https://cockroachbrowser.com/paper/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first Chromium, Firefox, and WebKit automation with complete Playwright and Puppeteer APIs, an agent runtime, mobile WebDriver, fleet adapters, MCP, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.4.1","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"ScholarlyArticle","@id":"https://cockroachbrowser.com/paper/#article","headline":"Cockroach Browser: A Local-First Browser Runtime for AI Agents","author":{"@type":"Person","name":"Ajnas N B"},"datePublished":"2026-08-08","version":"1.1","license":"https://creativecommons.org/licenses/by/4.0/","url":"https://cockroachbrowser.com/paper/","identifier":"https://doi.org/10.5281/zenodo.21850760","sameAs":"https://doi.org/10.5281/zenodo.21850760","about":{"@id":"https://cockroachbrowser.com/#software"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://cockroachbrowser.com/#website","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","url":"https://cockroachbrowser.com/","description":"Open-source local-first browser automation for AI agents with Chromium, Firefox, WebKit, an explicitly preflighted experimental Obscura lane, complete pinned Playwright and Puppeteer exports, MCP, finite policy, and verifiable evidence.","inLanguage":"en"},{"@type":"TechArticle","@id":"https://cockroachbrowser.com/paper/#webpage","name":"Technical paper | Cockroach Browser","headline":"Technical paper | Cockroach Browser","description":"Current implementation-backed Cockroach Browser 0.5.0-rc.1 technical paper, version 1.2, covering multi-engine execution, governance, compatibility, and frozen resource proof.","url":"https://cockroachbrowser.com/paper/","inLanguage":"en","isPartOf":{"@id":"https://cockroachbrowser.com/#website"}},{"@type":"SoftwareSourceCode","@id":"https://cockroachbrowser.com/#software","name":"Cockroach Browser","alternateName":"Cockroach Browser by AjnasNB","description":"Open-source local-first browser automation for AI agents with Chromium, Firefox, WebKit, an explicitly preflighted experimental Obscura lane, complete pinned Playwright and Puppeteer exports, MCP, finite policy, and verifiable evidence.","url":"https://cockroachbrowser.com/","codeRepository":"https://github.com/AjnasNB/cockroach-browser","programmingLanguage":"TypeScript","runtimePlatform":"Node.js 22, 24, or 26","version":"0.5.0-rc.1","license":"https://spdx.org/licenses/AGPL-3.0-or-later.html"},{"@type":"ScholarlyArticle","@id":"https://cockroachbrowser.com/paper/#article","name":"Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents","headline":"Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents","author":{"@type":"Person","name":"Ajnas N B"},"datePublished":"2026-09-03","version":"1.2","license":"https://creativecommons.org/licenses/by/4.0/","url":"https://cockroachbrowser.com/paper/","about":{"@id":"https://cockroachbrowser.com/#software"}}]}</script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -41,7 +41,7 @@
     <a class="brand" href="/">
       <img src="/assets/logo.png" alt="" width="34" height="34">
       <span>Cockroach Browser</span>
-      <span class="version">0.4.1</span>
+      <span class="version">0.5.0-rc.1</span>
     </a>
     <nav class="top-nav" data-top-nav aria-label="Primary navigation">
       <a href="/what-is-cockroach-browser/" >What it is</a>
@@ -59,42 +59,50 @@
 </header>
 <main id="main" class="docs-layout">
   <nav class="docs-sidebar" aria-label="Documentation">
-  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/automation-platform/" >Full automation platform</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network boundary</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
+  <div class="nav-group"><h2>Start</h2><a href="/docs/getting-started/" >Getting started</a><a href="/docs/automation-platform/" >Full automation platform</a><a href="/docs/operator-install/" >Operator install</a><a href="/docs/sessions/" >Sessions and profiles</a></div><div class="nav-group"><h2>Operate</h2><a href="/docs/actions/" >Actions and semantic refs</a><a href="/docs/operator-runtime/" >Operator runtime</a><a href="/docs/capture/" >Capture and evidence</a><a href="/docs/network/" >Network controls</a><a href="/docs/files/" >Files and downloads</a><a href="/docs/audits/" >Audits and comparisons</a><a href="/docs/jobs/" >Jobs and retries</a></div><div class="nav-group"><h2>Connect</h2><a href="/docs/mcp/" >MCP</a><a href="/docs/webhooks/" >Signed webhooks</a><a href="/docs/maqam/" >Maqam</a><a href="/docs/qarinah/" >Qarinah</a><a href="/docs/crawler/" >Cockroach Crawler</a><a href="/docs/productloop/" >ProductLoop OS</a></div><div class="nav-group"><h2>Ship</h2><a href="/docs/security/" >Security</a><a href="/docs/deployment/" >Deployment</a><a href="/docs/capabilities/" >Capability matrix</a></div>
   <div class="nav-group"><h2>Compare</h2><a href="/alternatives/">Alternatives by product layer</a></div>
 </nav>
   <article class="docs-main">
     <header class="page-hero">
-      <p class="eyebrow">Cockroach Browser / technical paper / version 1.1</p>
-      <h1>A local-first browser runtime for AI agents.</h1>
-      <p class="kicker">Powerful browser automation for AI agents - without inheriting your whole machine.</p>
-      <p class="lede">Ajnas N B &middot; August 2026 &middot; Cockroach Browser 0.3.0</p>
+      <p class="eyebrow">Current implementation-backed paper / version 1.2</p>
+      <h1>Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents</h1>
+      <p class="kicker">Full browser fidelity, explicit lightweight routing, finite authority, and evidence-bound execution.</p>
+      <p class="lede">Ajnas N B &middot; September 3, 2026 &middot; Cockroach Browser 0.5.0-rc.1</p>
       <div class="hero-actions">
-        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">Download the PDF</a>
-        <a class="button" href="https://doi.org/10.5281/zenodo.21850760">Cite published v1.1</a>
+        <a class="button button--primary" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2.pdf">Download current v1.2 PDF</a>
+        <a class="button" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2.sha256">Verify v1.2 checksum</a>
+        <a class="button" href="/paper/Cockroach-Browser-Technical-White-Paper-v1.2-build.json">Inspect v1.2 build manifest</a>
         <a class="button" href="https://github.com/AjnasNB/cockroach-browser/blob/main/docs/whitepaper.md">Read the source</a>
       </div>
     </header>
     <section class="manual-section" id="abstract">
       <span class="section-number">Abstract</span>
-      <h2>Useful browser capability without ambient machine authority.</h2>
-      <p>AI agents can inspect dynamic applications, fill forms, download files, capture evidence, and complete operational workflows. Conventional automation often inherits more authority than the task requires: ambient browser profiles, persistent cookies, arbitrary origins, unrestricted JavaScript, local files, broad network reach, or an unauthenticated remote control port.</p>
-      <p>Cockroach Browser separates browser capability from ambient machine authority. A host creates an explicit session with a purpose, admitted origins, allowed actions, allowed effects, and finite budgets. The runtime then provides semantic page references, browser interactions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts inside that session.</p>
+      <h2>Multi-engine browser capability without ambient machine authority.</h2>
+      <p>Cockroach Browser gives AI agents governed Chromium, Firefox, and WebKit sessions for full browser fidelity, plus an explicitly preflighted experimental Obscura lane for compatible non-visual work. The host selects the lane from machine-readable capability data rather than accepting a silent fidelity trade.</p>
+      <p>Each bounded session declares its owner, purpose, origins, actions, effects, credentials, and finite budgets. Semantic page references, browser actions, screenshots, PDFs, traces, network observations, audits, and hash-linked receipts remain inside that contract. Complete pinned Playwright and Puppeteer Core re-exports remain available as a separate unrestricted operator surface.</p>
     </section>
     <section class="manual-section" id="release-surface">
       <span class="section-number">Implementation</span>
-      <h2>One package, several explicit control surfaces.</h2>
-      <p>Version 0.3.0 ships an embedded TypeScript SDK, authenticated loopback daemon, typed client, command-line interface, observation-first MCP server, Docker deployment, local dashboard, explicit browser providers, runtime-owned persistent profiles, authenticated jobs and workers, team-scoped roles, and adapters for Maqam, Qarinah, Cockroach Crawler, and ProductLoop OS.</p>
-      <p>The annotated <code>v0.3.0</code> source-derived capability registry contains 94 entries: 88 directly available surfaces and 6 host-backed adapters. This is an implementation inventory, not a performance or security score.</p>
+      <h2>0.5.0-rc.1 is measured from source, not a feature slogan.</h2>
+      <p>The release candidate ships an embedded TypeScript runtime, authenticated loopback daemon, typed client, CLI, observation-first MCP server, Docker deployment, dashboard, machine-readable engine preflight, explicit browser providers, persistent profiles, authenticated jobs and workers, team roles, and optional integration adapters.</p>
+      <p>The source-derived registry contains 130 capabilities: 119 available surfaces, 11 adapter-backed surfaces, and 0 planned surfaces. The bounded runtime exposes 66 typed browser actions derived from <code>src/contracts.ts</code>. These are implementation inventories, not task-success, performance, scale, or security rankings.</p>
+    </section>
+    <section class="manual-section" id="resource-proof">
+      <span class="section-number">Frozen proof</span>
+      <h2>30 MiB passed. 25 MiB failed.</h2>
+      <p>The pinned Obscura 0.2.1 constrained non-visual fixture ran one warmup plus 20 measured launches per target. The 30 MiB target passed with a maximum complete owned browser process-tree RSS of 29,622,272 bytes, or 28.25 MiB. The separately executed 25 MiB target failed with a maximum of 29,679,616 bytes, or 28.30 MiB. Required connection, JavaScript, DOM, form, screenshot-preflight-denial, and teardown checks passed in every measured launch.</p>
+      <p>The artifacts retain 478 observations for the 30 MiB target and 480 for the 25 MiB target, for 958 observations total. The Node coordinator was measured separately. Neither result covers whole-app memory, arbitrary pages, rendered pages, persistent or attached sessions, or full browser engines.</p>
+      <p><a href="https://github.com/AjnasNB/cockroach-browser/blob/main/docs/benchmarks/obscura-non-visual-2026-09-03.md">Audit the benchmark method, distributions, identities, and artifact hashes</a>.</p>
     </section>
     <section class="manual-section" id="status">
       <span class="section-number">Status</span>
-      <h2>Implementation-backed and open for technical review.</h2>
-      <p>This is an implementation-backed technical white paper for Cockroach Browser 0.3.0. The paper has not undergone independent peer review or independent security certification.</p>
-      <p>Published v1.1: <a href="https://doi.org/10.5281/zenodo.21850760">doi:10.5281/zenodo.21850760</a>. Persistent paper series: <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>. Version 1.0 remains preserved at <a href="https://doi.org/10.5281/zenodo.21701792">doi:10.5281/zenodo.21701792</a>.</p>
+      <h2>Version 1.2 is current. Version 1.1 remains the historical citable edition.</h2>
+      <p>Version 1.2 is the current implementation-backed paper for Cockroach Browser 0.5.0-rc.1. It has no DOI yet and has not undergone independent peer review or independent security certification. Its PDF SHA-256 is <code>6723c2e6a9c5ba639f637eb98281781585a5470075ac713a4d1ef0be15b097e3</code>.</p>
+      <p>Historical published v1.1 remains available as a <a href="/paper/Cockroach-Browser-Technical-White-Paper-v1.1.pdf">preserved PDF</a> and at <a href="https://doi.org/10.5281/zenodo.21850760">doi:10.5281/zenodo.21850760</a>. That DOI identifies v1.1 only and must not be used as the identifier for v1.2. The historical paper series remains at <a href="https://doi.org/10.5281/zenodo.21701791">doi:10.5281/zenodo.21701791</a>.</p>
       <p>The software is licensed under AGPL-3.0-or-later. The paper is licensed under Creative Commons Attribution 4.0 International.</p>
     </section>
   </article>
-  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#abstract">Abstract</a><a href="#release-surface">Release surface</a><a href="#status">Publication status</a></aside>
+  <aside class="page-toc" aria-label="On this page"><h2>On this page</h2><a href="#abstract">Abstract</a><a href="#release-surface">Release surface</a><a href="#resource-proof">Frozen proof</a><a href="#status">Publication status</a></aside>
 </main>
 <footer class="footer">
   <div class="shell footer-inner">

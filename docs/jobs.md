@@ -23,6 +23,6 @@ Maqam and application services should carry stable operation IDs through policy,
 The built-in job queue is process-local and file-backed. It is useful for one owned worker. Team session ownership and revocable viewer/operator grants are available through TeamSessionStore, and BrowserWorkerPool can route new sessions across reviewed authenticated daemons. Neither turns the local queue into a distributed transaction coordinator. Signed lifecycle delivery remains a separate durable webhook outbox.
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.

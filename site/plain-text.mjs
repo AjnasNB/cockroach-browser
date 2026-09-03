@@ -20,8 +20,19 @@ export function htmlToPlainText(value) {
         break;
       }
       const tag = source.slice(cursor + 1, tagEnd).trim().toLowerCase();
-      if (tag === "li") output += "- ";
-      else if (tag === "/li") output += "\n";
+      const tagName = tag.match(/^\/?\s*([a-z][a-z0-9-]*)/)?.[1];
+      const closing = tag.startsWith("/");
+      if (tagName === "li") output += closing ? "\n" : "- ";
+      else if (tagName === "br") output += "\n";
+      else if (tagName && [
+        "address", "article", "aside", "blockquote", "dd", "div", "dl", "dt", "fieldset",
+        "figcaption", "figure", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6",
+        "header", "hr", "main", "nav", "ol", "p", "pre", "section", "table", "tr", "ul"
+      ].includes(tagName)) {
+        output += "\n\n";
+      } else if (tagName && ["td", "th"].includes(tagName) && closing) {
+        output += "\t";
+      }
       cursor = tagEnd + 1;
       continue;
     }
@@ -43,5 +54,8 @@ export function htmlToPlainText(value) {
     cursor += 1;
   }
 
-  return output.trim();
+  return output
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

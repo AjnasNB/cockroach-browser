@@ -5,6 +5,8 @@ export interface ModelMessage {
   content: string;
   name?: string;
   toolCallId?: string;
+  /** Assistant tool calls must be replayed before their matching tool results. */
+  toolCalls?: readonly ModelToolCall[];
 }
 
 export interface ModelToolDefinition {
@@ -49,6 +51,7 @@ export interface OpenAICompatibleGatewayOptions {
   apiKeyProvider?: () => string | Promise<string>;
   headers?: Record<string, string>;
   timeoutMs?: number;
+  maxRequestBytes?: number;
   maxResponseBytes?: number;
 }
 
@@ -57,6 +60,7 @@ export class OpenAICompatibleModelGateway implements ModelGateway {
   readonly endpoint: URL;
   readonly model: string;
   readonly timeoutMs: number;
+  readonly maxRequestBytes: number;
   readonly maxResponseBytes: number;
   readonly headers: Readonly<Record<string, string>>;
   #apiKey: string | undefined;
@@ -68,12 +72,13 @@ export class OpenAICompatibleModelGateway implements ModelGateway {
       throw new TypeError("Remote model gateway endpoints must use HTTPS.");
     }
     if (!options.model || options.model.length > 256) throw new TypeError("A bounded model identifier is required.");
-    if (!options.apiKey && !options.apiKeyProvider) throw new TypeError("An API key or API-key provider is required.");
+    if (options.apiKey === undefined && !options.apiKeyProvider) throw new TypeError("An API key or API-key provider is required.");
     this.model = options.model;
     this.timeoutMs = boundedInteger(options.timeoutMs ?? 120_000, 1_000, 600_000, "timeoutMs");
+    this.maxRequestBytes = boundedInteger(options.maxRequestBytes ?? 4 * 1024 * 1024, 1_024, 64 * 1024 * 1024, "maxRequestBytes");
     this.maxResponseBytes = boundedInteger(options.maxResponseBytes ?? 8 * 1024 * 1024, 1_024, 64 * 1024 * 1024, "maxResponseBytes");
     this.headers = Object.freeze({ ...(options.headers ?? {}) });
-    this.#apiKey = options.apiKey;
+    this.#apiKey = options.apiKey === undefined ? undefined : validatedApiKey(options.apiKey);
     this.#apiKeyProvider = options.apiKeyProvider;
   }
 
@@ -81,35 +86,42 @@ export class OpenAICompatibleModelGateway implements ModelGateway {
     if (!Array.isArray(request.messages) || request.messages.length === 0 || request.messages.length > 512) {
       throw new RangeError("Model requests require between 1 and 512 messages.");
     }
-    const key = this.#apiKey ?? await this.#apiKeyProvider?.();
-    if (!key) throw new Error("The model API-key provider returned no key.");
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
-    const abort = () => controller.abort();
-    request.signal?.addEventListener("abort", abort, { once: true });
-    try {
-      const body = {
-        model: this.model,
-        messages: request.messages.map((message) => ({
-          role: message.role,
-          content: message.content,
-          ...(message.name ? { name: message.name } : {}),
-          ...(message.toolCallId ? { tool_call_id: message.toolCallId } : {})
+    const body = {
+      model: this.model,
+      messages: request.messages.map(serializeMessage),
+      ...(request.tools?.length ? {
+        tools: request.tools.map((tool) => ({
+          type: "function",
+          function: {
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.inputSchema
+          }
         })),
-        ...(request.tools?.length ? {
-          tools: request.tools.map((tool) => ({
-            type: "function",
-            function: {
-              name: tool.name,
-              description: tool.description,
-              parameters: tool.inputSchema
-            }
-          })),
-          tool_choice: "auto"
-        } : {}),
-        ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
-        ...(request.maxOutputTokens === undefined ? {} : { max_tokens: request.maxOutputTokens })
-      };
+        tool_choice: "auto"
+      } : {}),
+      ...(request.temperature === undefined ? {} : { temperature: request.temperature }),
+      ...(request.maxOutputTokens === undefined ? {} : { max_tokens: request.maxOutputTokens })
+    };
+    const encodedBody = JSON.stringify(body);
+    if (Buffer.byteLength(encodedBody) > this.maxRequestBytes) {
+      throw new RangeError("The model request exceeded maxRequestBytes.");
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(new DOMException("The model request timed out.", "TimeoutError")),
+      this.timeoutMs
+    );
+    const abort = () => controller.abort(
+      request.signal?.reason ?? new DOMException("The model request was aborted.", "AbortError")
+    );
+    if (request.signal?.aborted) abort();
+    else request.signal?.addEventListener("abort", abort, { once: true });
+    try {
+      const key = this.#apiKey ?? validatedApiKey(await runAbortable(
+        () => this.#apiKeyProvider?.(),
+        controller.signal
+      ));
       const response = await fetch(this.endpoint, {
         method: "POST",
         headers: {
@@ -118,7 +130,7 @@ export class OpenAICompatibleModelGateway implements ModelGateway {
           authorization: `Bearer ${key}`,
           ...this.headers
         },
-        body: JSON.stringify(body),
+        body: encodedBody,
         signal: controller.signal
       });
       const bytes = await readBoundedResponse(response, this.maxResponseBytes, "The model response exceeded maxResponseBytes.");
@@ -130,6 +142,74 @@ export class OpenAICompatibleModelGateway implements ModelGateway {
       request.signal?.removeEventListener("abort", abort);
     }
   }
+}
+
+function validatedApiKey(value: unknown): string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new TypeError("The model API key must be a non-empty string.");
+  }
+  if (Buffer.byteLength(value) > 16 * 1024) {
+    throw new RangeError("The model API key exceeded 16384 bytes.");
+  }
+  if (/[\u0000-\u001f\u007f]/.test(value)) {
+    throw new TypeError("The model API key contains invalid control characters.");
+  }
+  return value;
+}
+
+function runAbortable<T>(operation: () => T | Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(abortReason(signal));
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => {
+      signal.removeEventListener("abort", abort);
+      reject(abortReason(signal));
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    Promise.resolve()
+      .then(operation)
+      .then(
+        (value) => {
+          signal.removeEventListener("abort", abort);
+          resolve(value);
+        },
+        (error: unknown) => {
+          signal.removeEventListener("abort", abort);
+          reject(error);
+        }
+      );
+  });
+}
+
+function abortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? new DOMException("The model request was aborted.", "AbortError");
+}
+
+function serializeMessage(message: ModelMessage): Record<string, unknown> {
+  if (message.toolCalls?.length && message.role !== "assistant") {
+    throw new TypeError("Only assistant messages may contain toolCalls.");
+  }
+  if (message.toolCallId && message.role !== "tool") {
+    throw new TypeError("Only tool messages may contain toolCallId.");
+  }
+  if (message.role === "tool" && !message.toolCallId) {
+    throw new TypeError("Tool messages require toolCallId.");
+  }
+  return {
+    role: message.role,
+    content: message.content,
+    ...(message.name ? { name: message.name } : {}),
+    ...(message.toolCallId ? { tool_call_id: message.toolCallId } : {}),
+    ...(message.toolCalls?.length ? {
+      tool_calls: message.toolCalls.map((call) => ({
+        id: call.id,
+        type: "function",
+        function: {
+          name: call.name,
+          arguments: JSON.stringify(call.arguments ?? {})
+        }
+      }))
+    } : {})
+  };
 }
 
 function parseOpenAIResponse(value: unknown): ModelResponse {

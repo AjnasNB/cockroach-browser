@@ -116,12 +116,14 @@ test("rejects private DNS answers and address changes before browser dispatch", 
 
 test("classifies effects and risk before dispatch", () => {
   assert.equal(effectForAction("snapshot"), "read");
+  assert.equal(effectForAction("extract.structured"), "read");
   assert.equal(effectForAction("fill"), "write");
   assert.equal(effectForAction("evaluate"), "execute");
   assert.equal(effectForAction("challenge.resolve"), "execute");
   assert.equal(effectForAction("upload"), "upload");
   assert.equal(effectForAction("cookies.read"), "credential");
   assert.equal(riskForAction("snapshot"), "low");
+  assert.equal(riskForAction("extract.structured"), "low");
   assert.equal(riskForAction("navigate"), "medium");
   assert.equal(riskForAction("click"), "high");
   assert.equal(riskForAction("evaluate"), "critical");

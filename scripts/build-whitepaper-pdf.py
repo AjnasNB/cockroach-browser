@@ -4,8 +4,12 @@
 from __future__ import annotations
 
 import html
+import hashlib
+import json
 import re
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 from reportlab import rl_config
@@ -34,9 +38,16 @@ from reportlab.platypus.tableofcontents import TableOfContents
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "whitepaper.md"
-OUTPUT = ROOT / "output" / "pdf" / "Cockroach-Browser-Technical-White-Paper-v1.1.pdf"
+PAPER_VERSION = "1.2"
+IMPLEMENTATION_VERSION = "0.5.0-rc.1"
+PUBLICATION_DATE = "2026-09-03"
+OUTPUT = ROOT / "output" / "pdf" / "Cockroach-Browser-Technical-White-Paper-v1.2.pdf"
 PUBLIC_COPY = ROOT / "docs" / OUTPUT.name
 SITE_COPY = ROOT / "site" / "paper" / OUTPUT.name
+BUILD_MANIFEST = ROOT / "docs" / "Cockroach-Browser-Technical-White-Paper-v1.2-build.json"
+CHECKSUM = ROOT / "docs" / "Cockroach-Browser-Technical-White-Paper-v1.2.sha256"
+SITE_BUILD_MANIFEST = ROOT / "site" / "paper" / BUILD_MANIFEST.name
+SITE_CHECKSUM = ROOT / "site" / "paper" / CHECKSUM.name
 LOGO = ROOT / "site" / "assets" / "logo.png"
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
@@ -58,6 +69,9 @@ CODE_BG = colors.HexColor("#071310")
 rl_config.invariant = 1
 
 
+FONT_FILES: list[Path] = []
+
+
 def register_fonts() -> tuple[str, str, str, str]:
     choices = [
         ("C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/arialbd.ttf",
@@ -68,6 +82,7 @@ def register_fonts() -> tuple[str, str, str, str]:
     for regular, bold, italic, mono in choices:
         paths = [Path(value) for value in (regular, bold, italic, mono)]
         if all(path.exists() for path in paths):
+            FONT_FILES.extend(paths)
             pdfmetrics.registerFont(TTFont("CBBody", str(paths[0])))
             pdfmetrics.registerFont(TTFont("CBBody-Bold", str(paths[1])))
             pdfmetrics.registerFont(TTFont("CBBody-Italic", str(paths[2])))
@@ -141,9 +156,9 @@ class PaperTemplate(BaseDocTemplate):
             rightMargin=RIGHT,
             topMargin=TOP,
             bottomMargin=BOTTOM,
-            title="Cockroach Browser: A Local-First Browser Runtime for AI Agents",
+            title="Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents",
             author="Ajnas N B",
-            subject="A local-first, authenticated browser runtime for AI agents",
+            subject="A governed multi-engine browser runtime for AI agents",
             creator="Cockroach Browser white-paper build",
             pageCompression=1,
         )
@@ -170,7 +185,7 @@ class PaperTemplate(BaseDocTemplate):
         canvas.setFillColor(colors.HexColor("#91A49E"))
         canvas.setFont(MONO, 7.2)
         canvas.drawString(LEFT, 10 * mm, "COCKROACH BROWSER / TECHNICAL PAPER")
-        canvas.drawRightString(PAGE_WIDTH - RIGHT, 10 * mm, "AUGUST 2026")
+        canvas.drawRightString(PAGE_WIDTH - RIGHT, 10 * mm, "SEPTEMBER 3, 2026")
         canvas.restoreState()
 
     @staticmethod
@@ -190,7 +205,7 @@ class PaperTemplate(BaseDocTemplate):
         canvas.setStrokeColor(RULE)
         canvas.line(LEFT, 13 * mm, PAGE_WIDTH - RIGHT, 13 * mm)
         canvas.setFont(BODY, 7.2)
-        canvas.drawString(LEFT, 8 * mm, "Ajnas N B - Technical white paper v1.1")
+        canvas.drawString(LEFT, 8 * mm, "Ajnas N B - Technical white paper v1.2")
         canvas.drawRightString(PAGE_WIDTH - RIGHT, 8 * mm, str(doc.page))
         canvas.restoreState()
 
@@ -366,18 +381,18 @@ def cover_story() -> list:
         Spacer(1, 19 * mm),
         logo,
         Spacer(1, 10 * mm),
-        Paragraph("COCKROACH BROWSER / VERSION 0.3.0", STYLES["cover-kicker"]),
-        Paragraph("A local-first browser runtime for AI agents", STYLES["cover-title"]),
+        Paragraph("COCKROACH BROWSER / VERSION 0.5.0-RC.1", STYLES["cover-kicker"]),
+        Paragraph("A governed multi-engine runtime for AI agents", STYLES["cover-title"]),
         Paragraph(
-            "The browser runtime your AI agents can use without inheriting your whole machine.",
+            "Full browsers for fidelity. A verified lightweight lane for compatible non-visual work. Explicit authority for both.",
             STYLES["cover-subtitle"],
         ),
         HRFlowable(width="100%", thickness=0.8, color=colors.HexColor("#24433C")),
         Spacer(1, 8 * mm),
         Paragraph(
             "<b>Author:</b> Ajnas N B<br/>"
-            "<b>Paper version:</b> 1.1<br/>"
-            "<b>Date:</b> August 2026<br/>"
+            "<b>Paper version:</b> 1.2<br/>"
+            "<b>Date:</b> September 3, 2026<br/>"
             "<b>Concept DOI:</b> 10.5281/zenodo.21701791<br/>"
             "<b>Software:</b> AGPL-3.0-or-later<br/>"
             "<b>Paper:</b> Creative Commons Attribution 4.0 International<br/>"
@@ -415,6 +430,13 @@ def toc_story() -> list:
 
 
 def build() -> None:
+    replace = "--replace" in sys.argv[1:]
+    authored = [OUTPUT, PUBLIC_COPY, SITE_COPY, BUILD_MANIFEST, CHECKSUM,
+                SITE_BUILD_MANIFEST, SITE_CHECKSUM]
+    existing = [path for path in authored if path.exists()]
+    if existing and not replace:
+        joined = ", ".join(str(path.relative_to(ROOT)) for path in existing)
+        raise FileExistsError(f"Refusing to overwrite v1.2 artifacts: {joined}. Pass --replace explicitly.")
     text = SOURCE.read_text(encoding="utf-8")
     start = text.find("## Abstract")
     if start < 0:
@@ -422,9 +444,67 @@ def build() -> None:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     story = cover_story() + toc_story() + parse_markdown(text[start:])
     PaperTemplate(str(OUTPUT)).multiBuild(story)
+    PUBLIC_COPY.parent.mkdir(parents=True, exist_ok=True)
+    SITE_COPY.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(OUTPUT, PUBLIC_COPY)
     shutil.copyfile(OUTPUT, SITE_COPY)
-    print(OUTPUT)
+    write_provenance()
+    print(json.dumps({
+        "pdf": str(PUBLIC_COPY),
+        "sha256": sha256(PUBLIC_COPY),
+        "manifest": str(BUILD_MANIFEST),
+    }, indent=2))
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_provenance() -> None:
+    git_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True,
+        capture_output=True, text=True,
+    ).stdout.strip()
+    git_dirty = bool(subprocess.run(
+        ["git", "status", "--porcelain"], cwd=ROOT, check=True,
+        capture_output=True, text=True,
+    ).stdout.strip())
+    inputs = [SOURCE, Path(__file__).resolve(), LOGO, *FONT_FILES]
+    pdf_digest = sha256(OUTPUT)
+    manifest = {
+        "schemaVersion": "cockroach.white-paper-build.v1",
+        "paperVersion": PAPER_VERSION,
+        "implementationVersion": IMPLEMENTATION_VERSION,
+        "publicationDate": PUBLICATION_DATE,
+        "gitBaseCommit": git_commit,
+        "workingTreeDirty": git_dirty,
+        "inputs": [
+            {
+                "path": str(path.relative_to(ROOT)).replace("\\", "/")
+                if path.is_relative_to(ROOT) else str(path).replace("\\", "/"),
+                "bytes": path.stat().st_size,
+                "sha256": sha256(path),
+            }
+            for path in inputs
+        ],
+        "outputs": [
+            {
+                "path": str(path.relative_to(ROOT)).replace("\\", "/"),
+                "bytes": path.stat().st_size,
+                "sha256": sha256(path),
+            }
+            for path in (OUTPUT, PUBLIC_COPY, SITE_COPY)
+        ],
+        "pdfSha256": pdf_digest,
+    }
+    BUILD_MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    CHECKSUM.write_text(f"{pdf_digest}  {PUBLIC_COPY.name}\n", encoding="utf-8")
+    shutil.copyfile(BUILD_MANIFEST, SITE_BUILD_MANIFEST)
+    shutil.copyfile(CHECKSUM, SITE_CHECKSUM)
 
 
 if __name__ == "__main__":

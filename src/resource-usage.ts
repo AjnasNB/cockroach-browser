@@ -71,6 +71,35 @@ export async function sampleProcessTree(rootPid: number): Promise<ProcessTreeSam
   return aggregateProcessTree(rootPid, records);
 }
 
+export async function listProcessTreePids(rootPid: number): Promise<readonly number[]> {
+  assertPid(rootPid);
+  return collectProcessTreePids(rootPid, await sampleProcessRecords());
+}
+
+export function collectProcessTreePids(rootPid: number, records: readonly ProcessRecord[]): readonly number[] {
+  assertPid(rootPid);
+  const byPid = new Set(records.filter(validRecord).map((record) => record.pid));
+  if (!byPid.has(rootPid)) throw new Error(`Browser process ${rootPid} is no longer running.`);
+  const byParent = new Map<number, number[]>();
+  for (const record of records) {
+    if (!validRecord(record)) continue;
+    const children = byParent.get(record.parentPid) ?? [];
+    children.push(record.pid);
+    byParent.set(record.parentPid, children);
+  }
+  const selected: number[] = [];
+  const pending = [rootPid];
+  const seen = new Set<number>();
+  while (pending.length > 0) {
+    const pid = pending.pop()!;
+    if (seen.has(pid)) continue;
+    seen.add(pid);
+    if (byPid.has(pid)) selected.push(pid);
+    for (const child of byParent.get(pid) ?? []) pending.push(child);
+  }
+  return selected.sort((left, right) => left - right);
+}
+
 export function createSharedProcessTreeSampler(
   options: SharedProcessTreeSamplerOptions = {}
 ): ProcessTreeSampler {

@@ -6,6 +6,32 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.5.0-rc.1] - 2026-09-03
+
+### Added
+
+- explicit runtime-owned Obscura and Lightpanda CDP providers with loopback-only
+  startup, optional executable digest pinning, capability preflight, and owned
+  process-tree cleanup
+- bounded structured extraction for sanitized text, HTML, Markdown, links,
+  metadata, JSON-LD, and tables
+- continuous browser process-tree sampling and a fail-closed lightweight
+  conformance benchmark that reports browser and coordinator memory separately
+
+### Changed
+
+- browser capabilities now describe a routed union across full Playwright and
+  Puppeteer engines, protocol and device adapters, and experimental lightweight
+  engines instead of implying one engine implements every browser feature
+- public action and session schemas now track the runtime action and provider
+  contracts, including lightweight-provider opt-in and configuration limits
+
+### Verification
+
+- lightweight benchmark results include exact binary identity, machine data,
+  warm-up and measured runs, required DOM/JavaScript/form checks, continuous
+  peak RSS and CPU observations, and a non-zero exit when any target fails
+
 ## [0.4.1] - 2026-08-15
 
 ### Fixed
@@ -206,7 +232,8 @@ The format follows Keep a Changelog and the project uses Semantic Versioning.
 - deterministic capability catalog, JSON schemas, examples, Docker profile, and release checks
 - Node.js 22, 24, and 26 verification matrix
 
-[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/AjnasNB/cockroach-browser/compare/v0.5.0-rc.1...HEAD
+[0.5.0-rc.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.1...v0.5.0-rc.1
 [0.4.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/AjnasNB/cockroach-browser/compare/v0.4.0-rc.1...v0.4.0
 [0.4.0-rc.1]: https://github.com/AjnasNB/cockroach-browser/compare/v0.3.0...v0.4.0-rc.1

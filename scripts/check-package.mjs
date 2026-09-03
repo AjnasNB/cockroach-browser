@@ -8,6 +8,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = await json("package.json");
 const packageLock = await json("package-lock.json");
 const server = await json("server.json");
+const publicSchemaFiles = ["action.schema.json", "browser-memory.schema.json", "session.schema.json"];
 
 assert(packageJson.name === "cockroach-browser", "package name must be cockroach-browser");
 assert(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(packageJson.version), "package version must be valid semver");
@@ -16,6 +17,10 @@ assert(packageJson.author === "Ajnas NB", "package author must identify Ajnas NB
 assert(packageJson.mcpName === "io.github.AjnasNB/cockroach-browser", "mcpName must match the authorized, case-sensitive MCP registry identity");
 assert(packageJson.engines?.node === "^22.0.0 || ^24.0.0 || ^26.0.0", "Node support must remain 22, 24, and 26");
 assert(packageLock.name === packageJson.name && packageLock.version === packageJson.version, "package-lock identity is stale");
+for (const schemaFile of publicSchemaFiles) {
+  const subpath = `./schemas/${schemaFile}`;
+  assert(packageJson.exports?.[subpath] === subpath, `package exports are missing ${subpath}`);
+}
 assert(server.name === packageJson.mcpName, "server.json name must match package mcpName");
 assert(server.version === packageJson.version, "server.json version must match package version");
 assert(
@@ -66,7 +71,9 @@ const requiredSourceFiles = [
   "dist/integrations/qarinah.js",
   "dist/integrations/crawler.js",
   "dist/integrations/productloop.js",
+  "schemas/action.schema.json",
   "schemas/browser-memory.schema.json",
+  "schemas/session.schema.json",
   "docs/compatibility/browser-api-surface.json",
   "sdks/python/cockroach_browser/client.py",
   "sdks/java/src/main/java/io/cockroach/browser/Client.java",

@@ -33,6 +33,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
       - run: npm run build
+      - run: npm run verify:lightweight-proof
       - run: npm test
       - run: npm run check:package
       - run: npm run check:site

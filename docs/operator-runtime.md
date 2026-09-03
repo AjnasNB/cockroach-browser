@@ -8,7 +8,7 @@ Public manual: https://cockroachbrowser.com/docs/operator-runtime/
 
 ## Inspect browser and daemon state
 
-browser discover reports installed compatible browsers. doctor verifies Node, Chromium, the data root, and local service readiness. The authenticated daemon publishes /v1/health, /v1/openapi.json, and Prometheus text at /v1/metrics.
+browser discover reports installed compatible browsers. doctor verifies Node, Chromium, the data root, and local service readiness. Any authenticated identity can read the relative-base /v1/openapi.json route index. Global /v1/health, Prometheus text at /v1/metrics, and /v1/evidence/verify require the daemon administrator token; actor tokens remain limited to actor-scoped records. The OpenAPI document indexes every implemented daemon method/path with a unique operationId and an explicit success response; it is route discovery, not an authorization grant.
 
 ## Follow the activity stream
 
@@ -30,7 +30,15 @@ cockroach-browser session graph --id "$SESSION_ID" \
 
 ## Share control without sharing profiles
 
-TeamSessionStore persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. Grant generations and revocations are durable, while raw cookies and browser profiles never enter the access record.
+TeamSessionStore persists one owner plus revocable viewer and operator grants. Viewers can inspect; operators can use explicitly enabled action routes; owners manage access and closure. A mutation replaces the in-memory ownership map only after durable persistence succeeds, so a failed write leaves the prior access state intact. Raw cookies and browser profiles never enter the access record.
+
+Configuring actor-scoped bearer tokens without TeamSessionStore is a startup error. The administrator token and every actor token must be unique or startup fails with AUTH_TOKEN_COLLISION. Actor-token session creation is also disabled until the host provides actorSessionFactory. The callback must construct authoritative session input from individually reviewed request fields rather than spreading caller JSON. The server replaces the actor with the authenticated identity and claims the session in the store before returning it; claim failure closes the new session.
+
+## Bound concurrent session admission
+
+BrowserServerOptions.maxSessions defaults to 32 non-closed sessions for the daemon; maxSessionsPerActor defaults to 8 non-closed sessions assigned to one actor. Pending creates reserve their slots through a concurrency-safe serialized admission step, so parallel requests cannot oversubscribe either ceiling.
+
+Ceiling rejections return HTTP 429 with stable codes: SESSION_GLOBAL_LIMIT_EXCEEDED or SESSION_ACTOR_LIMIT_EXCEEDED. Closed sessions do not count. maxRequestBytes defaults to 1,048,576 bytes and accepts only integers from 1,024 through 16,777,216 bytes.
 
 ## Route across authenticated workers
 
@@ -41,6 +49,6 @@ BrowserWorkerPool checks authenticated daemon health, capacity, weight, and expl
 cache.clear, console.clear, and network.clear are explicit policy-evaluated actions. They clear only the authorized session's runtime state and produce receipts; they do not erase evidence already committed to the evidence ledger.
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.

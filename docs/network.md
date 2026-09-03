@@ -1,14 +1,16 @@
-# Network boundary
+# Network controls
 
-The browser may render a page. It does not inherit your whole network.
+Route browser HTTP(S) deliberately, and add deployment isolation for hostile content.
 
-Every navigation and subresource request is checked against the session's explicit origin policy. Public adapters block loopback and private-network targets by default.
+Bounded contexts check intercepted HTTP(S) navigation and subresource requests against the session origin policy. Public adapters block loopback and private-network targets by default, but application routing is not a complete protocol sandbox.
 
 Public manual: https://cockroachbrowser.com/docs/network/
 
 ## Start from an allowlist
 
-List exact HTTPS origins whenever possible. Redirects and subresources are re-evaluated, so an admitted start URL cannot silently widen the session. Denied origins take precedence.
+List exact HTTPS origins whenever possible. Redirects and intercepted HTTP(S) subresources are re-evaluated, so an admitted start URL cannot silently widen those routed requests. Denied origins take precedence. Runtime-owned full-engine bounded contexts also validate WebSocket handshakes and block service workers in balanced and lean profiles. Balanced preserves ordinary images, media, and fonts, while lean additionally blocks those three asset classes.
+
+These controls do not contain WebRTC/STUN/TURN/UDP, WebTransport/QUIC, attached CDP, lightweight-engine WebSockets, or the unrestricted raw Playwright and Puppeteer operator lane. Use an OS, container, firewall, or equivalent egress boundary when hostile content requires complete protocol isolation.
 
 ## Private networks require an owned deployment decision
 
@@ -67,6 +69,6 @@ npx cockroach-browser network export \
 The daemon binds to localhost by default. Remote binding requires an explicit setting, TLS certificate and key, bearer authentication, and a CORS allowlist. Public unauthenticated server binding is not supported.
 
 
-## Release status
+## Source status
 
-This manual targets Cockroach Browser 0.4.1. Check [the capability matrix](https://cockroachbrowser.com/docs/capabilities/) before relying on a surface. Available means implemented in this release. Adapter means another authority or package is required. Planned means the surface is not part of this release.
+This manual is generated from current `main` for the next Cockroach Browser release. Package examples still identify published line 0.5.0-rc.1 where shown; verify npm provenance and the matching tag before production use. Available means implemented in the current source tree, not necessarily published in 0.5.0-rc.1. Adapter means another authority or package is required. Planned means the surface is not implemented here.
