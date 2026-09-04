@@ -521,6 +521,49 @@ ${header("home")}
         </article>
       </div>
       <p class="lane-rule"><strong>Routing rule:</strong> use the lightweight lane only when every required capability is admitted. Use a full engine for visual output, browser fidelity, persistent state, or unsupported work.</p>
+      <section class="engine-selector" data-engine-picker aria-labelledby="engine-selector-title">
+        <div class="engine-selector__head">
+          <div><p class="section-index">ENGINE CONTROL</p><h3 id="engine-selector-title">Choose one or several declared engine lanes.</h3></div>
+          <p>One control point for every Cockroach Browser engine. Compare lanes together, then preflight each selected engine against the same task requirements.</p>
+        </div>
+        <div class="engine-selector__body">
+          <fieldset class="engine-selector__choices">
+            <legend>Select engine lanes</legend>
+            <label class="engine-selector__choice" data-engine-choice-card>
+              <input type="checkbox" value="chromium" data-engine-choice checked>
+              <span><strong>Chromium</strong><small>Supported. Playwright, Puppeteer Core, CDP, PDF, traces, video, and reviewed extensions.</small></span>
+              <em>Supported</em>
+            </label>
+            <label class="engine-selector__choice" data-engine-choice-card>
+              <input type="checkbox" value="firefox" data-engine-choice checked>
+              <span><strong>Firefox</strong><small>Supported full rendering lane. Playwright evidence and BiDi endpoint use are declared separately.</small></span>
+              <em>Supported</em>
+            </label>
+            <label class="engine-selector__choice" data-engine-choice-card>
+              <input type="checkbox" value="webkit" data-engine-choice checked>
+              <span><strong>WebKit</strong><small>Supported full rendering lane. Use Playwright capabilities, with no CDP, Puppeteer, BiDi, PDF, or extensions claim.</small></span>
+              <em>Supported</em>
+            </label>
+            <label class="engine-selector__choice" data-engine-choice-card>
+              <input type="checkbox" value="obscura" data-engine-choice>
+              <span><strong>Obscura</strong><small>Explicit experimental CDP lane for compatible non-visual work. The 28.25 MiB result is fixture-scoped.</small></span>
+              <em>Experimental</em>
+            </label>
+            <label class="engine-selector__choice" data-engine-choice-card>
+              <input type="checkbox" value="lightpanda" data-engine-choice>
+              <span><strong>Lightpanda</strong><small>Manifest and machine preflight only. Cockroach runtime allocation remains disabled pending network-boundary conformance.</small></span>
+              <em>Preflight only</em>
+            </label>
+          </fieldset>
+          <aside class="engine-selector__summary" aria-live="polite">
+            <span class="engine-selector__label">Selection</span>
+            <strong data-engine-selection-count>3 engines selected</strong>
+            <p data-engine-selection-summary>Chromium, Firefox, WebKit: full rendering engines remain distinct execution lanes. Cockroach preflights every selected engine with no substitution.</p>
+            <div class="engine-selector__actions"><button type="button" class="button button--primary" data-engine-select-full>Select full engines</button><button type="button" data-engine-clear>Clear selection</button></div>
+            <p class="engine-selector__scope">Website selection compares declared lanes. Session creation remains an authenticated CLI, MCP, SDK, or API operation after preflight.</p>
+          </aside>
+        </div>
+      </section>
     </div>
   </section>
 

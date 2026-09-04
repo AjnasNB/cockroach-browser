@@ -203,6 +203,22 @@ if (homepageSource.includes(`\"@type\":\"FAQPage\"`) || homepageSource.includes(
 for (const required of ["AI browser automation | Cockroach Browser", "Price: $0.", `<span>${actionKinds.length} typed actions</span>`]) {
   if (!homepageSource.includes(required)) failures.push(`homepage is missing ${required}`);
 }
+for (const engine of ["chromium", "firefox", "webkit", "obscura", "lightpanda"]) {
+  if (!homepageSource.includes(`value="${engine}" data-engine-choice`)) {
+    failures.push(`homepage is missing selectable ${engine} engine lane`);
+  }
+}
+if (!homepageSource.includes("data-engine-selection-summary")) {
+  failures.push("homepage is missing multi-engine selection summary");
+}
+const siteScript = await readFile(resolve(siteRoot, "assets/main.js"), "utf8");
+if (!siteScript.includes("[data-engine-picker]")) {
+  failures.push("homepage multi-engine selector has no behavior");
+}
+const siteStyles = await readFile(resolve(siteRoot, "assets/styles.css"), "utf8");
+if (!siteStyles.includes(".engine-selector")) {
+  failures.push("homepage multi-engine selector has no styles");
+}
 for (const required of [
   "29,622,272",
   "28.25 MiB",

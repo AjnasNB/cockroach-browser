@@ -54,6 +54,69 @@ filterButtons.forEach((button) => {
 
 capabilitySearch?.addEventListener("input", filterCapabilities);
 
+const engineNames = {
+  chromium: "Chromium",
+  firefox: "Firefox",
+  webkit: "WebKit",
+  obscura: "Obscura",
+  lightpanda: "Lightpanda"
+};
+
+const fullEngineIds = new Set(["chromium", "firefox", "webkit"]);
+
+document.querySelectorAll("[data-engine-picker]").forEach((picker) => {
+  const choices = [...picker.querySelectorAll("[data-engine-choice]")];
+  const count = picker.querySelector("[data-engine-selection-count]");
+  const summary = picker.querySelector("[data-engine-selection-summary]");
+  const selectFull = picker.querySelector("[data-engine-select-full]");
+  const clear = picker.querySelector("[data-engine-clear]");
+
+  function updateEngineSelection() {
+    const selected = choices.filter((choice) => choice.checked).map((choice) => choice.value);
+    choices.forEach((choice) => {
+      choice.closest("[data-engine-choice-card]")?.classList.toggle("is-selected", choice.checked);
+    });
+
+    if (count) {
+      count.textContent = selected.length === 0
+        ? "No engines selected"
+        : `${selected.length} ${selected.length === 1 ? "engine" : "engines"} selected`;
+    }
+    if (!summary) return;
+
+    if (selected.length === 0) {
+      summary.textContent = "Select one or more engine lanes to compare their declared capability boundaries.";
+      return;
+    }
+
+    const selectedNames = selected.map((engine) => engineNames[engine]).join(", ");
+    if (selected.includes("lightpanda")) {
+      summary.textContent = `${selectedNames}: Lightpanda is available for manifest and machine preflight only. Runtime allocation stays disabled until its network-boundary conformance gate passes.`;
+      return;
+    }
+    if (selected.includes("obscura")) {
+      summary.textContent = `${selectedNames}: Obscura is an explicit experimental lane. Its 28.25 MiB result is limited to the published constrained fixture, and every selected engine is preflighted separately.`;
+      return;
+    }
+    summary.textContent = `${selectedNames}: full rendering engines remain distinct execution lanes. Cockroach preflights every selected engine with no substitution.`;
+  }
+
+  choices.forEach((choice) => choice.addEventListener("change", updateEngineSelection));
+  selectFull?.addEventListener("click", () => {
+    choices.forEach((choice) => {
+      choice.checked = fullEngineIds.has(choice.value);
+    });
+    updateEngineSelection();
+  });
+  clear?.addEventListener("click", () => {
+    choices.forEach((choice) => {
+      choice.checked = false;
+    });
+    updateEngineSelection();
+  });
+  updateEngineSelection();
+});
+
 const alternativeRows = [...document.querySelectorAll("[data-alternative]")];
 const alternativeFilters = [...document.querySelectorAll("[data-alt-filter]")];
 const alternativeSearch = document.querySelector("[data-alt-search]");
