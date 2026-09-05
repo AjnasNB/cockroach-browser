@@ -263,6 +263,9 @@ function parseActionKinds(source) {
 }
 
 async function writePage(path, content) {
+  if (path.endsWith('.html') && !content.includes('href="https://fikeya.com/platform/#browser"')) {
+    throw new Error(`${path}: missing Fikeya platform connection`);
+  }
   const target = resolve(root, path);
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, content, "utf8");

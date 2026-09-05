@@ -21,7 +21,6 @@ for (const required of ["index.html", "404.html", "robots.txt", "sitemap.xml", "
 
 for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
-  if (!html.includes('href="https://fikeya.com/platform/#browser"')) failures.push(`${file}: missing Fikeya platform connection`);
   const label = relative(siteRoot, file).replaceAll("\\", "/");
   if (/\u2014|&mdash;|&#8212;|&#x2014;/i.test(html)) failures.push(`${label}: public pages must use a normal hyphen instead of an em dash`);
   if (!/<html\b[^>]*\blang=["'][a-z]/i.test(html)) failures.push(`${label}: missing html lang`);
