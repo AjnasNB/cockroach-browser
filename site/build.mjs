@@ -366,6 +366,7 @@ function breadcrumbSchema(name, canonical) {
 
 function header(active = "") {
   return `<a class="skip-link" href="#main">Skip to content</a>
+<aside class="fikeya-family" aria-label="Fikeya platform"><a href="https://fikeya.com/">Fikeya</a><span> / Cockroach Browser · Browser automation component</span><a href="https://fikeya.com/platform/#browser">Explore the platform →</a></aside>
 <header class="site-header">
   <div class="header-inner">
     <a class="brand" href="/">
