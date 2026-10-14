@@ -160,7 +160,7 @@
     "@playwright/test": "^1.62.1",
     "ajv": "^8.20.0",
     "parse5": "^8.0.1",
-    "pixelmatch": "^7.1.0",
+    "pixelmatch": "^8.0.0",
     "playwright-core": "^1.62.1",
     "pngjs": "^7.0.0",
     "puppeteer-core": "^25.5.0",
