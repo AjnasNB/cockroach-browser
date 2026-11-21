@@ -56,9 +56,9 @@ jobs:
             if ! git diff --quiet -- "$lock"; then
               printf "### %s\n\n" "$lock" >> "$GITHUB_STEP_SUMMARY"
               sha256sum "$lock" >> "$GITHUB_STEP_SUMMARY"
-              printf "\n%s\n" "```" >> "$GITHUB_STEP_SUMMARY"
+              printf "\n%s\n" "~~~" >> "$GITHUB_STEP_SUMMARY"
               base64 -w 120 "$lock" >> "$GITHUB_STEP_SUMMARY"
-              printf "%s\n\n" "```" >> "$GITHUB_STEP_SUMMARY"
+              printf "%s\n\n" "~~~" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
           git diff --stat
