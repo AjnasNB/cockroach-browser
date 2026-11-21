@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - chore/prepare-scholar-audit-lockfiles
+  pull_request:
+    branches:
+      - docs/scholar-browser-paper-metadata
     paths:
       - .github/workflows/prepare-scholar-audit-lockfiles.yml
 permissions:
