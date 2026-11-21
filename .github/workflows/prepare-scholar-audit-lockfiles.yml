@@ -74,6 +74,15 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 24.15.0
+      - name: Apply the proposed fresh-proof paths
+        shell: pwsh
+        run: |
+          $path = (Resolve-Path scripts/verify-lightweight-proof.mjs).Path
+          $data = [IO.File]::ReadAllText($path)
+          $data = $data.Replace('obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json', 'obscura-0.2.1-constrained-non-visual-30mib-2026-11-21-audited.json')
+          $data = $data.Replace('obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json', 'obscura-0.2.1-constrained-non-visual-25mib-2026-11-21-audited.json')
+          $data = $data.Replace('obscura-non-visual-2026-09-03.md', 'obscura-non-visual-2026-11-21-audited.md')
+          [IO.File]::WriteAllText($path, $data, [Text.UTF8Encoding]::new($false))
       - run: npm ci --ignore-scripts
       - run: npm run build
       - name: Run the published benchmark on the patched source
