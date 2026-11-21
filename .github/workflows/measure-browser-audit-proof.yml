@@ -1,0 +1,65 @@
+name: Measure Browser audit proof
+on:
+  push:
+    branches:
+      - chore/prepare-scholar-audit-lockfiles
+    paths:
+      - .github/workflows/measure-browser-audit-proof.yml
+permissions:
+  contents: read
+jobs:
+  measure:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 00e8196d9afdb6674786b6b966bc927b12559d9d
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.15.0
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Run the published benchmark on the patched source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $digest = "5b609fb46bc00da79e450fb0fbd34bd442e565b1394f4af95433e0b341078221"
+          $urls = @(
+            "https://github.com/h4ckf0r0day/obscura/releases/download/v0.2.1/obscura-x86_64-windows-no-render.zip"
+            "https://github.com/h4ckf0r0day/obscura/releases/download/v0.2.1/obscura-x86_64-windows.zip"
+          )
+          $chosen = $null
+          foreach ($url in $urls) {
+            $name = Split-Path -Leaf $url
+            $zip = Join-Path $env:RUNNER_TEMP $name
+            Invoke-WebRequest -Uri $url -OutFile $zip
+            $folder = Join-Path $env:RUNNER_TEMP ($name -replace ".zip$", "")
+            Expand-Archive -LiteralPath $zip -DestinationPath $folder
+            foreach ($candidate in Get-ChildItem -LiteralPath $folder -Filter obscura.exe -File -Recurse) {
+              $actual = (Get-FileHash -LiteralPath $candidate.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              Write-Host "$name executable SHA-256: $actual"
+              if ($actual -eq $digest) { $chosen = $candidate.FullName; break }
+            }
+            if ($chosen) { break }
+          }
+          if (!$chosen) { throw "Official Windows assets do not match the published benchmark executable" }
+          foreach ($target in @(30, 25)) {
+            $report = Join-Path $env:RUNNER_TEMP "obscura-audit-$target.json"
+            & node scripts/benchmark-lightweight.mjs --executable $chosen --implementation obscura --sha256 $digest --resource-profile constrained --warmup 1 --iterations 20 --resource-samples 10 --resource-sample-interval-ms 25 --target-mib $target --output $report
+            $status = $LASTEXITCODE
+            if (!(Test-Path -LiteralPath $report)) { throw "No benchmark report at $target MiB" }
+            $measured = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
+            $sha = (Get-FileHash -LiteralPath $report -Algorithm SHA256).Hash.ToLowerInvariant()
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "### $target MiB"
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "Exit $status. SHA-256 $sha. Passed $($measured.verdict.passed). Maximum $($measured.verdict.maxObservedBrowserTreeRssBytes) bytes."
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value ""
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "~~~"
+            $encoded = [Convert]::ToBase64String([IO.File]::ReadAllBytes($report))
+            $lines = [regex]::Matches($encoded, ".{1,120}") | ForEach-Object Value
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value $lines
+            Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Value "~~~"
+            if ($target -eq 30) { $firstStatus = $status }
+          }
+          exit $firstStatus
