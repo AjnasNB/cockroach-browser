@@ -1,0 +1,62 @@
+name: Prepare Scholar audit lockfiles
+on:
+  push:
+    branches:
+      - chore/prepare-scholar-audit-lockfiles
+    paths:
+      - .github/workflows/prepare-scholar-audit-lockfiles.yml
+permissions:
+  contents: read
+jobs:
+  prepare:
+    name: Prepare ${{ matrix.project }} lockfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: Cockroach Browser
+            repository: AjnasNB/cockroach-browser
+            ref: docs/scholar-browser-paper-metadata
+            targets: .:production
+          - project: Maqam
+            repository: AjnasNB/maqam
+            ref: docs/scholar-maqam-paper-metadata
+            targets: .:production demo/yc-dashboard:all integration-fixtures/google-adk-function-tool:all
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Generate and audit lockfiles
+        env:
+          LOCK_TARGETS: ${{ matrix.targets }}
+        shell: bash
+        run: |
+          set -eu
+          failed=0
+          printf "Source commit %s\n\n" "$(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          for target in $LOCK_TARGETS; do
+            prefix=${target%:*}
+            scope=()
+            if [[ ${target#*:} == production ]]; then scope=(--omit=dev); fi
+            if ! npm --prefix "$prefix" audit fix --package-lock-only --ignore-scripts "${scope[@]}"; then
+              printf "Audit fix reported remaining findings for %s\n" "$prefix"
+            fi
+            if ! npm --prefix "$prefix" audit "${scope[@]}"; then failed=1; fi
+            lock="$prefix/package-lock.json"
+            if ! git diff --quiet -- "$lock"; then
+              printf "### %s\n\n" "$lock" >> "$GITHUB_STEP_SUMMARY"
+              sha256sum "$lock" >> "$GITHUB_STEP_SUMMARY"
+              printf "\n%s\n" "```" >> "$GITHUB_STEP_SUMMARY"
+              base64 -w 120 "$lock" >> "$GITHUB_STEP_SUMMARY"
+              printf "%s\n\n" "```" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+          git diff --stat
+          exit "$failed"
