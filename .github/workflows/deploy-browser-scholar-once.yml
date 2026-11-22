@@ -26,6 +26,7 @@ jobs:
       - name: Verify the reviewed merge and production site
         run: |
           test "$(git rev-parse HEAD)" = "871e4bc9f1fcd9232f0f606db1fae7c5adec111a"
+          npm run api-surface:build
           npm run check
           git diff --exit-code -- site/paper/index.html wrangler.jsonc
           npx --yes wrangler@4.166.0 deploy --config wrangler.jsonc --dry-run
