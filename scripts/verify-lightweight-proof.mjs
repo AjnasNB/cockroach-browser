@@ -9,10 +9,10 @@ import { promisify } from "node:util";
 const execute = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const paths = [
-  resolve(root, process.argv[2] ?? "docs/benchmarks/artifacts/obscura-0.2.1-constrained-non-visual-30mib-2026-09-03-rc1.json"),
-  resolve(root, process.argv[3] ?? "docs/benchmarks/artifacts/obscura-0.2.1-constrained-non-visual-25mib-2026-09-03-rc1.json")
+  resolve(root, process.argv[2] ?? "docs/benchmarks/artifacts/obscura-0.2.1-constrained-non-visual-30mib-2026-11-21-audited.json"),
+  resolve(root, process.argv[3] ?? "docs/benchmarks/artifacts/obscura-0.2.1-constrained-non-visual-25mib-2026-11-21-audited.json")
 ];
-const proofRecordPath = resolve(root, "docs/benchmarks/obscura-non-visual-2026-09-03.md");
+const proofRecordPath = resolve(root, "docs/benchmarks/obscura-non-visual-2026-11-21-audited.md");
 const readmePath = resolve(root, "README.md");
 const reports = await Promise.all(paths.map(async (path) => JSON.parse(await readFile(path, "utf8"))));
 const artifactDigests = await Promise.all(paths.map(sha256));
@@ -177,7 +177,7 @@ async function assertNarrativeConsistency(reports, artifactPaths, artifactDigest
     readFile(readmePath, "utf8"),
     readFile(proofRecordPath, "utf8")
   ]);
-  const proofLink = "docs/benchmarks/obscura-non-visual-2026-09-03.md";
+  const proofLink = "docs/benchmarks/obscura-non-visual-2026-11-21-audited.md";
   assert(readme.replaceAll("\\", "/").includes(proofLink), "README must link to the current non-visual proof record");
   assert(readme.includes(reports[0].executable.sha256), "README must identify the reviewed Obscura digest");
   assert(readme.split(/\r?\n/).some((line) => /whole[- ]app/i.test(line) && /not|doesn't|does not/i.test(line)), "README must disclaim a whole-app memory guarantee");
