@@ -28,6 +28,11 @@ jobs:
           test "$(git rev-parse HEAD)" = "871e4bc9f1fcd9232f0f606db1fae7c5adec111a"
           npm run api-surface:build
           npm run check
+          # Publish the reviewed paper HTML, which the general site generator rewrites.
+          git restore --source=HEAD --worktree -- site/paper/index.html
+          grep -Fq '<meta name="citation_title" content="Cockroach Browser: A Governed Multi-Engine Runtime for AI Agents">' site/paper/index.html
+          grep -Fq '<meta name="citation_pdf_url" content="https://cockroachbrowser.com/paper/Cockroach-Browser-Technical-White-Paper-v1.2.pdf">' site/paper/index.html
+          node site/validate.mjs
           git diff --exit-code -- site/paper/index.html wrangler.jsonc
           npx --yes wrangler@4.166.0 deploy --config wrangler.jsonc --dry-run
       - name: Upload and deploy the verified static asset version
