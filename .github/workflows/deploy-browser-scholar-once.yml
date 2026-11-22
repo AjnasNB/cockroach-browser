@@ -1,0 +1,53 @@
+name: Deploy reviewed Cockroach Browser Scholar metadata once
+
+on:
+  push:
+    branches:
+      - ops/browser-scholar-deploy-2026-11-22
+    paths:
+      - .github/workflows/deploy-browser-scholar-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 871e4bc9f1fcd9232f0f606db1fae7c5adec111a
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Verify the reviewed merge and production site
+        run: |
+          test "$(git rev-parse HEAD)" = "871e4bc9f1fcd9232f0f606db1fae7c5adec111a"
+          npm run check
+          git diff --exit-code -- site/paper/index.html wrangler.jsonc
+          npx --yes wrangler@4.166.0 deploy --config wrangler.jsonc --dry-run
+      - name: Upload and deploy the verified static asset version
+        env:
+          DEPLOY_CREDENTIAL: ${{ secrets.BROWSER_SCHOLAR_DEPLOY_ONCE }}
+          NO_COLOR: '1'
+        run: |
+          set -euo pipefail
+          if [[ -z "$DEPLOY_CREDENTIAL" ]]; then
+            echo "Production was skipped because the temporary deployment secret is absent." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          CLOUDFLARE_API_TOKEN=$(jq -er .token <<< "$DEPLOY_CREDENTIAL")
+          CLOUDFLARE_ACCOUNT_ID=$(jq -er .account <<< "$DEPLOY_CREDENTIAL")
+          printf '::add-mask::%s\n' "$CLOUDFLARE_API_TOKEN" "$CLOUDFLARE_ACCOUNT_ID"
+          export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
+          unset DEPLOY_CREDENTIAL
+          npx --yes wrangler@4.166.0 versions upload --config wrangler.jsonc --keep-vars --dry-run
+          npx --yes wrangler@4.166.0 versions upload --config wrangler.jsonc --keep-vars --message "Browser Scholar metadata from 871e4bc" | tee "$RUNNER_TEMP/browser-version.log"
+          version=$(sed -nE 's/^.*Version ID: ([0-9a-fA-F-]{36}).*$/\1/p' "$RUNNER_TEMP/browser-version.log" | tail -n 1)
+          test -n "$version"
+          npx --yes wrangler@4.166.0 versions deploy "$version@100%" --config wrangler.jsonc --yes --message "Deploy reviewed Browser Scholar metadata from 871e4bc"
+          unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
+          printf 'Deployed reviewed Cockroach Browser commit 871e4bc as version %s\n' "$version" >> "$GITHUB_STEP_SUMMARY"
