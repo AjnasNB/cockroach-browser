@@ -72,6 +72,11 @@ The measured memory result is intentionally narrow. On the September 3, 2026 pin
 
 The passing maximum is exactly 28.25 MiB. The Node coordinator was measured separately. This is not a whole-app, coordinator, arbitrary-page, rendered-page, or full-browser memory guarantee; Chromium, Firefox, and WebKit use far more memory. See the [canonical measured proof record](./docs/benchmarks/obscura-non-visual-2026-09-03.md), [headless compatibility guide](./docs/headless-compatibility.md), and [resource-governance methodology](./docs/resource-governance.md).
 
+For the audited dependency tree, the [November hosted reproduction](./docs/benchmarks/obscura-non-visual-2026-11-21-audited.md) measured these results on a separate Windows runner.
+
+- 30 MiB passed with a maximum of 28,459,008 bytes.
+- 25 MiB failed with a maximum of 28,708,864 bytes.
+
 ## Install once for your user account
 
 Install the CLI globally when the same operator account should use Cockroach Browser across projects:
